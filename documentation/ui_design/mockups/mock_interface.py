@@ -15,9 +15,28 @@ interactive_menu.addAction(maori_electorate_action)
 interactive_redistrict_tool_button.setMenu(interactive_menu)
 t.addWidget(interactive_redistrict_tool_button)
 
+redistrict_selected_tool_button = QToolButton()
+redistrict_selected_tool_button.setAutoRaise(True)
+redistrict_selected_tool_button.setToolTip('Redistrict Selected Mesh Blocks')
+redistrict_selected_tool_button.setIcon(QIcon('/home/nyall/dev/redistricting/images/redistrict_selected.svg'))
+redistrict_selected_tool_button.setPopupMode(QToolButton.InstantPopup)
 
-redistrict_selected_action=QAction(QIcon('/home/nyall/dev/redistricting/images/redistrict_selected.svg'),'Redistrict Selected Mesh Blocks')
-t.addAction(redistrict_selected_action)
+def select_new_electorate():
+    dlg = ElectorateSelectionDialog(iface.mainWindow())
+    dlg.exec_()
+
+selected_menu = QMenu()
+selected_general_electorate_action = QAction('Assign General Electorate for Selected Meshblocks...')
+selected_general_electorate_action.triggered.connect(select_new_electorate)
+selected_menu.addAction(selected_general_electorate_action)
+selected_maori_electorate_action = QAction('Assign Maori Electorate for Selected Meshblocks...')
+selected_maori_electorate_action.triggered.connect(select_new_electorate)
+selected_menu.addAction(selected_maori_electorate_action)
+
+
+redistrict_selected_tool_button.setMenu(selected_menu)
+t.addWidget(redistrict_selected_tool_button)
+
 stats_tool_action=QAction(QIcon('/home/nyall/dev/redistricting/images/stats_tool.svg'),'District Statistics')
 t.addAction(stats_tool_action)
 
@@ -67,3 +86,34 @@ t.move(p.x() + 30, p.y() + 50)
 t.adjustSize()
 
 t.show()
+
+
+class ElectorateSelectionDialog(QDialog):
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        self.setWindowTitle('Select New Electorate')
+        
+        l = QVBoxLayout()
+        
+        search = QgsFilterLineEdit()
+        search.setShowSearchIcon(True)
+        search.setPlaceholderText('Search for electorate')
+        l.addWidget(search)
+        
+        list = QListWidget()
+        for i in range(10):
+            list.addItem( 'Electorate {}'.format(i))
+            
+        l.addWidget(list)
+        
+        bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        l.addWidget(bb)
+        bb.rejected.connect(self.reject)
+        bb.accepted.connect(self.accept)
+            
+        self.setLayout(l)
+        
+        
+
