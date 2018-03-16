@@ -106,7 +106,7 @@ class CentroidDecorator(QgsMapCanvasItem):
                 pole, dist = f.geometry().clipped(rect).poleOfInaccessibility(3000)
                 pixel = self.toCanvasCoordinates(pole.asPoint())
                 
-                text_string = [f['GeneralConstituencyCode'],f['MaoriConstituencyCode'],f['GeneralElectoralDistrictCode_2007']]
+                text_string = ['G: {}'.format(int(f['Shape_Length']))] #,'M: {}'.format(int(f['Shape_Length']*.5))]
                 #print(pixel.toPoint())
                 QgsTextRenderer().drawText(QPointF(pixel.x(), pixel.y()),0,QgsTextRenderer.AlignCenter,
                     text_string, render_context,self.text_format)

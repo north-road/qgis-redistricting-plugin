@@ -1,7 +1,21 @@
 t=QToolBar('Redistricting')
 
-interactive_redistrict_action=QAction(QIcon('/home/nyall/dev/redistricting/images/interactive_redistrict.svg'),'Interactive Redistrict')
-t.addAction(interactive_redistrict_action)
+interactive_redistrict_tool_button = QToolButton()
+interactive_redistrict_tool_button.setAutoRaise(True)
+interactive_redistrict_tool_button.setToolTip('Interactive Redistrict')
+interactive_redistrict_tool_button.setIcon(QIcon('/home/nyall/dev/redistricting/images/interactive_redistrict.svg'))
+interactive_redistrict_tool_button.setPopupMode(QToolButton.InstantPopup)
+
+interactive_menu = QMenu()
+general_electorate_action = QAction('General Electorate')
+interactive_menu.addAction(general_electorate_action)
+maori_electorate_action = QAction('Maori Electorate')
+interactive_menu.addAction(maori_electorate_action)
+
+interactive_redistrict_tool_button.setMenu(interactive_menu)
+t.addWidget(interactive_redistrict_tool_button)
+
+
 redistrict_selected_action=QAction(QIcon('/home/nyall/dev/redistricting/images/redistrict_selected.svg'),'Redistrict Selected Mesh Blocks')
 t.addAction(redistrict_selected_action)
 stats_tool_action=QAction(QIcon('/home/nyall/dev/redistricting/images/stats_tool.svg'),'District Statistics')
