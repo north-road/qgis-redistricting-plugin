@@ -93,16 +93,23 @@ new_general_electorate.triggered.connect(create_electorate)
 new_electorate_menu.addAction(new_general_electorate )
 new_maori_electorate = QAction('Maori Electorate...')
 new_electorate_menu.addAction(new_maori_electorate )
-new_electorate_action.addMenu(new_electorate_menu)
 
 options_menu.addMenu(new_electorate_menu)
 options_menu.addSeparator()
 
 
-master_db_menu = QMenu('Master Database')
-export_master_action = QAction('Export Master Database...')
+master_db_menu = QMenu('Database')
+export_master_action = QAction('Export Database...')
 master_db_menu.addAction(export_master_action )
+
+def import_database():
+    dlg = QgsNewNameDialog('', '', parent=iface.mainWindow())
+    dlg.setWindowTitle('Import Master Database')
+    dlg.setHintString('Importing a new master database will completely replace the existing district database.\n\nThis action cannot be reversed!\n\nEnter \'I ACCEPT\' to continue.')
+    dlg.show()
+
 import_master_action = QAction('Import Master Database...')
+import_master_action.triggered.connect(import_database)
 master_db_menu.addAction(import_master_action )
 options_menu.addMenu(master_db_menu)
 
@@ -114,7 +121,20 @@ help_action=QAction(QIcon('/home/nyall/dev/redistricting/images/help.svg'),'Help
 dock_toolbar.addAction(help_action)
 
 frame=QTextBrowser()
-#frame.setHtml('<h1>Scenario 1</h1><h3>Estimated Count</h3>')
+frame.setHtml("""<h1>Scenario 1</h1>
+<h2>General Electorate: Nelson</h2>
+<h4>Assigned meshblocks</h4>
+<li>MB 0847200</li>
+<li>MB 0846601</li>
+<li>MB 0848300</li>
+...
+<h3><span style="font-weight:normal">Quota: </span>55555<br>
+<span style="font-weight:normal">Actual Population: </span>unknown<br>
+<span style="font-weight:normal">Projected Population 2020: </span>unknown<br>
+<span style="font-weight:normal">Projected Population 2023: </span>unknown</h3>
+<p><a href="xxx">Request population from Statistics NZ</a></p>
+<h3><span style="font-weight:normal">Offline Estimate: </span>55866 <span style="font-weight:normal; color: red">(+6% variation)</span></h3>""")
+
 grid.addWidget(frame,1,0,1,1)
 
 dock.setWidget(dock_contents)
