@@ -113,6 +113,9 @@ import_master_action.triggered.connect(import_database)
 master_db_menu.addAction(import_master_action )
 options_menu.addMenu(master_db_menu)
 
+meshblock_action = QAction('Update Meshblock Table...')
+options_menu.addAction(meshblock_action )
+
 export_action = QAction('Export Districts...')
 options_menu.addAction(export_action)
 
