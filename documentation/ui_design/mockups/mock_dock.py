@@ -25,6 +25,15 @@ def branch_scenario():
     dlg.setHintString('Enter name for new scenario')
     dlg.show()
     
+def import_scenario():
+    dlg = ScenarioSelectionDialog(iface.mainWindow())
+    dlg.setWindowTitle('Import Scenario from Database')
+    if dlg.exec_():
+        new_name_dlg = QgsNewNameDialog('Scenario 5', 'Scenario 5', parent=iface.mainWindow())
+        new_name_dlg.setWindowTitle('Import Scenario from Database')
+        new_name_dlg.setHintString('Enter name for imported scenario')
+        new_name_dlg.show()
+    
 scenarios_menu = QMenu()
 switch_scenario_action = QAction('Switch to Existing Scenario...')
 switch_scenario_action.triggered.connect(select_current_scenario)
@@ -33,6 +42,7 @@ store_scenario_action = QAction('Branch to New Scenario...')
 store_scenario_action.triggered.connect(branch_scenario)
 scenarios_menu.addAction(store_scenario_action)
 import_scenario_action = QAction('Import Scenario from Database...')
+import_scenario_action.triggered.connect(import_scenario)
 scenarios_menu.addAction(import_scenario_action)
 scenarios_tool_button.setMenu(scenarios_menu)
 
