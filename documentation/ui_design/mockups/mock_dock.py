@@ -48,7 +48,30 @@ scenarios_tool_button.setMenu(scenarios_menu)
 
 dock_toolbar.addWidget(scenarios_tool_button)
 
+def validate():
+    table=QTableWidget()
+    table.setColumnCount(3)
+    table.setRowCount(2)
+    table.setHorizontalHeaderLabels(['','Electorate','Error'])
+    table.setItem(0,1,QTableWidgetItem('General Electorate 1'))
+    table.setItem(0,2,QTableWidgetItem('Electorate is non-contiguous'))
+    table.setItem(1,1,QTableWidgetItem('Maori Electorate 4'))
+    table.setItem(1,2,QTableWidgetItem('Exceeds population tolerance'))
+    
+    def create_zoom_button():
+        button = QToolButton()
+        button.setToolTip('Zoom to Electorate')
+        button.setIcon(QIcon('/home/nyall/dev/redistricting/images/zoom_selected.svg'))
+        return button
+        
+    table.setCellWidget(0,0,create_zoom_button())
+    table.setCellWidget(1,0,create_zoom_button())
+    grid.addWidget(table,1,0,1,1)
+
+    
+
 validate_action=QAction(QIcon('/home/nyall/dev/redistricting/images/validate.svg'),'Validate Districts')
+validate_action.triggered.connect(validate)
 dock_toolbar.addAction(validate_action)
 
 options_button = QToolButton()
@@ -57,9 +80,22 @@ options_button.setToolTip('Options')
 options_button.setIcon(QIcon('/home/nyall/dev/redistricting/images/options.svg'))
 options_button.setPopupMode(QToolButton.InstantPopup)
 
+def create_electorate():
+    dlg = QgsNewNameDialog('New Electorate', 'New Electorate', parent=iface.mainWindow())
+    dlg.setWindowTitle('Create New General Electorate')
+    dlg.setHintString('Enter name for new electorate')
+    dlg.show()
+    
 options_menu = QMenu()
-new_electorate_action = QAction('New Electorate...')
-options_menu.addAction(new_electorate_action)
+new_electorate_menu = QMenu('Create New Electorate')
+new_general_electorate = QAction('General Electorate...')
+new_general_electorate.triggered.connect(create_electorate)
+new_electorate_menu.addAction(new_general_electorate )
+new_maori_electorate = QAction('Maori Electorate...')
+new_electorate_menu.addAction(new_maori_electorate )
+new_electorate_action.addMenu(new_electorate_menu)
+
+options_menu.addMenu(new_electorate_menu)
 options_menu.addSeparator()
 
 
@@ -78,7 +114,7 @@ help_action=QAction(QIcon('/home/nyall/dev/redistricting/images/help.svg'),'Help
 dock_toolbar.addAction(help_action)
 
 frame=QTextBrowser()
-frame.setHtml('<h1>Scenario 1</h1><h3>Estimated Count</h3>')
+#frame.setHtml('<h1>Scenario 1</h1><h3>Estimated Count</h3>')
 grid.addWidget(frame,1,0,1,1)
 
 dock.setWidget(dock_contents)
@@ -112,3 +148,4 @@ class ScenarioSelectionDialog(QDialog):
             
         self.setLayout(l)
         
+table=QTableWidget()
