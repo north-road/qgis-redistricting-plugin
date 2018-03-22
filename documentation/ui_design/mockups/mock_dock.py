@@ -129,9 +129,9 @@ frame.setHtml("""<h1>Scenario 1</h1>
 <li>MB 0848300</li>
 ...
 <h3><span style="font-weight:normal">Quota: </span>55555<br>
-<span style="font-weight:normal">Actual Population: </span>unknown<br>
-<span style="font-weight:normal">Projected Population 2020: </span>unknown<br>
-<span style="font-weight:normal">Projected Population 2023: </span>unknown</h3>
+<span style="font-weight:normal">Actual Population: </span>54382 <span style="font-weight:normal;">(-1% variation)</span><br>
+<span style="font-weight:normal">Projected Population 2020: </span>56892<br>
+<span style="font-weight:normal">Projected Population 2023: </span>62101</h3>
 <p><a href="xxx">Request population from Statistics NZ</a></p>
 <h3><span style="font-weight:normal">Offline Estimate: </span>55866 <span style="font-weight:normal; color: red">(+6% variation)</span></h3>""")
 
