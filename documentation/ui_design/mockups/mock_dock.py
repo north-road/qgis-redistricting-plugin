@@ -113,6 +113,13 @@ import_master_action.triggered.connect(import_database)
 master_db_menu.addAction(import_master_action )
 options_menu.addMenu(master_db_menu)
 
+export_action = QAction('Export Districts...')
+options_menu.addAction(export_action)
+
+options_menu.addSeparator()
+log_action = QAction('View Log...')
+options_menu.addAction(log_action)
+
 options_button.setMenu(options_menu)
 
 dock_toolbar.addWidget(options_button)
@@ -134,7 +141,7 @@ frame.setHtml("""<h1>Scenario 1</h1>
 <span style="font-weight:normal">Projected Population 2023: </span>62101</h3>
 <p><a href="xxx">Request population from Statistics NZ</a></p>
 <h3><span style="font-weight:normal">Offline Estimate: </span>55866 <span style="font-weight:normal; color: red">(+6% variation)</span></h3>""")
-
+frame.setHtml('')
 grid.addWidget(frame,1,0,1,1)
 
 dock.setWidget(dock_contents)
