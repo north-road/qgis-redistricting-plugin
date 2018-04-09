@@ -131,20 +131,16 @@ help_action=QAction(QIcon('/home/nyall/dev/redistricting/images/help.svg'),'Help
 dock_toolbar.addAction(help_action)
 
 frame=QTextBrowser()
-frame.setHtml("""<h1>Scenario 1</h1>
-<h2>General Electorate: Nelson</h2>
-<h4>Assigned meshblocks</h4>
-<li>MB 0847200</li>
-<li>MB 0846601</li>
-<li>MB 0848300</li>
-...
-<h3><span style="font-weight:normal">Quota: </span>55555<br>
-<span style="font-weight:normal">Actual Population: </span>54382 <span style="font-weight:normal;">(-1% variation)</span><br>
-<span style="font-weight:normal">Projected Population 2020: </span>56892<br>
-<span style="font-weight:normal">Projected Population 2023: </span>62101</h3>
+frame.setHtml("""<h1>Nelson</h1>
+<h2>General North Island</h2>
+<p>Quota: <span style="font-weight:bold">55555</span></p>
+<p>Population: <span style="font-weight:bold;">54382*</span> <span style="color: red; font-weight: bold">(+6%)</span><br>
+<span style="font-style:italic">* Only estimated population available</span></p>
+<p>Quota Variation 2020: <span style="font-weight:bold">unknown</span><br>
+Quota Variation 2023: <span style="font-weight:bold">unknown</span></p>
 <p><a href="xxx">Request population from Statistics NZ</a></p>
-<h3><span style="font-weight:normal">Offline Estimate: </span>55866 <span style="font-weight:normal; color: red">(+6% variation)</span></h3>""")
-frame.setHtml('')
+""")
+#frame.setHtml('')
 grid.addWidget(frame,1,0,1,1)
 
 dock.setWidget(dock_contents)

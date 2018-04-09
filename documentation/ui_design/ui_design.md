@@ -205,7 +205,7 @@ After the tool is used to click within an electorate, the dock will display a su
 
 ![Population Stats Offline](images/stats_unknown.png)
 
-These statistics include the current scenario, meshblocks currently assigned to the district, and the district population quota. Initially, only the offline population estimate (based on the inaccurate offline meshblock population counts) is shown in the dock (see image above) (refs B14). This is displayed alongside the variation from the population quota for the electorate. If the quota variation exceeds the +/-5% tolerance a warning will be shown:
+These statistics include the current electorate, electorate type and the electorate population quota. Initially, only the offline population estimate (based on the inaccurate offline meshblock population counts) is shown in the dock (see image above) (refs B14). This is displayed alongside the variation from the population quota for the electorate. If the quota variation exceeds the +/-5% tolerance a warning will be shown:
 
 ![Exceeds quota](images/quota_warning.png)
 
@@ -215,7 +215,7 @@ The dock statistics window includes a link to request the population counts from
 
 ![Updating Population](images/updating.png)
 
-After the request completes, the accurate population count and projected populations will be displayed, alongside their variance from the quota (refs B3):
+After the request completes, the accurate population count (and its variance from the electorate's quota), and projected variations will be displayed (refs B3):
 
 ![Population Updated](images/updated.png)
 
