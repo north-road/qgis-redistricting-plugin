@@ -357,6 +357,8 @@ Triggering the `Update Meshblock Table` will prompt the user to select a new mes
 - Electorate boundaries will be recalculated based on the new meshblocks, and ALL stored populations obtained from the Statistics NZ API will be cleared.
 - Logging operations will be stored using the new meshblock version id (see [View Log](#view-log)).
 
+A new table view is opened showing just the meshblocks which have been changed since the previous version of the meshblock table. This allows users to step through this table and move the map view to see the affected meshblocks and how the change has impacted the districting operations.
+
 ### Export Districts
 
 The `Export Districts` action will allow users to create a dissolved copy of the current electorate districts (refs F6, F15). Selecting this action will trigger a file save dialog prompting the user to select a file location for the exported districts.
