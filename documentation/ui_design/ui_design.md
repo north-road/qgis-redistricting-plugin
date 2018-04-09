@@ -233,7 +233,7 @@ The scenario control action in the Redistricting Dock Options Toolbar gives user
 
 ![Scenario Control](images/scenario.png)
 
-The active scenario is shown both in the Redistricting Dock title bar, and also prominently displayed within the dock itself:
+The active scenario is shown both in the Redistricting Dock title bar:
 
 ![Active Scenario Display](images/active_scenario.png)
 
@@ -246,6 +246,10 @@ Selecting the `Switch to Existing Scenario` action opens a dialog showing all av
 If the user selects a scenario and clicks OK, the selected scenario will be loaded from the database and made the current scenario for the session. The Map View will update accordingly to reflect the district assignments from the selected scenario.
 
 The active scenario is remembered between sessions, so re-launching the redistricting application will cause the last used scenario to become the active scenario.
+
+### Update Statistics for Scenario
+
+The `Update Statistics for Scenario` action can be used to trigger a complete bulk refresh of all existing population statistics for the current electoral district assignments via the Statistics NZ API. This action both refreshes any existing stored population statistics and also fetches any missing population statistics. The update occurs in a background task, allowing users to continue working with the application whilst the updated population counts are fetched.
 
 ### Branch to New Scenario
 

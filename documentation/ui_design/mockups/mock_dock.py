@@ -38,12 +38,23 @@ scenarios_menu = QMenu()
 switch_scenario_action = QAction('Switch to Existing Scenario...')
 switch_scenario_action.triggered.connect(select_current_scenario)
 scenarios_menu.addAction(switch_scenario_action)
+
+scenarios_menu.addSeparator()
+update_scenario_action = QAction('Update Statistics for Scenario...')
+#update_scenario_action.triggered.connect(update_scenario)
+scenarios_menu.addAction(update_scenario_action)
+
+scenarios_menu.addSeparator()
+
 store_scenario_action = QAction('Branch to New Scenario...')
 store_scenario_action.triggered.connect(branch_scenario)
 scenarios_menu.addAction(store_scenario_action)
 import_scenario_action = QAction('Import Scenario from Database...')
 import_scenario_action.triggered.connect(import_scenario)
 scenarios_menu.addAction(import_scenario_action)
+
+
+
 scenarios_tool_button.setMenu(scenarios_menu)
 
 dock_toolbar.addWidget(scenarios_tool_button)
@@ -140,7 +151,27 @@ frame.setHtml("""<h1>Nelson</h1>
 Quota Variation 2023: <span style="font-weight:bold">unknown</span></p>
 <p><a href="xxx">Request population from Statistics NZ</a></p>
 """)
-#frame.setHtml('')
+# updating
+frame.setHtml("""<h1>Nelson</h1>
+<h2>General North Island</h2>
+<p>Quota: <span style="font-weight:bold">55555</span></p>
+<p>Population: <span style="font-weight:bold; font-style: italic">updating</span></p>
+<p>Quota Variation 2020: <span style="font-weight:bold; font-style: italic">updating</span><br>
+Quota Variation 2023: <span style="font-weight:bold; font-style: italic">updating</span></p>
+<p><a href="xxx">Request population from Statistics NZ</a></p>
+""")
+# actual
+
+frame.setHtml("""<h1>Nelson</h1>
+<h2>General North Island</h2>
+<p>Quota: <span style="font-weight:bold">55555</span></p>
+<p>Population: <span style="font-weight:bold;">54382</span> <span style="">(-1%)</span></p>
+<p>Quota Variation 2020: <span style="font-weight:bold">+2%</span><br>
+Quota Variation 2023: <span style="font-weight:bold">+3%</span></p>
+<p><a href="xxx">Request population from Statistics NZ</a></p>
+""")
+
+frame.setHtml('')
 grid.addWidget(frame,1,0,1,1)
 
 dock.setWidget(dock_contents)
