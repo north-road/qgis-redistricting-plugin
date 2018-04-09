@@ -82,15 +82,15 @@ The plugin will expose two map tools for performing redistricting operations. Bo
 
 ![Toolbar icons for redistricting tools](images/tools.png)
 
+Both redistricting tools operate on the electorate type selected using the [Task Switcher](#task_switcher) control.
+
 ### Interactive Redistricting Tool
 
 The Interactive Redistricting Tool allows for instant feedback about the changes in population totals which will result from a potential redistricting operation. It is a live tool and requires no existing selection within a layer to operate. It is designed to allow possible redistricting operations to be tested before "locking in" these changes.
 
 The tool is ONLY active when the meshblock layer is in edit mode, and changes made by the tool are pushed to into the undo buffer. All operations can be undone and redone up until the changes are committed to the layer (refs F11).
 
-Clicking the Interactive Redistricting Tool button will show a menu asking whether the tool should be modifying the General or Maori Electorates for the meshblocks.
-
-![Menu for Interactive Redistricting Tool](images/interactive_menu.png)
+The Interactive Redistricting Tool operates on the electorate type selected using the [Task Switcher](#task_switcher) control - e.g. if the current task is set to Maori electorates, then the redistricting tool will alter the meshblocks assigned Maori electorate.
 
 When the tool is activated, the mouse cursor will change to a snapping tool, which snaps to current electorate boundaries for the selected electorate type. The cursor will only snap to boundaries between multiple electorates (so single electorate boundaries, for example coastal boundaries, are not clickable).
 
@@ -130,11 +130,9 @@ The Redistrict Selected Meshblock tool is a non-interactive redistricting tool, 
 
 The Redistrict Selected Meshblocks tool will only be enabled when a selection exists in the meshblock layer. Additionally, the tool is ONLY active when the meshblock layer is in edit mode, and changes made by the tool are pushed to into the undo buffer. All operations can be undone and redone up until the changes are committed to the layer (refs F11).
 
-After clicking the tool button, the user is prompted whether they want to reassign the General Electorate or Maori Electorate for the selected meshblocks. 
+The  Redistrict Selected Meshblocks tool operates on the electorate type selected using the [Task Switcher](#task_switcher) control - e.g. if the current task is set to Maori electorates, then the redistricting tool will alter the meshblocks assigned Maori electorate.
 
-![Menu choice](images/assign_selected.png)
-
-The user is then given a selection of available electorate districts to reassign the selection to. The dialog lists all available electorates, and includes a search widget for filtering the list:
+After clicking the action, the user is then given a selection of available electorate districts to reassign the selection to. The dialog lists all available electorates, and includes a search widget for filtering the list:
 
 ![Select electorate dialog](images/select_electorate.png)
 
@@ -158,7 +156,7 @@ The Map Themes Switcher is available via the Redistricting Toolbar.
 
 ![Map Theme Switcher](images/map_theme_switcher.png)
 
-The Theme Switcher allows users to control the appearance of the main Map View, for example to switch between showing the current General or Maori electoral districts (refs B6). When the switcher is clicked, a drop down menu will appear showing all available map themes:
+The Theme Switcher allows users to control the appearance of the main Map View, for example to switch between showing the current electoral districts or changes from past electoral districts (refs B6). When the switcher is clicked, a drop down menu will appear showing all available map themes:
 
 ![Map Theme Switcher Menu](images/theme_switcher_menu.png)
 
@@ -175,7 +173,7 @@ The label will take the general format of (note: exact format may be subject to 
 
 ## New Themed Map View (B5, F2, F5)
 
-The last action available in the Redistricting Toolbar is the New Themed Map View action.
+The next action available in the Redistricting Toolbar is the New Themed Map View action.
 
 ![New Themed Map View Action](images/new_themed_map_view.png)
 
@@ -183,9 +181,21 @@ Like the Map Theme Switcher, this option allows users to visualise the electorat
 
 ![New Map View](images/new_map_view.png)
 
-This window is independent from the main map view and can show a different theme (for example, Maori electorates vs General electorates shown in the main view). Additionally, the window can be freely moved or placed anywhere in the QGIS interface, or dragged outside of the window and placed on a secondary monitor.
+This window is independent from the main map view and can show a different theme (for example, current electorates vs changed electorates shown in the main view). Additionally, the window can be freely moved or placed anywhere in the QGIS interface, or dragged outside of the window and placed on a secondary monitor.
 
 There is no limit on the number of combination of new map views which can be created by users. New map views created in QGIS can also have independent extent and zoom from the main window, or optionally they can be set to "synchronize" their view and scale with the main map view.
+
+## Task Switcher
+
+The final action available in the Redistricting Toolbar is the Task Switcher action.
+
+![Task Switcher](images/task_switcher.png)
+
+The `Task Switcher` allows the user to select which electorate type they are currently working with. Clicking the action shows a drop-down menu giving a choice of electorate types:
+
+![Task Switcher Menu](images/task_switcher_menu.png)
+
+When the user selects a new electorate type from the task switcher, all UI actions operate on that electorate type. For instance, redistricting tools will apply the current electorate type to the meshblocks, and the map theme views will show the current electorate type. 
 
 # Layer Control and Legend
 
