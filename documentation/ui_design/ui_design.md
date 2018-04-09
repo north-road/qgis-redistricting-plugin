@@ -233,7 +233,7 @@ The scenario control action in the Redistricting Dock Options Toolbar gives user
 
 ![Scenario Control](images/scenario.png)
 
-The active scenario is shown both in the Redistricting Dock title bar:
+The active scenario is shown in the Redistricting Dock title bar:
 
 ![Active Scenario Display](images/active_scenario.png)
 
@@ -293,17 +293,28 @@ The `Plugin Options` action displays a drop-down menu showing infrequently used 
 
 ![Plugin Options Menu](images/dock_menu.png)
 
-### Create New Electorate (B10)
+### Manage Electorates
 
-The `Create New Electorate` menu allows for users to create a new electoral district. The menu contains options for creating a General Electorate or a Maori Electorate:
+The `Manage Electorates` menu allows for management of electorates, including adding new electorates and deprecating existing electorates.
 
-![Create New Electorate Menu](images/create_new_electorate.png)
+![Manages Electorates](images/manage_electorate.png)
 
-The user is then prompted to enter a name for the new electorate:
+#### Create New Electorate (B10)
+
+The `Create New Electorate` action allows for users to create a new electoral district. After selecting the option, the user is then prompted to enter a name and type for the new electorate. The district type will default to the current session electorate district type:
 
 ![Name New Electorate](images/new_electorate.png)
 
 If a unique name is entered and the dialog accepted, the new electorate will be added to the redistricting database and will be available to assign to meshblocks via the `Redistrict Selected Meshblocks` tool.
+
+#### Deprecate Electorate
+
+The `Deprecate Electorate` action allows users to mark an electorate as 'deprecated'. Deprecating hides the electorate from all electorate selector dialogs, so that meshblocks can no longer be assigned to the deprecated electorate. The electorate remains present in the backend database to maintain integrity of existing scenarios and the user action log. Triggering the action prompts a dialog asking the user which electorate they wish to deprecate:
+
+![Deprecate Electorate](images/deprecate_electorate.png)
+
+This dialog will show ALL electorates, including those which have already been deprecated. Currently deprecated electorates are marked with an * prefix. Selecting them from the dialog will present the user with the choice of "un-deprecating" the electorate.
+
 
 ### Database Menu
 

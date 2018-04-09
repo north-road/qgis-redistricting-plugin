@@ -91,21 +91,71 @@ options_button.setToolTip('Options')
 options_button.setIcon(QIcon('/home/nyall/dev/redistricting/images/options.svg'))
 options_button.setPopupMode(QToolButton.InstantPopup)
 
+class CreateElectorateDialog(QDialog):
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        self.setWindowTitle('Create New Electorate')
+        
+        l = QVBoxLayout()
+        label = QLabel('Enter name for new electorate:')
+        l.addWidget(label)
+        
+        name = QLineEdit()
+        name.setPlaceholderText('Electorate name')
+        l.addWidget(name)
+        
+        frame = QGroupBox('Electorate Type')
+        l2 = QVBoxLayout()
+        radio = QRadioButton("General North Island")
+        radio.setChecked(True)
+        l2.addWidget(radio)
+        radio = QRadioButton("General South Island")
+        l2.addWidget(radio)        
+        radio = QRadioButton("Maori")
+        l2.addWidget(radio)
+        frame.setLayout(l2)
+        l.addWidget(frame)
+                
+        bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        l.addWidget(bb)
+        bb.rejected.connect(self.reject)
+        bb.accepted.connect(self.accept)
+            
+        self.setLayout(l)
+        
+        
 def create_electorate():
-    dlg = QgsNewNameDialog('New Electorate', 'New Electorate', parent=iface.mainWindow())
-    dlg.setWindowTitle('Create New General Electorate')
-    dlg.setHintString('Enter name for new electorate')
+    dlg = CreateElectorateDialog(iface.mainWindow())
+    dlg.setWindowTitle('Create New Electorate')
     dlg.show()
     
+    
+def deprecate_electorate():
+    dlg = ElectorateSelectionDialog(iface.mainWindow())
+    dlg.setWindowTitle('Deprecate Electorate')
+    dlg.exec_()
+    
 options_menu = QMenu()
-new_electorate_menu = QMenu('Create New Electorate')
-new_general_electorate = QAction('General Electorate...')
-new_general_electorate.triggered.connect(create_electorate)
-new_electorate_menu.addAction(new_general_electorate )
-new_maori_electorate = QAction('Maori Electorate...')
-new_electorate_menu.addAction(new_maori_electorate )
 
-options_menu.addMenu(new_electorate_menu)
+electorate_menu = QMenu('Manage Electorates')
+
+new_electorate_action = QAction('Create New Electorate...')
+new_electorate_action.triggered.connect(create_electorate)
+#new_general_electorate = QAction('General Electorate...')
+#new_general_electorate.triggered.connect(create_electorate)
+#new_electorate_menu.addAction(new_general_electorate )
+#new_maori_electorate = QAction('Maori Electorate...')
+#new_electorate_menu.addAction(new_maori_electorate )
+electorate_menu.addAction(new_electorate_action)
+
+deprecate_electorate_action = QAction('Deprecate Electorate...')
+deprecate_electorate_action.triggered.connect(deprecate_electorate)
+electorate_menu.addAction(deprecate_electorate_action)
+
+
+options_menu.addMenu(electorate_menu)
 options_menu.addSeparator()
 
 
