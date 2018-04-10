@@ -10,15 +10,15 @@ Contains mesh block boundaries and various statistics and properties of these me
 | ------------- | ------------- | ----------------- | ------------ | ----- | ----------
 | meshblock_id     | string(20)    | Mesh Block Code   |              | PK    | Unique mesh block ID, e.g. MB 0847800
 | geometry      | geometry(MultiPolygon, 2193)  | Mesh Block boundary |  | Spatial | 
-| prev_general_code | int | Previous General Electorate code |  | | Previous General Electorate at last election
-| prev_maori_code | int | Previous Maori Electorate code |  | | Previous Maori Electorate at last election
-| estimated_pop_general | int | Offline general population | | | Offline rough general population of mesh block
-| estimated_pop_maori | int | Offline Maori population | | | Offline rough Maori population of mesh block
+| offline_pop_general | int | Offline general population | | | Offline general population of mesh block
+| offline_pop_maori | int | Offline Maori population | | | Offline Maori population of mesh block
 | offshore | boolean |  | T/F | | True if mesh block is an offshore mesh block
 
 ## scenarios
 
 Stores general information relating to districting scenarios. This table is only altered when a user creates a new scenario, or imports a scenario from another user's database file. In this case new records are added, but existing records are never changed.
+
+Initially, the scenario table is populated with a single scenario representing the previously assigned electorates.
 
 | Column name   | Type          |  Descriptive name | Valid Values | Index | Description
 | ------------- | ------------- | ----------------- | ------------ | ----- | ----------
@@ -47,17 +47,25 @@ Contains available General and Maori electorates. This is a spatial table, conta
 | ------------- | ------------- | ----------------- | ------------ | ----- | ----------
 | electorate_id     | int    | Electorate ID   |              | PK    | Unique electorate ID
 | geometry      | geometry(MultiPolygon, 2193)  | Electorate boundary |  | Spatial | Current dissolved boundary of assigned mesh blocks
-| type | string(1) | Electorate type | G/M  | Y | Contains 'G' for General electorates, 'M' for Maori electorates
+| type | string(2) | Electorate type | GN/GS/M  | Y | Contains 'GN' for General North Island electorates, 'GS' for General South Island, or 'M' for Maori electorates
 | code | string(4) | Electorate code |  | | Code for electorate, e.g. '0302'
 | name | string(50) | Electorate name |  | | Name of electorate
-| quota | int | Population quota | | | Target population for electorate
 | scenario | string(20) | Current scenario | | | Contains the current scenario from which the populations and boundary were calculated
 | estimated_pop | int | Estimated population | | | Estimated (offline) population based on rough mesh block populations
 | stats_nz_pop | int | Statistics NZ population | | | Population obtained from Statistics NZ API, or NULL if not available
-| stats_nz_pop_20 | int | Projected population 2020 | | | Projected population as of 2020 obtained from Statistics NZ API, or NULL if not available
-| stats_nz_pop_23 | int | Projected population 2023 | | | Projected population obtained as of 2023 from Statistics NZ API, or NULL if not available
+| stats_nz_var_20 | int | Variation from quota  2020 | | | Projected variation from quota as of 2020 obtained from Statistics NZ API, or NULL if not available
+| stats_nz_var_23 | int | Variation from quota 2023 | | | Projected variation from quota as of 2023 from Statistics NZ API, or NULL if not available
 | invalid | boolean |  | T/F | | True if electorate has failed validation tests
 | invalid_reason | string(200) |  | | | String describing why electorate failed validation
+
+## quotas
+
+Contains population quotas for the different electorate types. Used to retrieve the target population quota for electorates.
+
+| Column name   | Type          |  Descriptive name | Valid Values | Index | Description
+| ------------- | ------------- | ----------------- | ------------ | ----- | ----------
+| type | string(2) | Electorate type | GN/GS/M  | Y | Contains 'GN' for General North Island electorates, 'GS' for General South Island, or 'M' for Maori electorates
+| quota | int | Population quota | | | Target population for electorates of this type
 
 
 ## meshblock_archive
@@ -73,7 +81,7 @@ Contains archived mesh block boundaries. This is a spatial table, containing Mul
 
 ## user_log
 
-Contains a log of the history of user interactions with the meshblock districts. New rows are appended whenever a user redistricts a meshblock whilst using the application.
+Contains a log of the history of user interactions with the meshblock and electorates. New rows are appended whenever a user redistricts a meshblock whilst using the application.
 
 | Column name   | Type          |  Descriptive name | Valid Values | Index | Description
 | ------------- | ------------- | ----------------- | ------------ | ----- | ----------
