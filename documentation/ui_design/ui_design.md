@@ -42,7 +42,7 @@ This document details the UI Design for the LINZ Redistricting QGIS Plugin.
 
 ## Document Version
 
-- Current: 2.0.0 (2018-04-09)
+- Current: 3.0.0 (2018-04-17)
 
 # Links
 
@@ -132,9 +132,13 @@ The Redistrict Selected Meshblocks tool will only be enabled when a selection ex
 
 The  Redistrict Selected Meshblocks tool operates on the electorate type selected using the [Task Switcher](#task_switcher) control - e.g. if the current task is set to Maori electorates, then the redistricting tool will alter the meshblocks assigned Maori electorate.
 
-After clicking the action, the user is then given a selection of available electorate districts to reassign the selection to. The dialog lists all available electorates, and includes a search widget for filtering the list:
+After clicking the action, the user is then given a selection of available electorate districts to reassign the selection to. The dialog lists all available electorates, and includes a search widget for filtering the list. Electorates with NO assigned meshblocks appear at the top of the list for quick access. A list of the most recently used electorates is shown at the top of the dialog for quick access, and the dialog defaults to selecting the **most recently** used electorate.
 
 ![Select electorate dialog](images/select_electorate.png)
+
+Additionally, the dialog includes an option to `Select from Map`. If this option is clicked, the dialog will close and the map mouse cursor will change to a "electorate picking" tool, allowing the user to click an electorate within the map. After a click is made in this mode, the user is presented with a confirmation dialog before the new district is locked in.
+
+Closing the electorate dialog without accepting a new electorate OR clicking `Select from Map` cancels the operation.
 
 After accepting a new electorate, the new electorate assignment will be pushed into the layer's edit buffer. The changes can be undone and redone until they are committed to the layer permanently.
 
@@ -191,7 +195,7 @@ The final action available in the Redistricting Toolbar is the Task Switcher act
 
 ![Task Switcher](images/task_switcher.png)
 
-The `Task Switcher` allows the user to select which electorate type they are currently working with. Clicking the action shows a drop-down menu giving a choice of electorate types:
+The `Task Switcher` allows the user to select which electorate type (General North Island, General South Island, or Maori) they are currently working with. Clicking the action shows a drop-down menu giving a choice of electorate types:
 
 ![Task Switcher Menu](images/task_switcher_menu.png)
 
@@ -311,7 +315,7 @@ The `Manage Electorates` menu allows for management of electorates, including ad
 
 #### Create New Electorate (B10)
 
-The `Create New Electorate` action allows for users to create a new electoral district. After selecting the option, the user is then prompted to enter a name and type for the new electorate. The district type will default to the current session electorate district type:
+The `Create New Electorate` action allows for users to create a new electoral district. After selecting the option, the user is then prompted to enter a name for the new electorate. The electorate type will be set to the current session electorate district type, and this is shown in the title bar of the dialog for clarity:
 
 ![Name New Electorate](images/new_electorate.png)
 
@@ -325,6 +329,7 @@ The `Deprecate Electorate` action allows users to mark an electorate as 'depreca
 
 This dialog will show ALL electorates, including those which have already been deprecated. Currently deprecated electorates are marked with an * prefix. Selecting them from the dialog will present the user with the choice of "un-deprecating" the electorate.
 
+If the user selects an electorate which currently has meshblocks assigned to it, they will be presented with an error message showing the assigned meshblocks, and the deprecation will not be permitted.
 
 ### Database Menu
 
@@ -347,6 +352,8 @@ The `Import Master Database` action is used to completely replace the user's cur
 
 ![Import Database Warning](images/import_database.png)
 
+Before the master database is imported, the user is asked to select a location for a full backup of the current database. This is performed before importing the new master database for security.
+
 ### Update Meshblock Table (B4, F16)
 
 Triggering the `Update Meshblock Table` will prompt the user to select a new meshblock table to import. Importing a new meshblock table causes the following operations to occur:
@@ -357,13 +364,20 @@ Triggering the `Update Meshblock Table` will prompt the user to select a new mes
 - Electorate boundaries will be recalculated based on the new meshblocks, and ALL stored populations obtained from the Statistics NZ API will be cleared.
 - Logging operations will be stored using the new meshblock version id (see [View Log](#view-log)).
 
-A new table view is opened showing just the meshblocks which have been changed since the previous version of the meshblock table. This allows users to step through this table and move the map view to see the affected meshblocks and how the change has impacted the districting operations.
+A new table view is opened showing just the meshblocks which have been changed since the previous version of the meshblock table (including meshblocks which have been removed). This allows users to step through this table and move the map view to see the affected meshblocks and how the change has impacted the districting operations.
 
 ### Export Districts
 
 The `Export Districts` action will allow users to create a dissolved copy of the current electorate districts (refs F6, F15). Selecting this action will trigger a file save dialog prompting the user to select a file location for the exported districts.
 
 Upon acceptance, the application will spatially dissolve both the General Electorates and Maori Electorates. A geopackage database will be created containing spatial tables of these electorates, and a separate table detailing districts assigned to each meshblock. Additionally the user event log will also be included as a non-spatial table (see [View Log](#view-log)).
+
+The mesh block to electorate assignments will be exported in a table of the format:
+
+Meshblock | NI General | SI General | Maori
+-----------------------------------------------------------
+MB1 | electorate 1 |  | electorate 2
+MB2 | electorate 3 |  | electorate 5
 
 The export process will occur in a background task to allow users to continue using the application while the export is performed.
 

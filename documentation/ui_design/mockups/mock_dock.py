@@ -96,25 +96,15 @@ class CreateElectorateDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         
-        self.setWindowTitle('Create New Electorate')
+        self.setWindowTitle('Create New Maori Electorate')
         
         l = QVBoxLayout()
-        label = QLabel('Enter name for new electorate:')
+        label = QLabel('Enter name for new Maori electorate:')
         l.addWidget(label)
         
         name = QLineEdit()
         name.setPlaceholderText('Electorate name')
         l.addWidget(name)
-        
-        frame = QGroupBox('Electorate Type')
-        l2 = QVBoxLayout()
-        radio = QRadioButton("General North Island")
-        radio.setChecked(True)
-        l2.addWidget(radio)  
-        radio = QRadioButton("Maori")
-        l2.addWidget(radio)
-        frame.setLayout(l2)
-        l.addWidget(frame)
                 
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         l.addWidget(bb)
@@ -126,7 +116,7 @@ class CreateElectorateDialog(QDialog):
         
 def create_electorate():
     dlg = CreateElectorateDialog(iface.mainWindow())
-    dlg.setWindowTitle('Create New Electorate')
+    dlg.setWindowTitle('Create New Maori Electorate')
     dlg.show()
     
     

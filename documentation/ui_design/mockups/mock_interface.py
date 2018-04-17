@@ -88,8 +88,10 @@ switch_tool_button.setToolTip('Switch Task')
 switch_tool_button.setIcon(QIcon('/home/nyall/dev/redistricting/images/switch_task.svg'))
 switch_tool_button.setPopupMode(QToolButton.InstantPopup)
 switch_menu = QMenu()
-switch_general_electorate_action = QAction('General Electorate')
-switch_menu.addAction(switch_general_electorate_action)
+switch_ni_general_electorate_action = QAction('NI General Electorate')
+switch_menu.addAction(switch_ni_general_electorate_action)
+switch_si_general_electorate_action = QAction('SI General Electorate')
+switch_menu.addAction(switch_si_general_electorate_action)
 switch_maori_electorate_action = QAction('Maori Electorate')
 switch_menu.addAction(switch_maori_electorate_action)
 
@@ -117,6 +119,14 @@ class ElectorateSelectionDialog(QDialog):
         
         l = QVBoxLayout()
         
+        l.addWidget(QLabel('Recently used electorates'))
+        recent_list = QListWidget()
+        recent_list.setMaximumHeight(100)
+        for i in range(5):
+            recent_list.addItem( 'Electorate {}'.format(i))
+        l.addWidget(recent_list,0)
+        
+        l.addWidget(QLabel('Available electorates'))
         search = QgsFilterLineEdit()
         search.setShowSearchIcon(True)
         search.setPlaceholderText('Search for electorate')
@@ -126,12 +136,14 @@ class ElectorateSelectionDialog(QDialog):
         for i in range(10):
             list.addItem( 'Electorate {}'.format(i))
             
-        l.addWidget(list)
+        l.addWidget(list,10)
         
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         l.addWidget(bb)
         bb.rejected.connect(self.reject)
         bb.accepted.connect(self.accept)
+        
+        bb.addButton("Select from Map", QDialogButtonBox.ActionRole)
             
         self.setLayout(l)
         
