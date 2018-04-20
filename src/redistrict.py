@@ -15,6 +15,8 @@ __revision__ = '$Format:%H$'
 
 import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
+from qgis.PyQt.QtWidgets import QToolBar
+from .gui_utils import GuiUtils
 
 
 class LinzRedistrict:
@@ -44,6 +46,8 @@ class LinzRedistrict:
             self.translator.load(locale_path)
             QCoreApplication.installTranslator(self.translator)
 
+        self.redistricting_toolbar = None
+
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
         """Get the translation for a string using Qt translation API.
@@ -61,7 +65,10 @@ class LinzRedistrict:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        pass
+        self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
+        self.iface.addToolbar(self.redistricting_toolbar)
+        GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
+                                           self.iface.mapCanvas())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
