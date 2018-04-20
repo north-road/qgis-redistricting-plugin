@@ -17,6 +17,7 @@ import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
 from .gui_utils import GuiUtils
+from .electorate_selection_dialog import ElectorateSelectionDialog
 
 
 class LinzRedistrict:
@@ -47,7 +48,8 @@ class LinzRedistrict:
             QCoreApplication.installTranslator(self.translator)
 
         self.redistricting_toolbar = None
-        self.general_electorate_action = None
+        self.interactive_redistrict_action = None
+        self.redistrict_selected_action = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -69,9 +71,17 @@ class LinzRedistrict:
         self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
         self.redistricting_toolbar.setObjectName('redistricting')
 
-        self.general_electorate_action = QAction(GuiUtils.get_icon(
-            'interactive_redistrict.svg'), 'Interactive Redistrict')
-        self.redistricting_toolbar.addAction(self.general_electorate_action)
+        self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
+            'interactive_redistrict.svg'), self.tr('Interactive Redistrict'))
+        self.redistricting_toolbar.addAction(
+            self.interactive_redistrict_action)
+
+        self.redistrict_selected_action = QAction(
+            GuiUtils.get_icon('redistrict_selected.svg'),
+            self.tr('Redistrict Selected Mesh Blocks'))
+        self.redistrict_selected_action.triggered.connect(
+            self.redistrict_selected)
+        self.redistricting_toolbar.addAction(self.redistrict_selected_action)
 
         self.iface.addToolBar(self.redistricting_toolbar)
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
@@ -80,3 +90,10 @@ class LinzRedistrict:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         self.redistricting_toolbar.deleteLater()
+
+    def redistrict_selected(self):
+        """
+        Redistrict the currently selected meshblocks
+        """
+        dlg = ElectorateSelectionDialog(self.iface.mainWindow())
+        dlg.exec_()
