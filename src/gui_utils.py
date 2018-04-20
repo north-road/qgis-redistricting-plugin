@@ -13,8 +13,10 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+import os
 from qgis.PyQt.QtCore import (Qt,
                               QPoint)
+from qgis.PyQt.QtGui import QIcon
 
 
 class GuiUtils:
@@ -39,3 +41,19 @@ class GuiUtils:
         toolbar.move(global_point.x() + offset_x, global_point.y() + offset_y)
         toolbar.adjustSize()
         toolbar.show()
+
+    @staticmethod
+    def get_icon(icon):
+        """
+        Returns a plugin icon
+        :param icon: icon name (svg file name)
+        :return: QIcon
+        """
+        path = os.path.join(
+            os.path.dirname(__file__),
+            'images',
+            icon)
+        if not os.path.exists(path):
+            return QIcon()
+
+        return QIcon(path)

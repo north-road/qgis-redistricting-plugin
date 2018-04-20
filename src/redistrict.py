@@ -15,7 +15,7 @@ __revision__ = '$Format:%H$'
 
 import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtWidgets import QToolBar
+from qgis.PyQt.QtWidgets import QToolBar, QAction
 from .gui_utils import GuiUtils
 
 
@@ -47,6 +47,7 @@ class LinzRedistrict:
             QCoreApplication.installTranslator(self.translator)
 
         self.redistricting_toolbar = None
+        self.general_electorate_action = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -66,10 +67,16 @@ class LinzRedistrict:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
-        self.iface.addToolbar(self.redistricting_toolbar)
+        self.redistricting_toolbar.setObjectName('redistricting')
+
+        self.general_electorate_action = QAction(GuiUtils.get_icon(
+            'interactive_redistrict.svg'), 'Interactive Redistrict')
+        self.redistricting_toolbar.addAction(self.general_electorate_action)
+
+        self.iface.addToolBar(self.redistricting_toolbar)
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
                                            self.iface.mapCanvas())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        pass
+        self.redistricting_toolbar.deleteLater()
