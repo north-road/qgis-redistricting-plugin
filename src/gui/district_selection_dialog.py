@@ -13,6 +13,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (QDialog,
                                  QDialogButtonBox,
                                  QLabel,
@@ -72,3 +73,50 @@ class DistrictSelectionDialog(QDialog):
             self.tr("Select from Map"), QDialogButtonBox.ActionRole)
 
         self.setLayout(l)
+
+        self.recent_list.itemSelectionChanged.connect(
+            self.recent_list_item_selected)
+        self.list.itemSelectionChanged.connect(
+            self.list_item_selected)
+
+        # select most recently used district by default
+        if self.recent_list.count() > 0:
+            self.recent_list.item(0).setSelected(True)
+
+    def recent_list_item_selected(self):
+        """
+        Handles a selection made in the recent district list
+        """
+        if self.recent_list.selectedItems():
+            self.list.clearSelection()
+
+    def list_item_selected(self):
+        """
+        Handles a selection made in the complete district list
+        """
+        if self.list.selectedItems():
+            self.recent_list.clearSelection()
+
+    def set_selected_district(self, district):
+        """
+        Sets the district selected in the dialog
+        :param district: district to select
+        """
+        matches = self.list.findItems(district, Qt.MatchExactly)
+        if matches:
+            matches[0].setSelected(True)
+
+    def selected_district(self):
+        """
+        Returns the district selected in the dialog
+        """
+        if self.recent_list.selectedItems():
+            return self.recent_list.selectedItems()[0].text()
+        elif self.list.selectedItems():
+            return self.list.selectedItems()[0].text()
+
+        return None
+
+    def accept(self):  # pylint: disable=missing-docstring
+        self.district_registry.push_recent_district(self.selected_district())
+        super().accept()

@@ -60,6 +60,40 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         self.assertEqual(dlg.available_label.text(), 'Available electorates')
         self.assertEqual(dlg.search.placeholderText(), 'Search for electorate')
 
+        # initial selection must be recently used district
+        self.assertEqual(dlg.selected_district(), 'd7')
+
+    def testSelection(self):
+        """
+        Test setting/getting selected district
+        """
+        registry = DistrictRegistry(districts=['d1', 'd2', 'd5', 'd3',
+                                               'd4', 'd9', 'd7'],
+                                    type_string_title='Electorate',
+                                    type_string_sentence='electorate',
+                                    type_string_sentence_plural='electorates')
+        registry.clear_recent_districts()
+        registry.push_recent_district('d3')
+        registry.push_recent_district('d9')
+        registry.push_recent_district('d7')
+        dlg = DistrictSelectionDialog(registry)
+
+        dlg.set_selected_district('d2')
+        self.assertEqual(dlg.selected_district(), 'd2')
+        dlg.set_selected_district('d4')
+        self.assertEqual(dlg.selected_district(), 'd4')
+
+        # no recent item selected
+        self.assertEqual(dlg.recent_list.selectedItems(), [])
+        # select recent item
+        dlg.recent_list.item(1).setSelected(True)
+        self.assertEqual(dlg.selected_district(), 'd9')
+        # should be nothing selected in other list
+        self.assertEqual(dlg.list.selectedItems(), [])
+        dlg.set_selected_district('d2')
+        self.assertEqual(dlg.list.selectedItems()[0].text(), 'd2')
+        self.assertEqual(dlg.recent_list.selectedItems(), [])
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(DistrictSelectionDialogTest)
