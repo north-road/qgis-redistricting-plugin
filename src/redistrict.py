@@ -16,7 +16,8 @@ __revision__ = '$Format:%H$'
 import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
-from src.gui.district_selection_dialog import DistrictSelectionDialog
+from .core.district_registry import DistrictRegistry
+from .gui.district_selection_dialog import DistrictSelectionDialog
 from .gui_utils import GuiUtils
 
 
@@ -50,6 +51,8 @@ class LinzRedistrict:
         self.redistricting_toolbar = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
+
+        self.district_registry = DistrictRegistry(['District 1', 'District 9'])
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -95,5 +98,6 @@ class LinzRedistrict:
         """
         Redistrict the currently selected meshblocks
         """
-        dlg = DistrictSelectionDialog(self.iface.mainWindow())
+        dlg = DistrictSelectionDialog(district_registry=self.district_registry,
+                                      parent=self.iface.mainWindow())
         dlg.exec_()

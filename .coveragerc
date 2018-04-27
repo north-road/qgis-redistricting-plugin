@@ -1,0 +1,4 @@
+[run]
+omit = src/test/*
+       src/__init__.py
+       src/gui/__init__.py

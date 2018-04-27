@@ -15,8 +15,8 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
-from src.core.district_registry import DistrictRegistry
-from src.gui.district_selection_dialog import DistrictSelectionDialog
+from core.district_registry import DistrictRegistry
+from gui.district_selection_dialog import DistrictSelectionDialog
 from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()

@@ -39,8 +39,8 @@ class DistrictSelectionDialog(QDialog):
 
         self.recent_list = QListWidget()
         self.recent_list.setMaximumHeight(100)
-        for i in range(5):
-            self.recent_list.addItem('Electorate {}'.format(i))
+        for d in district_registry.recent_districts_list():
+            self.recent_list.addItem(d)
         l.addWidget(self.recent_list, 0)
 
         l.addWidget(QLabel(self.tr('Available electorates')))
@@ -50,8 +50,8 @@ class DistrictSelectionDialog(QDialog):
         l.addWidget(self.search)
 
         self.list = QListWidget()
-        for i in range(10):
-            self.list.addItem('Electorate {}'.format(i))
+        for d in district_registry.district_list():
+            self.list.addItem(d)
 
         l.addWidget(self.list, 10)
 
