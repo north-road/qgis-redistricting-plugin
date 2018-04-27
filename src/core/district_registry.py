@@ -23,7 +23,10 @@ class DistrictRegistry():
     A registry for handling available districts
     """
 
-    def __init__(self, name='districts', districts=None):
+    def __init__(self, name='districts', districts=None,
+                 type_string_title='District',
+                 type_string_sentence='district',
+                 type_string_sentence_plural='districts'):
         """
         Constructor for District Registry
         :param name: unique identifying name for registry
@@ -33,6 +36,29 @@ class DistrictRegistry():
         if districts is None:
             districts = []
         self.districts = districts
+        self._type_string_title = type_string_title
+        self._type_string_sentence = type_string_sentence
+        self._type_string_sentence_plural = type_string_sentence_plural
+
+    def type_string_title(self):
+        """
+        Returns the title case district type identifier, e.g. "District'
+        """
+        return self._type_string_title
+
+    def type_string_sentence(self):
+        """
+        Returns the sentence case district type identifier (singular),
+        e.g. "district"
+        """
+        return self._type_string_sentence
+
+    def type_string_sentence_plural(self):
+        """
+        Returns the sentence case district type identifier (plural),
+        e.g. "districts"
+        """
+        return self._type_string_sentence_plural
 
     def settings_key(self):
         """

@@ -16,7 +16,6 @@ __revision__ = '$Format:%H$'
 
 import unittest
 from core.district_registry import DistrictRegistry
-from qgis.core import QgsSettings
 
 
 class DistrictRegistryTest(unittest.TestCase):
@@ -27,6 +26,17 @@ class DistrictRegistryTest(unittest.TestCase):
         Test creating registry
         """
         self.assertIsNotNone(DistrictRegistry())
+
+    def testTypeStrings(self):
+        """
+        Test identifying type strings
+        """
+        registry = DistrictRegistry(type_string_title='Electorate',
+                                    type_string_sentence='electorate',
+                                    type_string_sentence_plural='electorates')
+        self.assertEqual(registry.type_string_title(), 'Electorate')
+        self.assertEqual(registry.type_string_sentence(), 'electorate')
+        self.assertEqual(registry.type_string_sentence_plural(), 'electorates')
 
     def testDistricts(self):
         """

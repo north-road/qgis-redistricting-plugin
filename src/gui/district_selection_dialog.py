@@ -33,9 +33,12 @@ class DistrictSelectionDialog(QDialog):
 
         self.district_registry = district_registry
 
-        self.setWindowTitle(self.tr('Select New Electorate'))
+        self.setWindowTitle(self.tr('Select New {}').format(
+            district_registry.type_string_title()))
         l = QVBoxLayout()
-        l.addWidget(QLabel(self.tr('Recently used electorates')))
+        self.recent_label = QLabel(self.tr('Recently used {}').format(
+            district_registry.type_string_sentence_plural()))
+        l.addWidget(self.recent_label)
 
         self.recent_list = QListWidget()
         self.recent_list.setMaximumHeight(100)
@@ -43,10 +46,14 @@ class DistrictSelectionDialog(QDialog):
             self.recent_list.addItem(d)
         l.addWidget(self.recent_list, 0)
 
-        l.addWidget(QLabel(self.tr('Available electorates')))
+        self.available_label = QLabel(self.tr('Available {}').format(
+            district_registry.type_string_sentence_plural()
+        ))
+        l.addWidget(self.available_label)
         self.search = QgsFilterLineEdit()
         self.search.setShowSearchIcon(True)
-        self.search.setPlaceholderText(self.tr('Search for electorate'))
+        self.search.setPlaceholderText(self.tr('Search for {}').format(
+            district_registry.type_string_sentence()))
         l.addWidget(self.search)
 
         self.list = QListWidget()

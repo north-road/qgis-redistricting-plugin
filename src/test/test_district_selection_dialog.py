@@ -38,7 +38,10 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         Test that dialog is correctly populated from registry
         """
         registry = DistrictRegistry(districts=['d1', 'd2', 'd5', 'd3',
-                                               'd4', 'd9', 'd7'])
+                                               'd4', 'd9', 'd7'],
+                                    type_string_title='Electorate',
+                                    type_string_sentence='electorate',
+                                    type_string_sentence_plural='electorates')
         registry.clear_recent_districts()
         registry.push_recent_district('d3')
         registry.push_recent_district('d9')
@@ -51,6 +54,12 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         self.assertEqual([dlg.recent_list.item(r).text()
                           for r in range(dlg.recent_list.count())],
                          ['d7', 'd9', 'd3'])
+
+        # strings
+        self.assertEqual(dlg.windowTitle(), 'Select New Electorate')
+        self.assertEqual(dlg.recent_label.text(), 'Recently used electorates')
+        self.assertEqual(dlg.available_label.text(), 'Available electorates')
+        self.assertEqual(dlg.search.placeholderText(), 'Search for electorate')
 
 
 if __name__ == "__main__":
