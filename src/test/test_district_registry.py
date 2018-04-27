@@ -15,7 +15,11 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
-from core.district_registry import DistrictRegistry
+from core.district_registry import (DistrictRegistry,
+                                    VectorLayerDistrictRegistry)
+from qgis.core import (QgsVectorLayer,
+                       QgsFeature,
+                       NULL)
 
 
 class DistrictRegistryTest(unittest.TestCase):
@@ -84,6 +88,36 @@ class DistrictRegistryTest(unittest.TestCase):
                           'district 3', 'district 5'])
         reg.clear_recent_districts()
         self.assertEqual(reg.recent_districts_list(), [])
+
+    def testVectorLayerDistrictRegistry(self):
+        """
+        Test a VectorLayerDistrictRegistry
+        """
+        layer = QgsVectorLayer(
+            "Point?field=fld1:string&field=fld2:string",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes(["test4", "xtest1"])
+        f2 = QgsFeature()
+        f2.setAttributes(["test2", "xtest3"])
+        f3 = QgsFeature()
+        f3.setAttributes(["test3", "xtest3"])
+        f4 = QgsFeature()
+        f4.setAttributes(["test1", NULL])
+        f5 = QgsFeature()
+        f5.setAttributes(["test2", "xtest2"])
+        layer.dataProvider().addFeatures([f, f2, f3, f4, f5])
+
+        reg = VectorLayerDistrictRegistry(
+            source_layer=layer,
+            source_field='fld1')
+        self.assertEqual(reg.district_list(),
+                         ['test4', 'test2', 'test3', 'test1'])
+        reg = VectorLayerDistrictRegistry(
+            source_layer=layer,
+            source_field='fld2')
+        self.assertEqual(reg.district_list(),
+                         ['xtest1', 'xtest3', 'xtest2'])
 
 
 if __name__ == "__main__":

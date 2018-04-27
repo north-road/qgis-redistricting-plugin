@@ -52,7 +52,12 @@ class LinzRedistrict:
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
 
-        self.district_registry = DistrictRegistry(['District 1', 'District 9'])
+        self.district_registry = DistrictRegistry(
+            name='General NI',
+            districts=['District 1', 'District 9'],
+            type_string_title='Electorate',
+            type_string_sentence='electorate',
+            type_string_sentence_plural='electorates')
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use

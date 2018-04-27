@@ -13,7 +13,10 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.core import QgsSettings
+from collections import OrderedDict
+from qgis.core import (QgsSettings,
+                       QgsFeatureRequest,
+                       NULL)
 
 MAX_RECENT_DISTRICTS = 5
 
@@ -31,6 +34,12 @@ class DistrictRegistry():
         Constructor for District Registry
         :param name: unique identifying name for registry
         :param districts: list of districts to include in registry
+        :param type_string_title: title case string for district
+        types
+        :param type_string_sentence: sentence case string for district
+        types
+        :param type_string_sentence_plural: sentence case string for district
+        types (plural)
         """
         self.name = name
         if districts is None:
@@ -98,3 +107,52 @@ class DistrictRegistry():
         """
         return QgsSettings().value('{}/recent_districts'.format(
             self.settings_key()), [])
+
+
+class VectorLayerDistrictRegistry(DistrictRegistry):
+    """
+    A registry for districts based off field values from a vector layer
+    """
+
+    def __init__(self, source_layer,
+                 source_field,
+                 name='districts',
+                 type_string_title='District',
+                 type_string_sentence='district',
+                 type_string_sentence_plural='districts'):
+        """
+        Constructor for District Registry
+        :param source_layer: vector layer to retrieve districts from
+        :param source_field: source field (name) to retrieve districts
+        from
+        :param name: unique identifying name for registry
+        :param type_string_title: title case string for district
+        types
+        :param type_string_sentence: sentence case string for district
+        types
+        :param type_string_sentence_plural: sentence case string for district
+        types (plural)
+        """
+        super().__init__(name=name,
+                         type_string_title=type_string_title,
+                         type_string_sentence=type_string_sentence,
+                         type_string_sentence_plural=type_string_sentence_plural)
+        self.source_layer = source_layer
+        self.source_field = source_field
+
+    def district_list(self):
+        """
+        Returns a complete list of districts available for redistricting to
+        """
+        field_index = self.source_layer.fields().lookupField(self.source_field)
+        request = QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([field_index])
+
+        districts = [f[field_index]
+                     for f in self.source_layer.getFeatures(request)
+                     if f[field_index] != NULL]
+        # we want an ordered list of unique values!
+        d = OrderedDict()
+        for x in districts:
+            d[x] = True
+        return list(d.keys())
