@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Electorate selection dialog
+"""LINZ Redistricting Plugin - District selection dialog
 
 .. note:: This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,13 +21,17 @@ from qgis.PyQt.QtWidgets import (QDialog,
 from qgis.gui import QgsFilterLineEdit
 
 
-class ElectorateSelectionDialog(QDialog):
+class DistrictSelectionDialog(QDialog):
     """
-    A dialog used for selecting from available electorates
+    A dialog used for selecting from available districts
+    :param district_registry: associated registry of available
+    districts to show
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, district_registry, parent=None):
         super().__init__(parent)
+
+        self.district_registry = district_registry
 
         self.setWindowTitle(self.tr('Select New Electorate'))
         l = QVBoxLayout()

@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Electorate Selection Dialog Test.
+"""District Registry Test.
 
 .. note:: This program is free software; you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
@@ -15,23 +15,28 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
-from electorate_selection_dialog import ElectorateSelectionDialog
-from .utilities import get_qgis_app
-
-QGIS_APP = get_qgis_app()
+from src.core.district_registry import DistrictRegistry
 
 
-class ElectorateSelectionDialogTest(unittest.TestCase):
-    """Test ElectorateSelectionDialog."""
+class DistrictRegistryTest(unittest.TestCase):
+    """Test DistrictRegistry."""
 
     def testConstruct(self):
         """
-        Test creating dialog
+        Test creating registry
         """
-        self.assertIsNotNone(ElectorateSelectionDialog())
+        self.assertIsNotNone(DistrictRegistry())
+
+    def testDistricts(self):
+        """
+        Test retrieving districts
+        """
+        registry = DistrictRegistry(['district 1', 'district 9'])
+        self.assertEqual(registry.district_list(), ['district 1',
+                                                    'district 9'])
 
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(ElectorateSelectionDialogTest)
+    suite = unittest.makeSuite(DistrictRegistryTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

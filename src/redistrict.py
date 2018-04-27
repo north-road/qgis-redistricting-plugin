@@ -16,8 +16,8 @@ __revision__ = '$Format:%H$'
 import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
+from src.gui.district_selection_dialog import DistrictSelectionDialog
 from .gui_utils import GuiUtils
-from .electorate_selection_dialog import ElectorateSelectionDialog
 
 
 class LinzRedistrict:
@@ -95,5 +95,5 @@ class LinzRedistrict:
         """
         Redistrict the currently selected meshblocks
         """
-        dlg = ElectorateSelectionDialog(self.iface.mainWindow())
+        dlg = DistrictSelectionDialog(self.iface.mainWindow())
         dlg.exec_()
