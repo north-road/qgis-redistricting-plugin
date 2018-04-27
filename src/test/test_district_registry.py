@@ -32,7 +32,8 @@ class DistrictRegistryTest(unittest.TestCase):
         """
         Test retrieving districts
         """
-        registry = DistrictRegistry(['district 1', 'district 9'])
+        registry = DistrictRegistry(name='registry',
+                                    districts=['district 1', 'district 9'])
         self.assertEqual(registry.district_list(), ['district 1',
                                                     'district 9'])
 
@@ -40,9 +41,10 @@ class DistrictRegistryTest(unittest.TestCase):
         """
         Test recent districts setting and retrieval
         """
-        QgsSettings().setValue('redistricting/recent_districts', [])
-        reg = DistrictRegistry(['district 1', 'district 2', 'district 3',
-                                'district 4', 'district 5', 'district 9'])
+        reg = DistrictRegistry(
+            districts=['district 1', 'district 2', 'district 3',
+                       'district 4', 'district 5', 'district 9'])
+        reg.clear_recent_districts()
         self.assertEqual(reg.recent_districts_list(), [])
         reg.push_recent_district('district 3')
         self.assertEqual(reg.recent_districts_list(), ['district 3'])
@@ -70,6 +72,8 @@ class DistrictRegistryTest(unittest.TestCase):
         self.assertEqual(reg.recent_districts_list(),
                          ['district 9', 'district 1', 'district 4',
                           'district 3', 'district 5'])
+        reg.clear_recent_districts()
+        self.assertEqual(reg.recent_districts_list(), [])
 
 
 if __name__ == "__main__":

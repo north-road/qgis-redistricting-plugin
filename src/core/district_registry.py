@@ -23,17 +23,22 @@ class DistrictRegistry():
     A registry for handling available districts
     """
 
-    def __init__(self, districts=None):
+    def __init__(self, name='districts', districts=None):
         """
         Constructor for District Registry
+        :param name: unique identifying name for registry
         :param districts: list of districts to include in registry
         """
+        self.name = name
         if districts is None:
             districts = []
         self.districts = districts
 
-        s = QgsSettings()
-        self.recent_districts = s.value('redistricting/recent_districts', [])
+    def settings_key(self):
+        """
+        Returns the QSettings key corresponding to this registry
+        """
+        return 'redistricting/{}'.format(self.name)
 
     def district_list(self):
         """
@@ -41,20 +46,29 @@ class DistrictRegistry():
         """
         return self.districts
 
+    def clear_recent_districts(self):
+        """
+        Clears the list of recent districts
+        """
+        QgsSettings().setValue('{}/recent_districts'.format(
+            self.settings_key()), [])
+
     def push_recent_district(self, district):
         """
         Pushes a district to the top of the recent districts list
         :param district: district to push to list
         """
-        self.recent_districts = [district] + \
-                                [d for d in self.recent_districts
-                                 if d != district]
-        self.recent_districts = self.recent_districts[:MAX_RECENT_DISTRICTS]
-        s = QgsSettings()
-        s.setValue('redistricting/recent_districts', self.recent_districts)
+        recent_districts = self.recent_districts_list()
+        recent_districts = [district] + \
+                           [d for d in recent_districts
+                            if d != district]
+        recent_districts = recent_districts[:MAX_RECENT_DISTRICTS]
+        QgsSettings().setValue('{}/recent_districts'.format(
+            self.settings_key()), recent_districts)
 
     def recent_districts_list(self):
         """
         Returns a list of recently used districts
         """
-        return self.recent_districts
+        return QgsSettings().value('{}/recent_districts'.format(
+            self.settings_key()), [])

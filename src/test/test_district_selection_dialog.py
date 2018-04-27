@@ -37,9 +37,9 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         """
         Test that dialog is correctly populated from registry
         """
-        QgsSettings().setValue('redistricting/recent_districts', [])
-        registry = DistrictRegistry(['d1', 'd2', 'd5', 'd3',
-                                     'd4', 'd9', 'd7'])
+        registry = DistrictRegistry(districts=['d1', 'd2', 'd5', 'd3',
+                                               'd4', 'd9', 'd7'])
+        registry.clear_recent_districts()
         registry.push_recent_district('d3')
         registry.push_recent_district('d9')
         registry.push_recent_district('d7')
