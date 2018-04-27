@@ -15,6 +15,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
+from qgis.core import QgsSettings
 from core.district_registry import DistrictRegistry
 from gui.district_selection_dialog import DistrictSelectionDialog
 from .utilities import get_qgis_app
@@ -31,6 +32,25 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         """
         registry = DistrictRegistry()
         self.assertIsNotNone(DistrictSelectionDialog(registry))
+
+    def testPopulation(self):
+        """
+        Test that dialog is correctly populated from registry
+        """
+        QgsSettings().setValue('redistricting/recent_districts', [])
+        registry = DistrictRegistry(['d1', 'd2', 'd5', 'd3',
+                                     'd4', 'd9', 'd7'])
+        registry.push_recent_district('d3')
+        registry.push_recent_district('d9')
+        registry.push_recent_district('d7')
+        dlg = DistrictSelectionDialog(registry)
+        self.assertEqual([dlg.list.item(r).text()
+                          for r in range(dlg.list.count())],
+                         ['d1', 'd2', 'd5', 'd3',
+                          'd4', 'd9', 'd7'])
+        self.assertEqual([dlg.recent_list.item(r).text()
+                          for r in range(dlg.recent_list.count())],
+                         ['d7', 'd9', 'd3'])
 
 
 if __name__ == "__main__":
