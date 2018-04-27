@@ -94,6 +94,30 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         self.assertEqual(dlg.list.selectedItems()[0].text(), 'd2')
         self.assertEqual(dlg.recent_list.selectedItems(), [])
 
+        # nothing at all selected
+        dlg.list.clearSelection()
+        dlg.recent_list.clearSelection()
+        self.assertIsNone(dlg.selected_district())
+
+    def testAccept(self):
+        """
+        Test that accepting dialog results in new recent district
+        """
+        registry = DistrictRegistry(districts=['d1', 'd2', 'd5', 'd3',
+                                               'd4', 'd9', 'd7'],
+                                    type_string_title='Electorate',
+                                    type_string_sentence='electorate',
+                                    type_string_sentence_plural='electorates')
+        registry.clear_recent_districts()
+        registry.push_recent_district('d3')
+        registry.push_recent_district('d9')
+        registry.push_recent_district('d7')
+        dlg = DistrictSelectionDialog(registry)
+        dlg.set_selected_district('d4')
+        dlg.accept()
+        self.assertEqual(registry.recent_districts_list(),
+                         ['d4', 'd7', 'd9', 'd3'])
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(DistrictSelectionDialogTest)
