@@ -6,18 +6,18 @@ LOCALES = af
 # If locales are enabled, set the name of the lrelease binary on your system. If
 # you have trouble compiling the translations, you may have to specify the full path to
 # lrelease
-LRELEASE = lrelease-qt5
+LRELEASE ?= lrelease-qt5
 
 # translation
 SOURCES = \
-	src/__init__.py \
-	src/redistrict.py
+	redistrict/__init__.py \
+	redistrict/redistrict.py
 
 PLUGINNAME = redistrict
 
 PY_FILES = \
-	src/__init__.py \
-	src/redistrict.py
+	redistrict/__init__.py \
+	redistrict/redistrict.py
 
 EXTRAS = metadata.txt icon.png
 
@@ -76,7 +76,7 @@ pylint:
 	@echo "-----------------"
 	@echo "Pylint violations"
 	@echo "-----------------"
-	@pylint --reports=n --rcfile=pylintrc src || true
+	@pylint --reports=n --rcfile=pylintrc redistrict || true
 	@echo
 	@echo "----------------------"
 	@echo "If you get a 'no module named qgis.core' error, try sourcing"
@@ -92,7 +92,7 @@ pep8:
 	@echo "-----------"
 	@echo "PEP8 issues"
 	@echo "-----------"
-	@pep8 --repeat --ignore=E203,E121,E122,E123,E124,E125,E126,E127,E128,E402,E501 --exclude $(PEP8EXCLUDE) src || true
+	@pep8 --repeat --ignore=E203,E121,E122,E123,E124,E125,E126,E127,E128,E402,E501 --exclude $(PEP8EXCLUDE) redistrict || true
 	@echo "-----------"
 	@echo "Ignored in PEP8 check:"
 	@echo $(PEP8EXCLUDE)

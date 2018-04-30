@@ -15,7 +15,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
-from core.district_registry import (DistrictRegistry,
+from redistrict.core.district_registry import (DistrictRegistry,
                                     VectorLayerDistrictRegistry)
 from qgis.core import (QgsVectorLayer,
                        QgsFeature,
@@ -94,7 +94,7 @@ class DistrictRegistryTest(unittest.TestCase):
         Test a VectorLayerDistrictRegistry
         """
         layer = QgsVectorLayer(
-            "Point?field=fld1:string&field=fld2:string",
+            "Point?field=fld1:string&crs=epsg:4326&field=fld2:string",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1"])

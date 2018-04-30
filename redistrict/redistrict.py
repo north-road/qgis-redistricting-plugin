@@ -80,13 +80,13 @@ class LinzRedistrict:
         self.redistricting_toolbar.setObjectName('redistricting')
 
         self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
-            'interactive_redistrict.svg'), self.tr('Interactive Redistrict'))
+            'interactive_redistrict.svg'), self.tr('Interactive Redistrict'), None)
         self.redistricting_toolbar.addAction(
             self.interactive_redistrict_action)
 
         self.redistrict_selected_action = QAction(
             GuiUtils.get_icon('redistrict_selected.svg'),
-            self.tr('Redistrict Selected Mesh Blocks'))
+            self.tr('Redistrict Selected Mesh Blocks'), None)
         self.redistrict_selected_action.triggered.connect(
             self.redistrict_selected)
         self.redistricting_toolbar.addAction(self.redistrict_selected_action)

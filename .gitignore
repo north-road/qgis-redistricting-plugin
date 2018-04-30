@@ -3,3 +3,4 @@
 .noseids
 *.pyc
 *.qm
+*local.*
