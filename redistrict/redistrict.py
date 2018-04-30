@@ -17,7 +17,6 @@ import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
 from qgis.core import QgsProject
-from .core.district_registry import DistrictRegistry
 from .gui.district_selection_dialog import DistrictSelectionDialog
 from .gui.gui_utils import GuiUtils
 from .linz.linz_district_registry import LinzElectoralDistrictRegistry
