@@ -51,6 +51,7 @@ class GuiUtils:
         """
         path = os.path.join(
             os.path.dirname(__file__),
+            '..',
             'images',
             icon)
         if not os.path.exists(path):

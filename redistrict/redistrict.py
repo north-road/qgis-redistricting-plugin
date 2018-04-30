@@ -18,7 +18,7 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
 from .core.district_registry import DistrictRegistry
 from .gui.district_selection_dialog import DistrictSelectionDialog
-from .gui_utils import GuiUtils
+from .gui.gui_utils import GuiUtils
 
 
 class LinzRedistrict:

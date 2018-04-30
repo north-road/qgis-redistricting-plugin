@@ -15,7 +15,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
-from redistrict.gui_utils import GuiUtils
+from redistrict.gui.gui_utils import GuiUtils
 from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
