@@ -40,6 +40,8 @@ def get_qgis_app(cleanup=True):
     from qgis.PyQt.QtWidgets import QWidget
     from .qgis_interface import QgisInterface
 
+    global QGISAPP  # pylint: disable=global-variable-undefined
+
     try:
         QGISAPP
     except NameError:
@@ -81,7 +83,11 @@ def get_qgis_app(cleanup=True):
                 """
                 Gracefully closes the QgsApplication instance
                 """
-                QGISAPP.exitQgis()
+                try:
+                    QGISAPP.exitQgis()
+                    QGISAPP=None
+                except NameError:
+                    pass
 
     if PARENT is None:
         # noinspection PyPep8Naming
