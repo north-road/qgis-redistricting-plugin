@@ -17,9 +17,11 @@ import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
 from qgis.core import QgsProject
-from .gui.district_selection_dialog import DistrictSelectionDialog
+from .linz.linz_district_registry import (
+    LinzElectoralDistrictRegistry)
+from .gui.district_selection_dialog import (
+    DistrictPicker)
 from .gui.gui_utils import GuiUtils
-from .linz.linz_district_registry import LinzElectoralDistrictRegistry
 
 
 class LinzRedistrict:
@@ -53,12 +55,12 @@ class LinzRedistrict:
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
 
-        self.electorate_layer = QgsProject.instance().mapLayersByName('general')[0]
-
+        self.electorate_layer = QgsProject.instance().mapLayersByName(
+            'general')[0]
         self.district_registry = LinzElectoralDistrictRegistry(
-            name='General NI',
             source_layer=self.electorate_layer,
-            source_field='GeneralElectoralDistrictName_2007')
+            source_field='GeneralElectoralDistrictName_2007',
+            name='General NI')
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -80,9 +82,8 @@ class LinzRedistrict:
         self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
         self.redistricting_toolbar.setObjectName('redistricting')
 
-        self.interactive_redistrict_action = QAction(
-            GuiUtils.get_icon('interactive_redistrict.svg'),
-            self.tr('Interactive Redistrict'), None)
+        self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
+            'interactive_redistrict.svg'), self.tr('Interactive Redistrict'))
         self.redistricting_toolbar.addAction(
             self.interactive_redistrict_action)
 
@@ -105,6 +106,7 @@ class LinzRedistrict:
         """
         Redistrict the currently selected meshblocks
         """
-        dlg = DistrictSelectionDialog(district_registry=self.district_registry,
-                                      parent=self.iface.mainWindow())
-        dlg.exec_()
+        dlg = DistrictPicker(district_registry=self.district_registry,
+                             parent=self.iface.mainWindow())
+        if dlg.selected_district is not None:
+            assert False, dlg.selected_district
