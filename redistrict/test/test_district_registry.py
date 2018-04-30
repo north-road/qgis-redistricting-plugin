@@ -115,7 +115,7 @@ class DistrictRegistryTest(unittest.TestCase):
         Test a VectorLayerDistrictRegistry
         """
         layer = QgsVectorLayer(
-            "Point?field=fld1:string&field=fld2:string",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1"])
