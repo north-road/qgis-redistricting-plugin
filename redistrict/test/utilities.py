@@ -83,18 +83,15 @@ def get_qgis_app(cleanup=True):
                 """
                 QGISAPP.exitQgis()
 
-    global PARENT  # pylint: disable=W0603
     if PARENT is None:
         # noinspection PyPep8Naming
         PARENT = QWidget()
 
-    global CANVAS  # pylint: disable=W0603
     if CANVAS is None:
         # noinspection PyPep8Naming
         CANVAS = QgsMapCanvas(PARENT)
         CANVAS.resize(QSize(400, 400))
 
-    global IFACE  # pylint: disable=W0603
     if IFACE is None:
         # QgisInterface is a stub implementation of the QGIS plugin interface
         # noinspection PyPep8Naming
