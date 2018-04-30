@@ -140,13 +140,28 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         self.source_layer = source_layer
         self.source_field = source_field
 
+    # noinspection PyMethodMayBeStatic
+    def modify_district_request(self, request):
+        """
+        Allows subclasses to modify the request used to fetch available
+        districts from the source layer, e.g. to add filtering
+        or sorting to the request.
+        :param request: base feature request to modify
+        :return: modified feature request
+        """
+        return request
+
     def district_list(self):
         """
         Returns a complete list of districts available for redistricting to
         """
         field_index = self.source_layer.fields().lookupField(self.source_field)
-        request = QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)
+
+        request = QgsFeatureRequest()
+        self.modify_district_request(request)
+        request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([field_index])
+
 
         districts = [f[field_index]
                      for f in self.source_layer.getFeatures(request)

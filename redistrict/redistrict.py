@@ -16,9 +16,11 @@ __revision__ = '$Format:%H$'
 import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
+from qgis.core import QgsProject
 from .core.district_registry import DistrictRegistry
 from .gui.district_selection_dialog import DistrictSelectionDialog
 from .gui.gui_utils import GuiUtils
+from .linz.linz_district_registry import LinzElectoralDistrictRegistry
 
 
 class LinzRedistrict:
@@ -52,12 +54,12 @@ class LinzRedistrict:
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
 
-        self.district_registry = DistrictRegistry(
+        self.electorate_layer = QgsProject.instance().mapLayersByName('Electorates')[0]
+
+        self.district_registry = LinzElectoralDistrictRegistry(
             name='General NI',
-            districts=['District 1', 'District 9'],
-            type_string_title='Electorate',
-            type_string_sentence='electorate',
-            type_string_sentence_plural='electorates')
+            source_layer=self.electorate_layer,
+            source_field='name')
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
