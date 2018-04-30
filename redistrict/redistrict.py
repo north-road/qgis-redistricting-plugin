@@ -15,7 +15,7 @@ __revision__ = '$Format:%H$'
 
 import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtWidgets import QToolBar, QAction
+from qgis.PyQt.QtWidgets import QToolBar, QAction, QMessageBox
 from qgis.core import (QgsProject,
                        Qgis)
 from .linz.linz_district_registry import (
@@ -122,12 +122,19 @@ class LinzRedistrict:
         if dlg.selected_district is None:
             return
 
-        if dlg.requires_confirmation:
-            pass
+        if dlg.requires_confirmation and QMessageBox.question(self.iface.mainWindow(),
+                                                              self.tr('Redistrict Selected'),
+                                                              self.tr(
+                                                                  'Are you sure you want to redistrict the selected meshblocks to “{}”?'
+                                                              ).format(dlg.selected_district),
+                                                              QMessageBox.Yes | QMessageBox.No,
+                                                              QMessageBox.No) != QMessageBox.Yes:
+            return
 
         handler = self.get_handler()
         if handler.assign_district(self.meshblock_layer.selectedFeatureIds(), dlg.selected_district):
-            self.iface.messageBar().pushMessage(self.tr('Redistricted selected meshblocks to {}').format(dlg.selected_district), level=Qgis.Success)
+            self.iface.messageBar().pushMessage(
+                self.tr('Redistricted selected meshblocks to {}').format(dlg.selected_district), level=Qgis.Success)
         else:
             self.iface.messageBar().pushMessage(
                 self.tr('Could not redistricted selected meshblocks'), level=Qgis.Critical)
