@@ -23,7 +23,9 @@ from .linz.linz_district_registry import (
 from .core.redistrict_handler import RedistrictHandler
 from .gui.district_selection_dialog import (
     DistrictPicker)
+from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
 from .gui.gui_utils import GuiUtils
+from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 
 
 class LinzRedistrict:
@@ -56,6 +58,7 @@ class LinzRedistrict:
         self.redistricting_toolbar = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
+        self.tool = None
 
         self.electorate_layer = QgsProject.instance().mapLayersByName(
             'general')[0]
@@ -63,6 +66,7 @@ class LinzRedistrict:
             'meshblock')[0]
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
+        self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
         self.district_registry = LinzElectoralDistrictRegistry(
             source_layer=self.electorate_layer,
             source_field='GeneralElectoralDistrictName_2007',
@@ -90,6 +94,8 @@ class LinzRedistrict:
 
         self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
             'interactive_redistrict.svg'), self.tr('Interactive Redistrict'))
+        self.interactive_redistrict_action.triggered.connect(
+            self.interactive_redistrict)
         self.redistricting_toolbar.addAction(
             self.interactive_redistrict_action)
 
@@ -116,7 +122,8 @@ class LinzRedistrict:
         on whether the meshblock layer is editable
         """
         enabled = self.meshblock_layer.isEditable()
-        self.redistrict_selected_action.setEnabled(enabled)
+        has_selection = bool(self.meshblock_layer.selectedFeatureIds())
+        self.redistrict_selected_action.setEnabled(enabled and has_selection)
         self.interactive_redistrict_action.setEnabled(enabled)
 
     def get_handler(self):
@@ -151,3 +158,13 @@ class LinzRedistrict:
         else:
             self.iface.messageBar().pushMessage(
                 self.tr('Could not redistricted selected meshblocks'), level=Qgis.Critical)
+
+    def interactive_redistrict(self):
+        """
+        Interactively redistrict the currently selected meshblocks
+        """
+
+        self.tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
+                                                 target_layer=self.meshblock_layer,
+                                                 decorator_factory=CentroidDecoratorFactory(self.electorate_layer))
+        self.iface.mapCanvas().setMapTool(self.tool)
