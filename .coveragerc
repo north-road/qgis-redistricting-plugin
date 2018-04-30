@@ -1,4 +1,6 @@
 [run]
-omit = src/test/*
-       src/__init__.py
-       src/gui/__init__.py
+omit = test_suite.py
+       redistrict/test/*
+       redistrict/__init__.py
+       redistrict/core/__init__.py
+       redistrict/gui/__init__.py
