@@ -87,17 +87,6 @@ def test_environment():
     _run_tests(test_suite, package)
 
 
-def test_manually():
-    """Test manually a test class.
-
-    You can change this function as much as you want.
-    """
-    from .safe.gis.vector.test.test_assign_highest_value import \
-        TestAssignHighestValueVector
-    test_suite = unittest.makeSuite(TestAssignHighestValueVector, 'test')
-    _run_tests(test_suite, 'custom test class')
-
-
 def test_qgis3():
     """Run all QGIS3 tests"""
     test_package('redistrict.test')
