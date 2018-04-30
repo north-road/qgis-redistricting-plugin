@@ -20,6 +20,7 @@ from qgis.PyQt.QtWidgets import (QDialog,
                                  QListWidget,
                                  QVBoxLayout)
 from qgis.gui import QgsFilterLineEdit
+from redistrict.core.district_registry import DistrictRegistry
 
 
 class DistrictSelectionDialog(QDialog):
@@ -70,8 +71,11 @@ class DistrictSelectionDialog(QDialog):
         button_box.rejected.connect(self.reject)
         button_box.accepted.connect(self.accept)
 
-        self.select_from_map_button = button_box.addButton(
-            self.tr("Select from Map"), QDialogButtonBox.ActionRole)
+        if self.district_registry.flags() & DistrictRegistry.FLAG_ALLOWS_SPATIAL_SELECT:
+            self.select_from_map_button = button_box.addButton(
+                self.tr("Select from Map"), QDialogButtonBox.ActionRole)
+        else:
+            self.select_from_map_button = None
 
         self.setLayout(layout)
 

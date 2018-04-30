@@ -15,7 +15,8 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
-from redistrict.core.district_registry import DistrictRegistry
+from qgis.core import QgsVectorLayer
+from redistrict.core.district_registry import DistrictRegistry, VectorLayerDistrictRegistry
 from redistrict.gui.district_selection_dialog import DistrictSelectionDialog
 from .utilities import get_qgis_app
 
@@ -141,6 +142,23 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         self.assertEqual([dlg.list.item(r).text()
                           for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()],
                          ['d1', 'd2', 'd5', 'd3'])
+
+    def testPickFromMap(self):
+        """
+        Test selecting district from map
+        """
+        registry = DistrictRegistry(districts=[])
+        dlg = DistrictSelectionDialog(registry)
+        self.assertIsNone(dlg.select_from_map_button)
+
+        layer = QgsVectorLayer(
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=fld2:string",
+            "source", "memory")
+        registry = VectorLayerDistrictRegistry(
+            source_layer=layer,
+            source_field='fld1')
+        dlg = DistrictSelectionDialog(registry)
+        self.assertIsNotNone(dlg.select_from_map_button)
 
 
 if __name__ == "__main__":

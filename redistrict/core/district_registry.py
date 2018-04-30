@@ -14,7 +14,9 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 from collections import OrderedDict
-from qgis.core import (QgsSettings,
+from qgis.core import (QgsCoordinateTransform,
+                       QgsProject,
+                       QgsSettings,
                        QgsFeatureRequest,
                        NULL)
 
@@ -25,6 +27,8 @@ class DistrictRegistry():
     """
     A registry for handling available districts
     """
+
+    FLAG_ALLOWS_SPATIAL_SELECT = 1
 
     def __init__(self, name='districts', districts=None,
                  type_string_title='District',
@@ -48,6 +52,12 @@ class DistrictRegistry():
         self._type_string_title = type_string_title
         self._type_string_sentence = type_string_sentence
         self._type_string_sentence_plural = type_string_sentence_plural
+
+    def flags(self):
+        """
+        Returns flags indicating registry behavior
+        """
+        return 0
 
     def type_string_title(self):
         """
@@ -110,6 +120,17 @@ class DistrictRegistry():
         return [d for d in QgsSettings().value('{}/recent_districts'.format(
             self.settings_key()), []) if d in valid_districts]
 
+    def get_district_at_point(self, rect, crs):  # pylint: disable=unused-argument
+        """
+        Returns the district corresponding to a map point. This
+        is implemented only for registries which return the
+        FLAG_ALLOWS_SPATIAL_SELECT flag.
+        :param rect: rectangle to search within
+        :param crs: crs for map point
+        :return: district at map point, or None if not found
+        """
+        return None
+
 
 class VectorLayerDistrictRegistry(DistrictRegistry):
     """
@@ -142,6 +163,12 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         self.source_layer = source_layer
         self.source_field = source_field
 
+    def flags(self):
+        """
+        Returns flags indicating registry behavior
+        """
+        return self.FLAG_ALLOWS_SPATIAL_SELECT
+
     # noinspection PyMethodMayBeStatic
     def modify_district_request(self, request):
         """
@@ -172,3 +199,27 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         for x in districts:
             d[x] = True
         return list(d.keys())
+
+    def get_district_at_point(self, rect, crs):
+        """
+        Returns the district corresponding to a map point. This
+        is implemented only for registries which return the
+        FLAG_ALLOWS_SPATIAL_SELECT flag.
+        :param rect: rect to search within
+        :param crs: crs for map point
+        :return: district at map point, or None if not found
+        """
+
+        # first reproject point to layer crs
+        transform = QgsCoordinateTransform(crs, self.source_layer.crs(), QgsProject.instance())
+        try:
+            rect = transform.transformBoundingBox(rect)
+        except:  # noqa, pylint: disable=bare-except
+            pass
+
+        field_index = self.source_layer.fields().lookupField(self.source_field)
+        request = QgsFeatureRequest().setFilterRect(rect)
+        request.setSubsetOfAttributes([field_index])
+        for f in self.source_layer.getFeatures(request):
+            return f[field_index]
+        return None

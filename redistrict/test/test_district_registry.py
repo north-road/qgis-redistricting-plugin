@@ -21,6 +21,10 @@ from redistrict.core.district_registry import (
 )
 from qgis.core import (QgsVectorLayer,
                        QgsFeature,
+                       QgsPointXY,
+                       QgsRectangle,
+                       QgsGeometry,
+                       QgsCoordinateReferenceSystem,
                        NULL)
 
 
@@ -97,12 +101,21 @@ class DistrictRegistryTest(unittest.TestCase):
         reg.clear_recent_districts()
         self.assertEqual(reg.recent_districts_list(), [])
 
+    def testDistrictAtPoint(self):
+        """
+        Test base class district at point
+        """
+        reg = DistrictRegistry(
+            districts=['district 1', 'district 2', 'district 3',
+                       'district 4', 'district 5', 'district 9'])
+        self.assertIsNone(reg.get_district_at_point(QgsPointXY(1, 2), QgsCoordinateReferenceSystem()))
+
     def testVectorLayerDistrictRegistry(self):
         """
         Test a VectorLayerDistrictRegistry
         """
         layer = QgsVectorLayer(
-            "Point?field=fld1:string&crs=epsg:4326&field=fld2:string",
+            "Point?field=fld1:string&field=fld2:string",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1"])
@@ -126,6 +139,39 @@ class DistrictRegistryTest(unittest.TestCase):
             source_field='fld2')
         self.assertEqual(reg.district_list(),
                          ['xtest1', 'xtest3', 'xtest2'])
+
+    def testVectorDistrictAtPoint(self):
+        """
+        Test getting vector layer district at point
+        """
+        layer = QgsVectorLayer(
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=fld2:string",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes(["test4", "xtest1"])
+        f.setGeometry(QgsGeometry.fromWkt('Polygon((1 10, 10 10, 10 20, 1 20, 1 10))'))
+        f2 = QgsFeature()
+        f2.setAttributes(["test2", "xtest3"])
+        f2.setGeometry(QgsGeometry.fromWkt('Polygon((21 10, 30 10, 30 20, 21 20, 21 10))'))
+        layer.dataProvider().addFeatures([f, f2])
+
+        reg = VectorLayerDistrictRegistry(
+            source_layer=layer,
+            source_field='fld1')
+
+        self.assertIsNone(reg.get_district_at_point(QgsRectangle(70, 70, 71, 71), QgsCoordinateReferenceSystem()))
+        self.assertEqual(
+            reg.get_district_at_point(QgsRectangle(5, 16, 5.2, 16.2), QgsCoordinateReferenceSystem('EPSG:4326')),
+            'test4')
+        self.assertEqual(
+            reg.get_district_at_point(QgsRectangle(25, 16, 25.2, 16.2), QgsCoordinateReferenceSystem('EPSG:4326')),
+            'test2')
+        self.assertIsNone(reg.get_district_at_point(QgsRectangle(1598223, 1093990, 1598224, 1093991),
+                                                    QgsCoordinateReferenceSystem('EPSG:3857')))
+        self.assertEqual(reg.get_district_at_point(QgsRectangle(550253, 1663175, 550263, 1663185),
+                                                   QgsCoordinateReferenceSystem('EPSG:3857')), 'test4')
+        self.assertEqual(reg.get_district_at_point(QgsRectangle(2800207, 1679915, 2800217, 1679925),
+                                                   QgsCoordinateReferenceSystem('EPSG:3857')), 'test2')
 
 
 if __name__ == "__main__":

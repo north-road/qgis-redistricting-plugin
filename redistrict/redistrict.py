@@ -53,12 +53,12 @@ class LinzRedistrict:
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
 
-        self.electorate_layer = QgsProject.instance().mapLayersByName('Electorates')[0]
+        self.electorate_layer = QgsProject.instance().mapLayersByName('general')[0]
 
         self.district_registry = LinzElectoralDistrictRegistry(
             name='General NI',
             source_layer=self.electorate_layer,
-            source_field='name')
+            source_field='GeneralElectoralDistrictName_2007')
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
