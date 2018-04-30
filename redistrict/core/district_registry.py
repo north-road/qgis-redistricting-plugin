@@ -77,7 +77,8 @@ class DistrictRegistry():
 
     def district_list(self):
         """
-        Returns a complete list of districts available for redistricting to
+        Returns a complete list of districts available for
+        redistricting to
         """
         return self.districts
 
@@ -105,8 +106,9 @@ class DistrictRegistry():
         """
         Returns a list of recently used districts
         """
-        return QgsSettings().value('{}/recent_districts'.format(
-            self.settings_key()), [])
+        valid_districts = self.district_list()
+        return [d for d in QgsSettings().value('{}/recent_districts'.format(
+            self.settings_key()), []) if d in valid_districts]
 
 
 class VectorLayerDistrictRegistry(DistrictRegistry):

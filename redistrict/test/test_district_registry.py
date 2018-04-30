@@ -88,6 +88,12 @@ class DistrictRegistryTest(unittest.TestCase):
         self.assertEqual(reg.recent_districts_list(),
                          ['district 9', 'district 1', 'district 4',
                           'district 3', 'district 5'])
+        # recent districts should only list available districts
+        reg.push_recent_district('district x')
+        self.assertEqual(reg.recent_districts_list(),
+                         ['district 9', 'district 1', 'district 4',
+                          'district 3'])
+
         reg.clear_recent_districts()
         self.assertEqual(reg.recent_districts_list(), [])
 
