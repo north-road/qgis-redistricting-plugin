@@ -61,6 +61,8 @@ class LinzRedistrict:
             'general')[0]
         self.meshblock_layer = QgsProject.instance().mapLayersByName(
             'meshblock')[0]
+        self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
+        self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
         self.district_registry = LinzElectoralDistrictRegistry(
             source_layer=self.electorate_layer,
             source_field='GeneralElectoralDistrictName_2007',
@@ -102,9 +104,20 @@ class LinzRedistrict:
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
                                            self.iface.mapCanvas())
 
+        self.toggle_redistrict_actions()
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         self.redistricting_toolbar.deleteLater()
+
+    def toggle_redistrict_actions(self):
+        """
+        Updates the enabled status of redistricting actions based
+        on whether the meshblock layer is editable
+        """
+        enabled = self.meshblock_layer.isEditable()
+        self.redistrict_selected_action.setEnabled(enabled)
+        self.interactive_redistrict_action.setEnabled(enabled)
 
     def get_handler(self):
         """
