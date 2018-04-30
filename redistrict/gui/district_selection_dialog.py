@@ -36,43 +36,44 @@ class DistrictSelectionDialog(QDialog):
 
         self.setWindowTitle(self.tr('Select New {}').format(
             district_registry.type_string_title()))
-        layout = QVBoxLayout()
+        l = QVBoxLayout()
         self.recent_label = QLabel(self.tr('Recently used {}').format(
             district_registry.type_string_sentence_plural()))
-        layout.addWidget(self.recent_label)
+        l.addWidget(self.recent_label)
 
         self.recent_list = QListWidget()
         self.recent_list.setMaximumHeight(100)
         for d in district_registry.recent_districts_list():
             self.recent_list.addItem(d)
-        layout.addWidget(self.recent_list, 0)
+        l.addWidget(self.recent_list, 0)
 
         self.available_label = QLabel(self.tr('Available {}').format(
             district_registry.type_string_sentence_plural()
         ))
-        layout.addWidget(self.available_label)
+        l.addWidget(self.available_label)
         self.search = QgsFilterLineEdit()
         self.search.setShowSearchIcon(True)
         self.search.setPlaceholderText(self.tr('Search for {}').format(
             district_registry.type_string_sentence()))
-        layout.addWidget(self.search)
+        self.search.textChanged.connect(self.filter_changed)
+        l.addWidget(self.search)
 
         self.list = QListWidget()
         for d in district_registry.district_list():
             self.list.addItem(d)
 
-        layout.addWidget(self.list, 10)
+        l.addWidget(self.list, 10)
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        layout.addWidget(button_box)
+        l.addWidget(button_box)
         button_box.rejected.connect(self.reject)
         button_box.accepted.connect(self.accept)
 
         self.select_from_map_button = button_box.addButton(
             self.tr("Select from Map"), QDialogButtonBox.ActionRole)
 
-        self.setLayout(layout)
+        self.setLayout(l)
 
         self.recent_list.itemSelectionChanged.connect(
             self.recent_list_item_selected)
@@ -120,3 +121,11 @@ class DistrictSelectionDialog(QDialog):
     def accept(self):  # pylint: disable=missing-docstring
         self.district_registry.push_recent_district(self.selected_district())
         super().accept()
+
+    def filter_changed(self, filter):
+        """
+        Handles search filter changes
+        """
+        for i in range(self.list.count()):
+            item = self.list.item(i)
+            item.setHidden(filter.upper() not in item.text().upper())

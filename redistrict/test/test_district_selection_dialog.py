@@ -118,6 +118,30 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         self.assertEqual(registry.recent_districts_list(),
                          ['d4', 'd7', 'd9', 'd3'])
 
+    def testFilter(self):
+        """
+        Test filtering inside the dialog
+        """
+        registry = DistrictRegistry(districts=['d1', 'd2', 'd5', 'd3',
+                                               'e4', 'e9', 'e7'],
+                                    type_string_title='Electorate',
+                                    type_string_sentence='electorate',
+                                    type_string_sentence_plural='electorates')
+        dlg = DistrictSelectionDialog(registry)
+        self.assertEqual([dlg.list.item(r).text()
+                          for r in range(dlg.list.count())],
+                         ['d1', 'd2', 'd5', 'd3',
+                          'e4', 'e9', 'e7'])
+        dlg.search.setText('eee')  # connection not fired on first change?
+        dlg.search.setText('e')
+        self.assertEqual([dlg.list.item(r).text()
+                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()],
+                         ['e4', 'e9', 'e7'])
+        dlg.search.setText('d')
+        self.assertEqual([dlg.list.item(r).text()
+                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()],
+                         ['d1', 'd2', 'd5', 'd3'])
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(DistrictSelectionDialogTest)
