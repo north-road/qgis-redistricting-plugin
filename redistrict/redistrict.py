@@ -79,8 +79,9 @@ class LinzRedistrict:
         self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
         self.redistricting_toolbar.setObjectName('redistricting')
 
-        self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
-            'interactive_redistrict.svg'), self.tr('Interactive Redistrict'), None)
+        self.interactive_redistrict_action = QAction(
+            GuiUtils.get_icon('interactive_redistrict.svg'),
+            self.tr('Interactive Redistrict'), None)
         self.redistricting_toolbar.addAction(
             self.interactive_redistrict_action)
 

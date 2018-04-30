@@ -15,8 +15,10 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
-from redistrict.core.district_registry import (DistrictRegistry,
-                                    VectorLayerDistrictRegistry)
+from redistrict.core.district_registry import (
+    DistrictRegistry,
+    VectorLayerDistrictRegistry
+)
 from qgis.core import (QgsVectorLayer,
                        QgsFeature,
                        NULL)

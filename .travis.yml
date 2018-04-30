@@ -65,8 +65,8 @@ script:
 
   # The real test: disabled until migration to QGIS3 is completed
   # - docker exec -it qgis-testing-environment sh -c "qgis_testrunner.sh test_suite.test_package"
-  - make pep257
-  - make flake8
+  - make pylint
+  - make pep8
 
 # Disable notifications until migration to QGIS3 is completed
 # notifications:

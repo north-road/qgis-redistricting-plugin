@@ -39,7 +39,10 @@ class SafeTranslationsTest(unittest.TestCase):
         parent_path = os.path.join(__file__, os.path.pardir, os.path.pardir)
         dir_path = os.path.abspath(parent_path)
         file_path = os.path.join(dir_path, 'i18n', 'af.qm')
-        self.assertTrue(os.path.isfile(file_path), "%s is not a valid translation file or it does not exist" % file_path)
+        self.assertTrue(
+            os.path.isfile(file_path),
+            "%s is not a valid translation file or it does not exist" %
+            file_path)
         translator = QTranslator()
         translator.load(file_path)
         QCoreApplication.installTranslator(translator)
