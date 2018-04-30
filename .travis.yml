@@ -48,25 +48,23 @@ before_install:
 
 install:
   - pip install --upgrade pip
-  - pip install --upgrade pep257
-  - pip install --upgrade flake8
+  - pip install --upgrade pylint
+  - pip install --upgrade pycodestyle
   - docker run -d --name qgis-testing-environment -v ${TRAVIS_BUILD_DIR}:/tests_directory -e DISPLAY=:99 ${IMAGE}:${QGIS_VERSION_TAG}
   - sleep 10
   - docker exec -it qgis-testing-environment sh -c "qgis_setup.sh redistrict"
-  - docker exec -it qgis-testing-environment sh -c "pip3 install --upgrade pep257"
-  - docker exec -it qgis-testing-environment sh -c "pip3 install --upgrade flake8"
-  - docker exec -it qgis-testing-environment sh -c "pip3 install --upgrade mock"
+  - docker exec -it qgis-testing-environment sh -c "pip3 install --upgrade pylint"
+  - docker exec -it qgis-testing-environment sh -c "pip3 install --upgrade pycodestyle"
+
+  - docker exec -it qgis-testing-environment sh -c "ls -la /root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/redistrict/i18n/"
 
 script:
 
 
-  # Re-enable tests one by one as soon as they are migrated to QGI3:
   - docker exec -it qgis-testing-environment sh -c "qgis_testrunner.sh test_suite.test_qgis3"
 
-  # The real test: disabled until migration to QGIS3 is completed
-  # - docker exec -it qgis-testing-environment sh -c "qgis_testrunner.sh test_suite.test_package"
   - make pylint
-  - make pep8
+  - make pycodestyle
 
 # Disable notifications until migration to QGIS3 is completed
 # notifications:
