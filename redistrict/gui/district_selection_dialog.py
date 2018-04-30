@@ -36,43 +36,43 @@ class DistrictSelectionDialog(QDialog):
 
         self.setWindowTitle(self.tr('Select New {}').format(
             district_registry.type_string_title()))
-        l = QVBoxLayout()
+        layout = QVBoxLayout()
         self.recent_label = QLabel(self.tr('Recently used {}').format(
             district_registry.type_string_sentence_plural()))
-        l.addWidget(self.recent_label)
+        layout.addWidget(self.recent_label)
 
         self.recent_list = QListWidget()
         self.recent_list.setMaximumHeight(100)
         for d in district_registry.recent_districts_list():
             self.recent_list.addItem(d)
-        l.addWidget(self.recent_list, 0)
+        layout.addWidget(self.recent_list, 0)
 
         self.available_label = QLabel(self.tr('Available {}').format(
             district_registry.type_string_sentence_plural()
         ))
-        l.addWidget(self.available_label)
+        layout.addWidget(self.available_label)
         self.search = QgsFilterLineEdit()
         self.search.setShowSearchIcon(True)
         self.search.setPlaceholderText(self.tr('Search for {}').format(
             district_registry.type_string_sentence()))
-        l.addWidget(self.search)
+        layout.addWidget(self.search)
 
         self.list = QListWidget()
         for d in district_registry.district_list():
             self.list.addItem(d)
 
-        l.addWidget(self.list, 10)
+        layout.addWidget(self.list, 10)
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        l.addWidget(button_box)
+        layout.addWidget(button_box)
         button_box.rejected.connect(self.reject)
         button_box.accepted.connect(self.accept)
 
         self.select_from_map_button = button_box.addButton(
             self.tr("Select from Map"), QDialogButtonBox.ActionRole)
 
-        self.setLayout(l)
+        self.setLayout(layout)
 
         self.recent_list.itemSelectionChanged.connect(
             self.recent_list_item_selected)

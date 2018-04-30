@@ -14,7 +14,6 @@ PARENT = None
 IFACE = None
 
 
-
 def get_qgis_app(cleanup=True):
     """ Start one QGIS application to test against.
 
@@ -40,7 +39,6 @@ def get_qgis_app(cleanup=True):
     from qgis.PyQt.QtCore import QSize
     from qgis.PyQt.QtWidgets import QWidget
     from .qgis_interface import QgisInterface
-
 
     try:
         QGISAPP
