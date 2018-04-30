@@ -2,5 +2,5 @@
 .idea
 .noseids
 *.pyc
-*.qm
+#*.qm
 *local.*
