@@ -206,7 +206,11 @@ class DistrictPicker(QObject):
 
         self.selected_district = None
         self.requires_confirmation = False
-        if dlg.exec_():
+        res = dlg.exec_()
+        iface.mainWindow().raise_()
+        iface.mainWindow().activateWindow()
+
+        if res:
             self.selected_district = dlg.selected_district()
         elif dlg.chose_pick_from_map:
             del dlg
@@ -225,8 +229,6 @@ class DistrictPicker(QObject):
         self.picker_tool = DistrictSelectionMapTool(canvas)
         self.picker_tool.pointPicked.connect(self.picked_from_map)
         self.picker_tool.canceled.connect(self.picker_canceled)
-        iface.mainWindow().raise_()
-        iface.mainWindow().activateWindow()
         canvas.setFocus()
         canvas.setMapTool(self.picker_tool)
 

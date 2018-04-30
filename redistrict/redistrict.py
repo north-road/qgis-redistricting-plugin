@@ -16,9 +16,11 @@ __revision__ = '$Format:%H$'
 import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtWidgets import QToolBar, QAction
-from qgis.core import QgsProject
+from qgis.core import (QgsProject,
+                       Qgis)
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
+from .core.redistrict_handler import RedistrictHandler
 from .gui.district_selection_dialog import (
     DistrictPicker)
 from .gui.gui_utils import GuiUtils
@@ -57,6 +59,8 @@ class LinzRedistrict:
 
         self.electorate_layer = QgsProject.instance().mapLayersByName(
             'general')[0]
+        self.meshblock_layer = QgsProject.instance().mapLayersByName(
+            'meshblock')[0]
         self.district_registry = LinzElectoralDistrictRegistry(
             source_layer=self.electorate_layer,
             source_field='GeneralElectoralDistrictName_2007',
@@ -102,11 +106,28 @@ class LinzRedistrict:
         """Removes the plugin menu item and icon from QGIS GUI."""
         self.redistricting_toolbar.deleteLater()
 
+    def get_handler(self):
+        """
+        Returns the current redistricting handler
+        """
+        return RedistrictHandler(target_layer=self.meshblock_layer,
+                                 target_field='GeneralElectoralDistrictName_2007')
+
     def redistrict_selected(self):
         """
         Redistrict the currently selected meshblocks
         """
         dlg = DistrictPicker(district_registry=self.district_registry,
                              parent=self.iface.mainWindow())
-        if dlg.selected_district is not None:
-            assert False, dlg.selected_district
+        if dlg.selected_district is None:
+            return
+
+        if dlg.requires_confirmation:
+            pass
+
+        handler = self.get_handler()
+        if handler.assign_district(self.meshblock_layer.selectedFeatureIds(), dlg.selected_district):
+            self.iface.messageBar().pushMessage(self.tr('Redistricted selected meshblocks to {}').format(dlg.selected_district), level=Qgis.Success)
+        else:
+            self.iface.messageBar().pushMessage(
+                self.tr('Could not redistricted selected meshblocks'), level=Qgis.Critical)
