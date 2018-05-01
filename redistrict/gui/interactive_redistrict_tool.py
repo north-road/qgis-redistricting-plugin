@@ -13,13 +13,16 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import Qt
-from qgis.core import (QgsFeatureRequest,
+from qgis.PyQt.QtCore import (Qt,
+                              QCoreApplication)
+from qgis.core import (Qgis,
+                       QgsFeatureRequest,
                        QgsGeometry,
                        QgsPointLocator,
                        QgsTolerance)
 from qgis.gui import (QgsMapTool,
                       QgsSnapIndicator)
+from qgis.utils import iface
 
 
 class UniqueFeatureEdgeMatchCollectingFilter(QgsPointLocator.MatchFilter):
@@ -197,19 +200,36 @@ class InteractiveRedistrictingTool(QgsMapTool):
                     if candidates:
                         self.current_district = candidates[0]
                 if self.current_district and old_district and self.current_district != old_district:
+                    if not self.modified:
+                        # first modified district - push edit command
+                        self.handler.target_layer.beginEditCommand(
+                            QCoreApplication.translate('LinzRedistrict', 'Redistrict to {}').format(
+                                str(self.current_district)))
+
                     self.modified.add(target.id())
                     self.handler.assign_district([target.id()], self.current_district)
                     self.target_layer.triggerRepaint()
+
+    def report_success(self):
+        """
+        Shows a redistrict successful message in the messagebar, if available
+        """
+        if iface is not None:
+            iface.messageBar().pushMessage(
+                self.tr('Redistricted to {}').format(str(self.current_district)),
+                level=Qgis.Success)
 
     def canvasPressEvent(self, event):  # pylint: disable=missing-docstring
         if event.button() == Qt.MiddleButton:
             return
 
         if self.is_active:
-            if event.button() == Qt.RightButton:
-                self.handler.target_layer.destroyEditCommand()
-            else:
-                self.handler.target_layer.endEditCommand()
+            if self.modified:
+                if event.button() == Qt.RightButton:
+                    self.handler.target_layer.destroyEditCommand()
+                else:
+                    self.handler.target_layer.endEditCommand()
+                    self.report_success()
             if self.pop_decorator is not None:
                 self.canvas().scene().removeItem(self.pop_decorator)
                 self.pop_decorator = None
@@ -233,8 +253,6 @@ class InteractiveRedistrictingTool(QgsMapTool):
             self.modified = set()
             if valid:
                 self.is_active = True
-                self.handler.target_layer.beginEditCommand('x')
-
                 self.click_point = event.mapPoint()
                 self.snap_indicator.setMatch(QgsPointLocator.Match())
                 self.districts = districts
