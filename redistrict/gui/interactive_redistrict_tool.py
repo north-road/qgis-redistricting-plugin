@@ -219,24 +219,43 @@ class InteractiveRedistrictingTool(QgsMapTool):
                 self.tr('Redistricted to {}').format(str(self.current_district)),
                 level=Qgis.Success)
 
+    def keyPressEvent(self, event):  # pylint: disable=missing-docstring
+        if event.key() == Qt.Key_Escape and not event.isAutoRepeat():
+            self.cancel()
+
+    def cancel(self):
+        """
+        Cancels an active redistricting operation
+        """
+        if self.is_active:
+            if self.modified:
+                self.handler.target_layer.destroyEditCommand()
+            self.finalize_operation()
+
+    def finalize_operation(self):
+        """
+        Finalizes and cleans up after an active redistricting operation
+        """
+        if self.pop_decorator is not None:
+            self.canvas().scene().removeItem(self.pop_decorator)
+            self.pop_decorator = None
+            self.canvas().update()
+        self.is_active = False
+        self.districts = None
+        self.current_district = None
+
     def canvasPressEvent(self, event):  # pylint: disable=missing-docstring
         if event.button() == Qt.MiddleButton:
+            return
+        elif event.button() == Qt.RightButton:
+            self.cancel()
             return
 
         if self.is_active:
             if self.modified:
-                if event.button() == Qt.RightButton:
-                    self.handler.target_layer.destroyEditCommand()
-                else:
-                    self.handler.target_layer.endEditCommand()
-                    self.report_success()
-            if self.pop_decorator is not None:
-                self.canvas().scene().removeItem(self.pop_decorator)
-                self.pop_decorator = None
-                self.canvas().update()
-            self.is_active = False
-            self.districts = None
-            self.current_district = None
+                self.handler.target_layer.endEditCommand()
+                self.report_success()
+            self.finalize_operation()
         elif event.button() == Qt.LeftButton:
             matches = self.get_district_boundary_matches(event.mapPoint())
             districts = self.get_districts_from_matches(matches)
