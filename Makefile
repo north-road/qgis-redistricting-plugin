@@ -40,7 +40,7 @@ test: transcompile
 	@-export PYTHONPATH=`pwd`:$(PYTHONPATH); \
 		export QGIS_DEBUG=0; \
 		export QGIS_LOG_FILE=/dev/null; \
-		nosetests3 -v --with-id --with-coverage --cover-package=. \
+		nosetests3 -v -s --with-id --with-coverage --cover-package=. redistrict.test \
 		3>&1 1>&2 2>&3 3>&- || true
 	@echo "----------------------"
 	@echo "If you get a 'no module named qgis.core error, try sourcing"
