@@ -1,0 +1,27 @@
+{
+"meshblockPopulations" : [ {
+"censusStandardMeshblock" : "censusStandardMeshblock",
+"electoralPopulation" : 0
+}, {
+"censusStandardMeshblock" : "censusStandardMeshblock",
+"electoralPopulation" : 0
+} ],
+"table2a" : [ {
+"varianceYear1" : 5.637376656633329,
+"varianceCurrentQuota" : 5.962133916683182,
+"currentQuota" : 6,
+"currentPopulation" : 1,
+"varianceYear2" : 2.3021358869347655,
+"isWithinCurrentQuotaTolerance" : true,
+"electorate" : "electorate"
+}, {
+"varianceYear1" : 5.637376656633329,
+"varianceCurrentQuota" : 5.962133916683182,
+"currentQuota" : 6,
+"currentPopulation" : 1,
+"varianceYear2" : 2.3021358869347655,
+"isWithinCurrentQuotaTolerance" : true,
+"electorate" : "electorate"
+} ],
+"gmsVersion" : "LINZ_Output_20180108_2018_V1_00"
+}
