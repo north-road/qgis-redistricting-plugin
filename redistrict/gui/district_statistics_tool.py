@@ -23,14 +23,18 @@ class DistrictStatisticsTool(DistrictSelectionMapTool):
     """
 
     def __init__(self, canvas,
-                 district_registry):
+                 gui_handler):
         """
         Constructor for map tool
         :param canvas: linked map canvas
-        :param district_registry: associated district registry
+        :param gui_handler: redistrict gui handler
         """
-        super().__init__(canvas, district_registry)
+        super().__init__(canvas, district_registry=gui_handler.district_registry())
+        self.gui_handler = gui_handler
 
     def canvasReleaseEvent(self, e):  # pylint: disable=missing-docstring
         if e.button() != Qt.LeftButton:
             return
+
+        district = self.get_clicked_district()
+        self.gui_handler.show_stats_for_district(district)

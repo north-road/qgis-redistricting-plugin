@@ -37,11 +37,21 @@ class RedistrictGuiHandler:
         """
         return self._redistrict_dock
 
+    def district_registry(self):
+        """
+        Returns the linked district registry
+        """
+        return self._district_registry
+
     def show_stats_for_district(self, district):
         """
         Displays the statistics for a district in the dock
         :param district: id/code for district to show
         """
         # Base class method just shows district name
-        self._redistrict_dock.show_message(QCoreApplication.translate('LinzRedistrict', '<h1>Statistics for {}</h1>').format(
-            self._district_registry.get_district_title(district)))
+        if district is not None:
+            message = QCoreApplication.translate('LinzRedistrict', '<h1>Statistics for {}</h1>').format(
+                self._district_registry.get_district_title(district))
+        else:
+            message = ''
+        self._redistrict_dock.show_message(message)

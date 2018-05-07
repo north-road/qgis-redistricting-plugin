@@ -30,6 +30,7 @@ from .gui.district_selection_dialog import (
     DistrictPicker)
 from .gui.redistrict_gui_handler import RedistrictGuiHandler
 from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
+from .gui.district_statistics_tool import DistrictStatisticsTool
 from .gui.gui_utils import GuiUtils
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
@@ -118,6 +119,8 @@ class LinzRedistrict:
 
         self.stats_tool_action = QAction(GuiUtils.get_icon('stats_tool.svg'),
                                          self.tr('Electorate Statistics'))
+        self.stats_tool_action.triggered.connect(
+            self.trigger_stats_tool)
         self.redistricting_toolbar.addAction(self.stats_tool_action)
 
         self.iface.addToolBar(self.redistricting_toolbar)
@@ -204,4 +207,11 @@ class LinzRedistrict:
         self.tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
                                                  district_registry=self.district_registry,
                                                  decorator_factory=CentroidDecoratorFactory(self.electorate_layer))
+        self.iface.mapCanvas().setMapTool(self.tool)
+
+    def trigger_stats_tool(self):
+        """
+        Triggers the district statistics tool
+        """
+        self.tool = DistrictStatisticsTool(canvas=self.iface.mapCanvas(), gui_handler=self.get_gui_handler())
         self.iface.mapCanvas().setMapTool(self.tool)
