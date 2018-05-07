@@ -13,9 +13,11 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.PyQt.QtCore import QVariant
 from qgis.core import (QgsFeatureRequest,
                        QgsFeatureIterator,
-                       QgsGeometry)
+                       QgsGeometry,
+                       NULL)
 from redistrict.core.redistrict_handler import RedistrictHandler
 
 
@@ -48,8 +50,16 @@ class LinzRedistrictHandler(RedistrictHandler):
         if not self.pending_affected_districts:
             return ''
 
-        return "{} IN ('{}')".format(self.electorate_layer_field,
-                                     "','".join(self.pending_affected_districts.keys()))
+        field_index = self.electorate_layer.fields().lookupField(self.electorate_layer_field)
+        if self.electorate_layer.fields().at(field_index).type() == QVariant.String:
+            district_filter = "{} IN ('{}')".format(self.electorate_layer_field,
+                                                    "','".join([str(k) for k in
+                                                                self.pending_affected_districts.keys()]))  # pylint: disable=consider-iterating-dictionary
+        else:
+            district_filter = "{} IN ({})".format(self.electorate_layer_field,
+                                                  ",".join([str(k) for k in
+                                                            self.pending_affected_districts.keys()]))  # pylint: disable=consider-iterating-dictionary
+        return district_filter
 
     def get_affected_districts(self, attributes_required=None):
         """
