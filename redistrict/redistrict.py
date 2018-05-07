@@ -14,8 +14,13 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import os.path
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtWidgets import QToolBar, QAction, QMessageBox
+from qgis.PyQt.QtCore import (Qt,
+                              QSettings,
+                              QTranslator,
+                              QCoreApplication)
+from qgis.PyQt.QtWidgets import (QToolBar,
+                                 QAction,
+                                 QMessageBox)
 from qgis.core import (QgsProject,
                        Qgis)
 from .linz.linz_district_registry import (
@@ -26,6 +31,7 @@ from .gui.district_selection_dialog import (
 from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
 from .gui.gui_utils import GuiUtils
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
+from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 
 
 class LinzRedistrict:
@@ -59,6 +65,7 @@ class LinzRedistrict:
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
         self.tool = None
+        self.dock = None
 
         self.electorate_layer = QgsProject.instance().mapLayersByName(
             'general')[0]
@@ -111,6 +118,9 @@ class LinzRedistrict:
                                            self.iface.mapCanvas())
 
         self.toggle_redistrict_actions()
+
+        self.dock = LinzRedistrictingDockWidget()
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
