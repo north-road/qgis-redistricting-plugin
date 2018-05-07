@@ -176,6 +176,9 @@ class LinzRedistrictHandler(RedistrictHandler):
         request.setSubsetOfAttributes([self.target_layer.fields().lookupField(self.target_field)])
         for f in self.target_layer.getFeatures(request):
             district = f[self.target_field]
+            if district == NULL:
+                continue
+
             if district not in self.pending_affected_districts:
                 self.pending_affected_districts[district] = {'ADD': [], 'REMOVE': []}
             self.pending_affected_districts[district]['REMOVE'].append(f.id())

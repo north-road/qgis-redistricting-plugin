@@ -162,7 +162,10 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         f5 = QgsFeature()
         f5.setAttributes([2])
         f5.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 10, 10, 15)))
-        success, [f, f2, f3, f4, f5] = meshblock_layer.dataProvider().addFeatures([f, f2, f3, f4, f5])
+        f6 = QgsFeature()
+        f6.setAttributes([NULL])
+        f6.setGeometry(QgsGeometry.fromRect(QgsRectangle(-5, 10, 0, 15)))
+        success, [f, f2, f3, f4, f5, f6] = meshblock_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
         self.assertTrue(success)
 
         district_layer = QgsVectorLayer(
@@ -189,11 +192,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
                                         electorate_layer=district_layer, electorate_layer_field='fld1')
         self.assertTrue(meshblock_layer.startEditing())
         handler.begin_edit_group('test')
-        self.assertTrue(handler.assign_district([f.id(), f3.id()], 5))
+        self.assertTrue(handler.assign_district([f.id(), f3.id(), f6.id()], 5))
         self.assertTrue(handler.assign_district([f5.id()], 5))
 
         # pending changes should be recorded
-        self.assertEqual(handler.pending_affected_districts, {5: {'ADD': [f.id(), f3.id(), f5.id()], 'REMOVE': []},
+        self.assertEqual(handler.pending_affected_districts, {5: {'ADD': [f.id(), f3.id(), f6.id(), f5.id()], 'REMOVE': []},
                                                               2: {'ADD': [], 'REMOVE': [f5.id()]},
                                                               3: {'ADD': [], 'REMOVE': [f3.id()]},
                                                               4: {'ADD': [], 'REMOVE': [f.id()]}})
@@ -204,7 +207,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
                               [4, 3, 5, 2])
         self.assertFalse([f["fld1"] for f in handler.get_added_meshblocks(2)])
         self.assertFalse([f["fld1"] for f in handler.get_added_meshblocks(3)])
-        self.assertCountEqual([f.id() for f in handler.get_added_meshblocks(5)], [1, 3, 5])
+        self.assertCountEqual([f.id() for f in handler.get_added_meshblocks(5)], [1, 3, 6, 5])
         self.assertCountEqual([f.id() for f in handler.get_removed_meshblocks(2)], [5])
         self.assertCountEqual([f.id() for f in handler.get_removed_meshblocks(3)], [3])
         self.assertFalse([f["fld1"] for f in handler.get_removed_meshblocks(5)])
@@ -219,14 +222,14 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertFalse([f.id() for f in handler.get_removed_meshblocks(3)])
         self.assertFalse([f["fld1"] for f in handler.get_removed_meshblocks(5)])
 
-        self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5])
+        self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5, 5])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
         self.assertEqual(district_layer.getFeature(d3.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
-                         'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, 0 15, 10 15, 10 10, 5 10, 5 5))')
+                         'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, -5 10, -5 15, 0 15, 10 15, 10 10, 5 10, 5 5))')
 
         handler.begin_edit_group('test2')
         self.assertTrue(handler.assign_district([f2.id()], 5))
@@ -243,14 +246,14 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
 
         handler.discard_edit_group()
         self.assertFalse(handler.pending_affected_districts)
-        self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5])
+        self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5, 5])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
         self.assertEqual(district_layer.getFeature(d3.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
-                         'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, 0 15, 10 15, 10 10, 5 10, 5 5))')
+                         'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, -5 10, -5 15, 0 15, 10 15, 10 10, 5 10, 5 5))')
 
 
 if __name__ == "__main__":
