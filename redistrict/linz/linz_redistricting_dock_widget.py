@@ -21,6 +21,10 @@ class LinzRedistrictingDockWidget(RedistrictingDockWidget):
     LINZ Specific redistricting dock widget
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, iface=None):
+        """
+        Constructor for LINZ redistricting dock
+        :param iface: QGIS interface
+        """
+        super().__init__(iface)
         self.setWindowTitle(self.tr('Redistricting - Scenario 1'))
