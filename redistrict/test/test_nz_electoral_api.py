@@ -30,6 +30,7 @@ from redistrict.linz.nz_electoral_api import (BoundaryRequest, ConcordanceItem,
 
 # pylint: disable=broad-except,attribute-defined-outside-init
 
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     """HTTP test handler
 
@@ -102,7 +103,6 @@ class NzElectoralApiTest(unittest.TestCase):
         cls.httpd_thread.start()
         cls.api = NzElectoralApi('http://localhost:%s' % cls.port)
         cls.last_result = None
-
 
     def _parse_result(self, api_method, result, *args, in_args=[], **kwargs):
         """Parse the result and check them"""
