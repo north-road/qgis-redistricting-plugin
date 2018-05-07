@@ -252,7 +252,10 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         districts = {f[title_field_index]: f[field_index]
                      for f in self.source_layer.getFeatures(request)
                      if f[field_index] != NULL}
-        return districts
+        result = OrderedDict()
+        for d in sorted(districts.keys()):
+            result[d] = districts[d]
+        return result
 
     def get_district_at_point(self, rect, crs):
         """
