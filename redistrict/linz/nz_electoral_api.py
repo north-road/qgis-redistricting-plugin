@@ -97,7 +97,7 @@ class NzElectoralApi(QObject):
     def encode_payload(cls, payload):
         """Transform the payload to JSON
 
-        :param payload: the peayload object
+        :param payload: the payload object
         :type payload: dict
         :return: JSON encoded
         :rtype: str
@@ -109,9 +109,9 @@ class NzElectoralApi(QObject):
     def parse_async(cls, nam):
         """Transform the content component of the response to JSON
 
-        :param nam: network access manager instance
+        :param nam: network access manager wrapper instance
         :type nam: NetworkAccessManager
-        :return: trasnformed result
+        :return: transformed result
         :rtype: dict
         """
         result = nam.httpResult()
