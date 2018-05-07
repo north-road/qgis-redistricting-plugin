@@ -13,63 +13,17 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QObject, QCoreApplication
+from qgis.PyQt.QtCore import Qt, QObject, QCoreApplication
 from qgis.PyQt.QtWidgets import (QDialog,
                                  QDialogButtonBox,
                                  QLabel,
                                  QListWidget,
                                  QListWidgetItem,
                                  QVBoxLayout)
-from qgis.core import QgsRectangle
-from qgis.gui import (QgsFilterLineEdit,
-                      QgsMapTool)
+from qgis.gui import QgsFilterLineEdit
 from qgis.utils import iface
 from redistrict.core.district_registry import DistrictRegistry
-
-
-class DistrictSelectionMapTool(QgsMapTool):
-    """
-    Map tool for selecting a district from the map
-    """
-
-    pointPicked = pyqtSignal()
-    canceled = pyqtSignal()
-
-    def __init__(self, canvas):
-        super().__init__(canvas)
-        self.rectangle = None
-
-    def flags(self):  # pylint: disable=missing-docstring
-        return QgsMapTool.Transient | QgsMapTool.AllowZoomRect
-
-    def keyReleaseEvent(self, e):  # pylint: disable=missing-docstring
-        if e.key() == Qt.Key_Escape:
-            self.canceled.emit()
-
-    def canvasReleaseEvent(self, e):  # pylint: disable=missing-docstring
-        if e.button() != Qt.LeftButton:
-            return
-
-        self.pointPicked.emit()
-
-    def canvasPressEvent(self, e):
-        """
-        Handle canvas click and build search rectangle
-        """
-        if e.button() != Qt.LeftButton:
-            return
-
-        search_radius = self.searchRadiusMU(self.canvas())
-        self.rectangle = QgsRectangle(e.mapPoint().x() - search_radius,
-                                      e.mapPoint().y() - search_radius,
-                                      e.mapPoint().x() + search_radius,
-                                      e.mapPoint().y() + search_radius)
-
-    def search_rectangle(self):
-        """
-        Returns the canvas search rectangle
-        """
-        return self.rectangle
+from redistrict.gui.district_selection_map_tool import DistrictSelectionMapTool
 
 
 class DistrictSelectionDialog(QDialog):
@@ -236,8 +190,8 @@ class DistrictPicker(QObject):
         """
         canvas = iface.mapCanvas()
         self.previous_map_tool = canvas.mapTool()
-        self.picker_tool = DistrictSelectionMapTool(canvas)
-        self.picker_tool.pointPicked.connect(self.picked_from_map)
+        self.picker_tool = DistrictSelectionMapTool(canvas, district_registry=self.district_registry)
+        self.picker_tool.districtPicked.connect(self.picked_from_map)
         self.picker_tool.canceled.connect(self.picker_canceled)
         canvas.setFocus()
         canvas.setMapTool(self.picker_tool)
@@ -247,13 +201,10 @@ class DistrictPicker(QObject):
         Triggered after a user has picked a point from the map
         using the map tool
         """
-        rect = self.picker_tool.search_rectangle()
-
         canvas = iface.mapCanvas()
         canvas.setMapTool(self.previous_map_tool)
 
-        self.selected_district = self.district_registry.get_district_at_point(rect,
-                                                                              canvas.mapSettings().destinationCrs())
+        self.selected_district = self.picker_tool.get_clicked_district()
         self.picked = True
 
     def picker_canceled(self):
