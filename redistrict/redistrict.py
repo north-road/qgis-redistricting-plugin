@@ -65,6 +65,7 @@ class LinzRedistrict:
         self.redistricting_toolbar = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
+        self.stats_tool_action = None
         self.tool = None
         self.dock = None
 
@@ -114,6 +115,10 @@ class LinzRedistrict:
         self.redistrict_selected_action.triggered.connect(
             self.redistrict_selected)
         self.redistricting_toolbar.addAction(self.redistrict_selected_action)
+
+        self.stats_tool_action = QAction(GuiUtils.get_icon('stats_tool.svg'),
+                                         self.tr('Electorate Statistics'))
+        self.redistricting_toolbar.addAction(self.stats_tool_action)
 
         self.iface.addToolBar(self.redistricting_toolbar)
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
