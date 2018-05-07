@@ -15,6 +15,10 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
+from qgis.core import (QgsVectorLayer,
+                       QgsFeature)
+from redistrict.core.district_registry import (DistrictRegistry,
+                                               VectorLayerDistrictRegistry)
 from redistrict.gui.redistrict_gui_handler import RedistrictGuiHandler
 from redistrict.gui.redistricting_dock_widget import RedistrictingDockWidget
 from .utilities import get_qgis_app
@@ -30,8 +34,34 @@ class RedistrictingGuiHandlerTest(unittest.TestCase):
         Test constructing handler
         """
         dock = RedistrictingDockWidget(IFACE)
-        handler = RedistrictGuiHandler(redistrict_dock=dock)
+        registry = DistrictRegistry(districts=['a', 'b'])
+        handler = RedistrictGuiHandler(redistrict_dock=dock, district_registry=registry)
         self.assertEqual(handler.redistrict_dock(), dock)
+
+    def testShowStats(self):
+        """Test show stats for district"""
+        layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes(["test4", "xtest1"])
+        f2 = QgsFeature()
+        f2.setAttributes(["test2", "xtest2"])
+        f3 = QgsFeature()
+        f3.setAttributes(["test3", "xtest3"])
+        layer.dataProvider().addFeatures([f, f2, f3])
+        registry = VectorLayerDistrictRegistry(
+            source_layer=layer,
+            source_field='fld1',
+            title_field='fld2')
+
+        dock = RedistrictingDockWidget(IFACE)
+        handler = RedistrictGuiHandler(redistrict_dock=dock, district_registry=registry)
+
+        handler.show_stats_for_district('test4')
+        self.assertEqual(dock.frame.toPlainText(), 'Statistics for xtest1')
+        handler.show_stats_for_district('test3')
+        self.assertEqual(dock.frame.toPlainText(), 'Statistics for xtest3')
 
 
 if __name__ == "__main__":

@@ -13,21 +13,35 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.PyQt.QtCore import QCoreApplication
+
 
 class RedistrictGuiHandler:
     """
     Base class for redistrict handling GUI operations.
     """
 
-    def __init__(self, redistrict_dock):
+    def __init__(self, redistrict_dock,
+                 district_registry):
         """
         Constructor for RedistrictGuiHandler
         :param redistrict_dock: linked redistricting dock
+        :param district_registry: associated district registry
         """
         self._redistrict_dock = redistrict_dock
+        self._district_registry = district_registry
 
     def redistrict_dock(self):
         """
         Returns the linked redistricting dock
         """
         return self._redistrict_dock
+
+    def show_stats_for_district(self, district):
+        """
+        Displays the statistics for a district in the dock
+        :param district: id/code for district to show
+        """
+        # Base class method just shows district name
+        self._redistrict_dock.show_message(QCoreApplication.translate('LinzRedistrict', '<h1>Statistics for {}</h1>').format(
+            self._district_registry.get_district_title(district)))

@@ -151,7 +151,8 @@ class LinzRedistrict:
         """
         Returns the current redistricting GUI handler
         """
-        return RedistrictGuiHandler(redistrict_dock=self.dock)
+        return RedistrictGuiHandler(redistrict_dock=self.dock,
+                                    district_registry=self.district_registry)
 
     def redistrict_selected(self):
         """
@@ -172,6 +173,7 @@ class LinzRedistrict:
             return
 
         handler = self.get_handler()
+        gui_handler = self.get_gui_handler()
         handler.begin_edit_group(
             QCoreApplication.translate('LinzRedistrict', 'Redistrict to {}').format(self.district_registry.get_district_title(dlg.selected_district)))
         if handler.assign_district(self.meshblock_layer.selectedFeatureIds(), dlg.selected_district):
