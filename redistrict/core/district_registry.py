@@ -18,6 +18,7 @@ from qgis.core import (QgsCoordinateTransform,
                        QgsProject,
                        QgsSettings,
                        QgsFeatureRequest,
+                       QgsExpression,
                        NULL)
 
 MAX_RECENT_DISTRICTS = 5
@@ -79,6 +80,14 @@ class DistrictRegistry():
         """
         return self._type_string_sentence_plural
 
+    # noinspection PyMethodMayBeStatic
+    def get_district_title(self, district):
+        """
+        Returns a user-friendly title corresponding to the given district
+        :param district: district code/id to get title for
+        """
+        return str(district)
+
     def settings_key(self):
         """
         Returns the QSettings key corresponding to this registry
@@ -91,6 +100,12 @@ class DistrictRegistry():
         redistricting to
         """
         return self.districts
+
+    def district_titles(self):
+        """
+        Returns a dictionary of sorted district titles to corresponding district id/code
+        """
+        return {self.get_district_title(d): d for d in self.district_list()}
 
     def clear_recent_districts(self):
         """
@@ -142,7 +157,8 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
                  name='districts',
                  type_string_title='District',
                  type_string_sentence='district',
-                 type_string_sentence_plural='districts'):
+                 type_string_sentence_plural='districts',
+                 title_field=None):
         """
         Constructor for District Registry
         :param source_layer: vector layer to retrieve districts from
@@ -155,6 +171,8 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         types
         :param type_string_sentence_plural: sentence case string for district
         types (plural)
+        :param title_field: optional field name for field to retrieve
+        district titles from. If not set source_field will be used.
         """
         super().__init__(name=name,
                          type_string_title=type_string_title,
@@ -162,12 +180,32 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
                          type_string_sentence_plural=type_string_sentence_plural)
         self.source_layer = source_layer
         self.source_field = source_field
+        if title_field is not None:
+            self.title_field = title_field
+        else:
+            self.title_field = self.source_field
 
     def flags(self):
         """
         Returns flags indicating registry behavior
         """
         return self.FLAG_ALLOWS_SPATIAL_SELECT
+
+    def get_district_title(self, district):
+        if self.title_field == self.source_field:
+            return super().get_district_title(district)
+
+        # lookup matching feature
+        title_field_index = self.source_layer.fields().lookupField(self.title_field)
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, district))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([title_field_index])
+        try:
+            f = next(self.source_layer.getFeatures(request))
+        except StopIteration:
+            return super().get_district_title(district)
+        return f[title_field_index]
 
     # noinspection PyMethodMayBeStatic
     def modify_district_request(self, request):
@@ -199,6 +237,22 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         for x in districts:
             d[x] = True
         return list(d.keys())
+
+    def district_titles(self):
+        """
+        Returns a dictionary of sorted district titles to corresponding district id/code
+        """
+        field_index = self.source_layer.fields().lookupField(self.source_field)
+        title_field_index = self.source_layer.fields().lookupField(self.title_field)
+        request = QgsFeatureRequest()
+        self.modify_district_request(request)
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([field_index, title_field_index])
+
+        districts = {f[title_field_index]:f[field_index]
+                     for f in self.source_layer.getFeatures(request)
+                     if f[field_index] != NULL}
+        return districts
 
     def get_district_at_point(self, rect, crs):
         """

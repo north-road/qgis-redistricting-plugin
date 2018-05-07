@@ -24,6 +24,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
 
     def __init__(self, source_layer,
                  source_field,
+                 title_field,
                  name='districts',
                  type_string_title='Electorate'):
         """
@@ -37,6 +38,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         """
         super().__init__(source_layer=source_layer,
                          source_field=source_field,
+                         title_field=title_field,
                          name=name,
                          type_string_title=type_string_title,
                          type_string_sentence='electorate',

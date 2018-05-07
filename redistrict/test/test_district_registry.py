@@ -56,6 +56,16 @@ class DistrictRegistryTest(unittest.TestCase):
                                     districts=['district 1', 'district 9'])
         self.assertEqual(registry.district_list(), ['district 1',
                                                     'district 9'])
+        self.assertEqual(registry.district_titles(), {'district 1': 'district 1', 'district 9': 'district 9'})
+
+    def testGetTitle(self):
+        """
+        Test getting district title
+        """
+        registry = DistrictRegistry(name='registry',
+                                    districts=['district 1', 'district 9'])
+        self.assertEqual(registry.get_district_title('x'), 'x')
+        self.assertEqual(registry.get_district_title(3), '3')
 
     def testRecentDistricts(self):
         """
@@ -134,11 +144,14 @@ class DistrictRegistryTest(unittest.TestCase):
             source_field='fld1')
         self.assertEqual(reg.district_list(),
                          ['test4', 'test2', 'test3', 'test1'])
+        self.assertEqual(reg.district_titles(),
+                         {'test1': 'test1', 'test2': 'test2', 'test3': 'test3', 'test4': 'test4'})
         reg = VectorLayerDistrictRegistry(
             source_layer=layer,
             source_field='fld2')
         self.assertEqual(reg.district_list(),
                          ['xtest1', 'xtest3', 'xtest2'])
+        self.assertEqual(reg.district_titles(), {'xtest1': 'xtest1', 'xtest2': 'xtest2', 'xtest3': 'xtest3'})
 
     def testVectorDistrictAtPoint(self):
         """
@@ -155,9 +168,22 @@ class DistrictRegistryTest(unittest.TestCase):
         f2.setGeometry(QgsGeometry.fromWkt('Polygon((21 10, 30 10, 30 20, 21 20, 21 10))'))
         layer.dataProvider().addFeatures([f, f2])
 
+        # same source and title field
         reg = VectorLayerDistrictRegistry(
             source_layer=layer,
             source_field='fld1')
+
+        self.assertEqual(reg.get_district_title(3), '3')
+        self.assertEqual(reg.get_district_title('a'), 'a')
+
+        # different source and title field
+        reg = VectorLayerDistrictRegistry(
+            source_layer=layer,
+            source_field='fld1',
+            title_field='fld2')
+
+        self.assertEqual(reg.get_district_title('test4'), 'xtest1')
+        self.assertEqual(reg.get_district_title('test2'), 'xtest3')
 
         self.assertIsNone(reg.get_district_at_point(QgsRectangle(70, 70, 71, 71), QgsCoordinateReferenceSystem()))
         self.assertEqual(

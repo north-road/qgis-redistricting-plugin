@@ -45,12 +45,14 @@ class LinzDistrictRegistryTest(unittest.TestCase):
 
         reg = LinzElectoralDistrictRegistry(
             source_layer=layer,
-            source_field='fld1')
+            source_field='fld1',
+            title_field='fld1')
         self.assertEqual(reg.district_list(),
                          ['test1', 'test2', 'test3', 'test4'])
         reg = LinzElectoralDistrictRegistry(
             source_layer=layer,
-            source_field='fld2')
+            source_field='fld2',
+            title_field='fld2')
         self.assertEqual(reg.district_list(),
                          ['xtest1', 'xtest2', 'xtest3'])
 

@@ -77,7 +77,8 @@ class LinzRedistrict:
         self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
         self.district_registry = LinzElectoralDistrictRegistry(
             source_layer=self.electorate_layer,
-            source_field='GeneralElectoralDistrictName_2007',
+            source_field='electorate_id',
+            title_field='name',
             name='General NI')
 
     # noinspection PyMethodMayBeStatic

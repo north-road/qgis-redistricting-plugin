@@ -18,6 +18,7 @@ from qgis.PyQt.QtWidgets import (QDialog,
                                  QDialogButtonBox,
                                  QLabel,
                                  QListWidget,
+                                 QListWidgetItem,
                                  QVBoxLayout)
 from qgis.core import QgsRectangle
 from qgis.gui import (QgsFilterLineEdit,
@@ -93,7 +94,9 @@ class DistrictSelectionDialog(QDialog):
         self.recent_list = QListWidget()
         self.recent_list.setMaximumHeight(100)
         for d in district_registry.recent_districts_list():
-            self.recent_list.addItem(d)
+            item = QListWidgetItem(self.district_registry.get_district_title(d))
+            item.setData(Qt.UserRole, d)
+            self.recent_list.addItem(item)
         layout.addWidget(self.recent_list, 0)
 
         self.available_label = QLabel(self.tr('Available {}').format(
@@ -108,8 +111,10 @@ class DistrictSelectionDialog(QDialog):
         layout.addWidget(self.search)
 
         self.list = QListWidget()
-        for d in district_registry.district_list():
-            self.list.addItem(d)
+        for title, code in district_registry.district_titles().items():
+            item = QListWidgetItem(title)
+            item.setData(Qt.UserRole, code)
+            self.list.addItem(item)
 
         layout.addWidget(self.list, 10)
 
@@ -161,18 +166,19 @@ class DistrictSelectionDialog(QDialog):
         Sets the district selected in the dialog
         :param district: district to select
         """
-        matches = self.list.findItems(district, Qt.MatchExactly)
-        if matches:
-            matches[0].setSelected(True)
+        for i in range(self.list.count()):
+            if self.list.item(i).data(Qt.UserRole) == district:
+                self.list.item(i).setSelected(True)
+                return
 
     def selected_district(self):
         """
         Returns the district selected in the dialog
         """
         if self.recent_list.selectedItems():
-            return self.recent_list.selectedItems()[0].text()
+            return self.recent_list.selectedItems()[0].data(Qt.UserRole)
         elif self.list.selectedItems():
-            return self.list.selectedItems()[0].text()
+            return self.list.selectedItems()[0].data(Qt.UserRole)
 
         return None
 
