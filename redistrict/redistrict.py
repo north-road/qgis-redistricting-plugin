@@ -28,6 +28,7 @@ from .linz.linz_district_registry import (
 from .linz.linz_redistrict_handler import LinzRedistrictHandler
 from .gui.district_selection_dialog import (
     DistrictPicker)
+from .gui.redistrict_gui_handler import RedistrictGuiHandler
 from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
 from .gui.gui_utils import GuiUtils
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
@@ -144,6 +145,12 @@ class LinzRedistrict:
                                      target_field='staged_electorate',
                                      electorate_layer=self.electorate_layer,
                                      electorate_layer_field='electorate_id')
+
+    def get_gui_handler(self):
+        """
+        Returns the current redistricting GUI handler
+        """
+        return RedistrictGuiHandler(redistrict_dock=self.dock)
 
     def redistrict_selected(self):
         """
