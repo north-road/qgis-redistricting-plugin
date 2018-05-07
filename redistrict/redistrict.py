@@ -167,7 +167,8 @@ class LinzRedistrict:
                                                               self.tr('Redistrict Selected'),
                                                               self.tr(
                                                                   'Are you sure you want to redistrict the selected meshblocks to “{}”?'
-                                                              ).format(dlg.selected_district),
+                                                              ).format(self.district_registry.get_district_title(
+                                                                  dlg.selected_district)),
                                                               QMessageBox.Yes | QMessageBox.No,
                                                               QMessageBox.No) != QMessageBox.Yes:
             return
@@ -175,10 +176,12 @@ class LinzRedistrict:
         handler = self.get_handler()
         gui_handler = self.get_gui_handler()
         handler.begin_edit_group(
-            QCoreApplication.translate('LinzRedistrict', 'Redistrict to {}').format(self.district_registry.get_district_title(dlg.selected_district)))
+            QCoreApplication.translate('LinzRedistrict', 'Redistrict to {}').format(
+                self.district_registry.get_district_title(dlg.selected_district)))
         if handler.assign_district(self.meshblock_layer.selectedFeatureIds(), dlg.selected_district):
             self.iface.messageBar().pushMessage(
-                self.tr('Redistricted selected meshblocks to {}').format(self.district_registry.get_district_title(dlg.selected_district)), level=Qgis.Success)
+                self.tr('Redistricted selected meshblocks to {}').format(
+                    self.district_registry.get_district_title(dlg.selected_district)), level=Qgis.Success)
             gui_handler.show_stats_for_district(dlg.selected_district)
             self.meshblock_layer.removeSelection()
         else:
