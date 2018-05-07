@@ -33,6 +33,14 @@ class RedistrictingDockWidgetTest(unittest.TestCase):
         self.assertIsNotNone(widget)
         self.assertIsInstance(widget.dock_toolbar(), QToolBar)
 
+    def testShowMessage(self):
+        """
+        Test showing message in the dock
+        """
+        widget = RedistrictingDockWidget(IFACE)
+        widget.show_message('Test<br />Message')
+        self.assertIn('Test<br />Message', widget.frame.toHtml())
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(RedistrictingDockWidgetTest)

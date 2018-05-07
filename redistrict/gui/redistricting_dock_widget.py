@@ -15,7 +15,8 @@ __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtWidgets import (QWidget,
                                  QGridLayout,
-                                 QToolBar)
+                                 QToolBar,
+                                 QTextBrowser)
 from qgis.gui import QgsDockWidget
 from qgis.utils import iface
 
@@ -43,8 +44,21 @@ class RedistrictingDockWidget(QgsDockWidget):
 
         self._dock_toolbar.setIconSize(self.iface.iconSize(True))
 
+        self.frame = QTextBrowser()
+        grid.addWidget(self.frame, 1, 0, 1, 1)
+
+        self.setWidget(dock_contents)
+
     def dock_toolbar(self):
         """
         Returns the dock toolbar
         """
         return self._dock_toolbar
+
+    def show_message(self, html):
+        """
+        Shows a HTML formatted message in the dock, replacing
+        its current contents
+        :param html: HTML to show
+        """
+        self.frame.setHtml(html)
