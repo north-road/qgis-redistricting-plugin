@@ -15,6 +15,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import unittest
+from qgis.PyQt.QtWidgets import QToolBar
 from redistrict.gui.redistricting_dock_widget import RedistrictingDockWidget
 from .utilities import get_qgis_app
 
@@ -30,6 +31,7 @@ class RedistrictingDockWidgetTest(unittest.TestCase):
         """
         widget = RedistrictingDockWidget(IFACE)
         self.assertIsNotNone(widget)
+        self.assertIsInstance(widget.dock_toolbar(), QToolBar)
 
 
 if __name__ == "__main__":
