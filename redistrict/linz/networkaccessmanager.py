@@ -25,33 +25,43 @@ __author__ = 'Alessandro Pasotti'
 __date__ = 'August 2016'
 
 import re
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 
 from qgis.PyQt.QtCore import pyqtSlot, QUrl, QEventLoop, QTimer, QCoreApplication, QObject
 from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qgis.core import QgsNetworkAccessManager, QgsAuthManager, QgsMessageLog
 
-# FIXME: ignored
+# Ignored
 DEFAULT_MAX_REDIRECTS = 4
+
+# pylint: skip-file
+
 
 class RequestsException(Exception):
     pass
 
+
 class RequestsExceptionTimeout(RequestsException):
     pass
+
 
 class RequestsExceptionConnectionError(RequestsException):
     pass
 
+
 class RequestsExceptionUserAbort(RequestsException):
     pass
+
 
 class Map(dict):
     """
     Example:
     m = Map({'first_name': 'Eduardo'}, last_name='Pool', age=24, sports=['Soccer'])
     """
+
     def __init__(self, *args, **kwargs):
         super(Map, self).__init__(*args, **kwargs)
         for arg in args:
@@ -83,6 +93,7 @@ class Map(dict):
 
 class Response(Map):
     pass
+
 
 class NetworkAccessManager():
     """
@@ -143,7 +154,7 @@ class NetworkAccessManager():
             'status': 0,
             'status_code': 0,
             'status_message': '',
-            'content' : b'',
+            'content': b'',
             'ok': False,
             'headers': {},
             'reason': '',
@@ -189,12 +200,14 @@ class NetworkAccessManager():
         if self.reply is not None and self.reply.isRunning():
             self.reply.close()
         if method.lower() == 'delete':
-            func = getattr(QgsNetworkAccessManager.instance(), 'deleteResource')
+            func = getattr(QgsNetworkAccessManager.instance(),
+                           'deleteResource')
         else:
             func = getattr(QgsNetworkAccessManager.instance(), method.lower())
         # Calling the server ...
         # Let's log the whole call for debugging purposes:
-        self.msg_log("Sending %s request to %s" % (method.upper(), req.url().toString()))
+        self.msg_log("Sending %s request to %s" %
+                     (method.upper(), req.url().toString()))
         self.on_abort = False
         headers = {h: req.rawHeader(h) for h in req.rawHeaderList()}
         for k, v in list(headers.items()):
@@ -246,19 +259,22 @@ class NetworkAccessManager():
 
     def downloadProgress(self, bytesReceived, bytesTotal):
         """Keep track of the download progress"""
-        #self.msg_log("downloadProgress %s of %s ..." % (bytesReceived, bytesTotal))
+        #  self.msg_log("downloadProgress %s of %s ..." % (bytesReceived, bytesTotal))
         pass
 
     def requestTimedOut(self, NetworkReply):
         """Trap the timeout. In Async mode requestTimedOut is called after replyFinished"""
         # adapt http_call_result basing on receiving qgs timer timout signal
         self.exception_class = RequestsExceptionTimeout
-        self.http_call_result.exception = RequestsExceptionTimeout("Timeout error")
+        self.http_call_result.exception = RequestsExceptionTimeout(
+            "Timeout error")
 
     def replyFinished(self):
         err = self.reply.error()
-        httpStatus = self.reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
-        httpStatusMessage = self.reply.attribute(QNetworkRequest.HttpReasonPhraseAttribute)
+        httpStatus = self.reply.attribute(
+            QNetworkRequest.HttpStatusCodeAttribute)
+        httpStatusMessage = self.reply.attribute(
+            QNetworkRequest.HttpReasonPhraseAttribute)
         self.http_call_result.status_code = httpStatus
         self.http_call_result.status = httpStatus
         self.http_call_result.status_message = httpStatusMessage
@@ -289,12 +305,14 @@ class NetworkAccessManager():
                 self.http_call_result.exception = RequestsExceptionTimeout(msg)
 
             elif err == QNetworkReply.ConnectionRefusedError:
-                self.http_call_result.exception = RequestsExceptionConnectionError(msg)
+                self.http_call_result.exception = RequestsExceptionConnectionError(
+                    msg)
 
             elif err == QNetworkReply.OperationCanceledError:
                 # request abort by calling NAM.abort() => cancelled by the user
                 if self.on_abort:
-                    self.http_call_result.exception = RequestsExceptionUserAbort(msg)
+                    self.http_call_result.exception = RequestsExceptionUserAbort(
+                        msg)
                 else:
                     self.http_call_result.exception = RequestsException(msg)
 
@@ -307,7 +325,8 @@ class NetworkAccessManager():
 
         else:
             # Handle redirections
-            redirectionUrl = self.reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
+            redirectionUrl = self.reply.attribute(
+                QNetworkRequest.RedirectionTargetAttribute)
             if redirectionUrl is not None and redirectionUrl != self.reply.url():
                 if redirectionUrl.isRelative():
                     redirectionUrl = self.reply.url().resolved(redirectionUrl)
@@ -331,10 +350,10 @@ class NetworkAccessManager():
                 self.http_call_result.ok = True
 
         # Let's log the whole response for debugging purposes:
-        self.msg_log("Got response %s %s from %s" % \
-                    (self.http_call_result.status_code,
-                     self.http_call_result.status_message,
-                     self.reply.url().toString()))
+        self.msg_log("Got response %s %s from %s" %
+                     (self.http_call_result.status_code,
+                      self.http_call_result.status_message,
+                      self.reply.url().toString()))
         for k, v in list(self.http_call_result.headers.items()):
             self.msg_log("%s: %s" % (k, v))
         if len(self.http_call_result.content) < 1024:

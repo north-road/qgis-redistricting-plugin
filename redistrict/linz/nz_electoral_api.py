@@ -16,7 +16,6 @@ __revision__ = '$Format:%H$'
 
 import json
 import os
-from functools import partial
 from redistrict.linz.networkaccessmanager import NetworkAccessManager, RequestsException
 from qgis.PyQt.QtCore import QObject, pyqtSignal
 
@@ -25,27 +24,42 @@ GMS_VERSION = "LINZ_Output_20180108_2018_V1_00"
 
 
 class ConcordanceItem():
+    """ConcordanceItem struct
+    """
 
     def __init__(self, censusStandardMeshblock, electorate):
-        """[summary]
-
-        Arguments:
-            self {[type]} -- [description]
+        """Initialise a ConcordanceItem
 
         Example:
 
-            "censusStandardMeshblock": "0001235", "electorate": "N01"
+            {"censusStandardMeshblock": "0001234", "electorate": "N01"},
 
+        :param censusStandardMeshblock: block id
+        :type censusStandardMeshblock: str
+        :param electorate: electorate id
+        :type electorate: str
         """
+
         self.censusStandardMeshblock = censusStandardMeshblock
         self.electorate = electorate
 
 
 class BoundaryRequest():
-
+    """BoundaryRequest struct
+    """
     def __init__(self, concordance, area, gmsVersion=GMS_VERSION):
+        """Initialise a BoundaryRequest
+
+        :param concordance: one or more ConcordanceItem
+        :type concordance: array
+        :param area: name of the area
+        :type area: str
+        :param gmsVersion: API version, defaults to GMS_VERSION
+        :param gmsVersion: str, optional
+        """
+
         self.area = area
-        self.gmsVersion = GMS_VERSION
+        self.gmsVersion = gmsVersion
         self.concordance = concordance
 
 
@@ -60,6 +74,11 @@ class NzElectoralApi(QObject):
 
     def __init__(self, base_url, authcfg=None):
         """Construct the API with base URL
+
+        :param base_url: base URL for the API endpoint
+        :type base_url: str
+        :param authcfg: authentication configuration id, defaults to None
+        :param authcfg: str, optional
         """
         super().__init__()
         self.authcfg = authcfg
@@ -67,34 +86,55 @@ class NzElectoralApi(QObject):
         self.qs = ''
 
     def set_qs(self, qs):
+        """Set the query string: mainly used for testing
+
+        :param qs: the query string
+        :type qs: str
+        """
         self.qs = qs
 
     @classmethod
-    def _encode_payload(cls, payload):
+    def encode_payload(cls, payload):
+        """Transform the payload to JSON
+
+        :param payload: the peayload object
+        :type payload: dict
+        :return: JSON encoded
+        :rtype: str
+        """
+
         return json.dumps(payload.__dict__, default=lambda x: x.__dict__).encode('utf-8')
 
     @classmethod
-    def parse_async(self, nam):
+    def parse_async(cls, nam):
+        """Transform the content component of the response to JSON
+
+        :param nam: network access manager instance
+        :type nam: NetworkAccessManager
+        :return: trasnformed result
+        :rtype: dict
+        """
         result = nam.httpResult()
         try:
             result['content'] = json.loads(result['content'].decode('utf-8'))
-        except json.decoder.JSONDecodeError as e:
+        except json.decoder.JSONDecodeError:
             result['content'] = {}
         return result
 
     def _base_call(self, path, payload=None, blocking=False):
         """Base call
 
-        Status code is in result.status_code
+        This call can work in blocking (sync) or non-blocking mode (async)
 
         :param path: the path to call
         :type path: str
         :param payload: the payload for post calls, defaults to None
         :param payload: str, optional
-        :return: response dictionary
-        :rtype: dict
+        :param blocking: if the call needs to be synchronous, defaults to False
+        :param blocking: bool, optional
+        :return: response dictionary or NetworkAccessManager
+        :rtype: dict if in blocking mode, NetworkAccessManager if not
         """
-
         if payload is not None:
             method = self.POST
         else:
@@ -104,7 +144,7 @@ class NzElectoralApi(QObject):
         nam = NetworkAccessManager(self.authcfg)
 
         if payload is not None:
-            payload = self._encode_payload(payload)
+            payload = self.encode_payload(payload)
 
         if self.qs:
             path += '?' + self.qs
@@ -134,32 +174,51 @@ class NzElectoralApi(QObject):
                         b'Content-Type': b'application/json'
                     },
                     blocking=False
-                    )
+                   )
 
         return nam
 
     def status(self, blocking=False):
+        """Call the status method of the API
+
+        :param blocking: if the call needs to be synchronous, defaults to False
+        :param blocking: bool, optional
+        :return: response dictionary or NetworkAccessManager
+        :rtype: dict if in blocking mode, NetworkAccessManager if not
+        """
         path = "status"
         return self._base_call(path, blocking=blocking)
 
     def boundaryChanges(self, boundaryRequest, blocking=False):
-        """Request a boundary change
+        """Call the boundaryChange method of the API,
+        sends changed data and gets a requestId in return.
+        The requestId can be used to retrieve the results
+        with boundaryChangesResults
 
-        Returns:
-            requestId: integer
+        :param blocking: if the call needs to be synchronous, defaults to False
+        :param blocking: bool, optional
+        :return: response requestId or NetworkAccessManager
+        :rtype: str if in blocking mode, NetworkAccessManager if not
         """
         path = "boundaryChanges"
         return self._base_call(path, payload=boundaryRequest, blocking=blocking)
 
     def boundaryChangesResults(self, boundaryRequestId, blocking=False):
-        """
-        Responses
+        """Call the boundaryChange method of the API with a  boundaryRequestId and retrieves the updated results.
+
+        Response codes
             200
             Boundary change calculation has completed successfully. BoundaryResponse
             202
             Calculation is in progress. String
             422
             Validation error ErrorResponse
+
+        :param blocking: if the call needs to be synchronous, defaults to False
+        :param blocking: bool, optional
+        :return: response requestId or NetworkAccessManager
+        :rtype: dict if in blocking mode, NetworkAccessManager if not
+
         """
         path = os.path.join("boundaryChanges", boundaryRequestId)
         return self._base_call(path, blocking=blocking)
