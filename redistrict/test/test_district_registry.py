@@ -152,6 +152,14 @@ class DistrictRegistryTest(unittest.TestCase):
         self.assertEqual(reg.district_list(),
                          ['xtest1', 'xtest3', 'xtest2'])
         self.assertEqual(reg.district_titles(), {'xtest1': 'xtest1', 'xtest2': 'xtest2', 'xtest3': 'xtest3'})
+        reg = VectorLayerDistrictRegistry(
+            source_layer=layer,
+            source_field='fld1',
+            title_field='fld2')
+        self.assertEqual(reg.district_list(),
+                         ['test4', 'test2', 'test3', 'test1'])
+        self.assertEqual([[k, i] for k, i in reg.district_titles().items()],
+                         [[NULL, 'test1'], ['xtest1', 'test4'], ['xtest2', 'test2'], ['xtest3', 'test3']])
 
     def testVectorDistrictAtPoint(self):
         """
