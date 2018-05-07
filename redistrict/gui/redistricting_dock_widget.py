@@ -25,8 +25,13 @@ class RedistrictingDockWidget(QgsDockWidget):
     Dock widget for display of redistricting statistics and operations
     """
 
-    def __init__(self):
+    def __init__(self, _iface=None):
         super().__init__()
+
+        if _iface is not None:
+            self.iface = _iface
+        else:
+            self.iface = iface
 
         dock_contents = QWidget()
         grid = QGridLayout(dock_contents)
@@ -36,7 +41,7 @@ class RedistrictingDockWidget(QgsDockWidget):
         self._dock_toolbar.setFloatable(False)
         grid.addWidget(self._dock_toolbar, 0, 0, 1, 1)
 
-        self._dock_toolbar.setIconSize(iface.iconSize(True))
+        self._dock_toolbar.setIconSize(self.iface.iconSize(True))
 
     def dock_toolbar(self):
         """
