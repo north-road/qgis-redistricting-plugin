@@ -132,6 +132,8 @@ class LinzRedistrict:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         self.redistricting_toolbar.deleteLater()
+        self.dock.deleteLater()
+        self.tool.deleteLater()
 
     def toggle_redistrict_actions(self):
         """
