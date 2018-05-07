@@ -93,16 +93,21 @@ class InteractiveRedistrictingTool(QgsMapTool):
     A map tool for interactive redistricting operations
     """
 
-    def __init__(self, canvas, handler, decorator_factory=None):
+    def __init__(self, canvas,
+                 handler,
+                 district_registry,
+                 decorator_factory=None):
         """
         Constructor for map tool
         :param canvas: linked map canvas
         :param handler: redistricting handler object
+        :param district_registry: associated district registry
         :param decorator_factory: optional factory for creating map decorations
         during the redistricting operation (e.g. population displays)
         """
         super().__init__(canvas)
         self.handler = handler
+        self.district_registry = district_registry
         self.decorator_factory = decorator_factory
 
         self.snap_indicator = QgsSnapIndicator(self.canvas())
@@ -202,7 +207,7 @@ class InteractiveRedistrictingTool(QgsMapTool):
                         # first modified district - push edit command
                         self.handler.begin_edit_group(
                             QCoreApplication.translate('LinzRedistrict', 'Redistrict to {}').format(
-                                str(self.current_district)))
+                                self.district_registry.get_district_title(self.current_district)))
 
                     self.modified.add(target.id())
                     self.handler.assign_district([target.id()], self.current_district)
@@ -213,7 +218,7 @@ class InteractiveRedistrictingTool(QgsMapTool):
         """
         if iface is not None:
             iface.messageBar().pushMessage(
-                self.tr('Redistricted to {}').format(str(self.current_district)),
+                self.tr('Redistricted to {}').format(self.district_registry.get_district_title(self.current_district)),
                 level=Qgis.Success)
 
     def keyPressEvent(self, event):  # pylint: disable=missing-docstring

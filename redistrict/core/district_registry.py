@@ -249,7 +249,7 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([field_index, title_field_index])
 
-        districts = {f[title_field_index]:f[field_index]
+        districts = {f[title_field_index]: f[field_index]
                      for f in self.source_layer.getFeatures(request)
                      if f[field_index] != NULL}
         return districts

@@ -28,6 +28,7 @@ from qgis.core import (QgsVectorLayer,
 from qgis.gui import (QgsMapCanvas,
                       QgsMapMouseEvent,
                       QgsVertexMarker)
+from redistrict.core.district_registry import DistrictRegistry
 from redistrict.core.redistrict_handler import RedistrictHandler
 from redistrict.gui.interactive_redistrict_tool import InteractiveRedistrictingTool, DecoratorFactory
 
@@ -74,7 +75,8 @@ class InteractiveRedistrictTest(unittest.TestCase):
         canvas.show()
 
         handler = RedistrictHandler(layer, 'fldtxt')
-        tool = InteractiveRedistrictingTool(canvas, handler)
+        registry = DistrictRegistry(districts=['a', 'b'])
+        tool = InteractiveRedistrictingTool(canvas, handler, district_registry=registry)
         # point inside a feature
         self.assertFalse(tool.get_district_boundary_matches(QgsPointXY(10, 30)))
         self.assertFalse([f for f in tool.get_target_features_from_matches([])])
@@ -134,7 +136,8 @@ class InteractiveRedistrictTest(unittest.TestCase):
         canvas.show()
 
         handler = RedistrictHandler(layer, 'fldtxt')
-        tool = InteractiveRedistrictingTool(canvas, handler)
+        registry = DistrictRegistry(districts=['a', 'b'])
+        tool = InteractiveRedistrictingTool(canvas, handler, district_registry=registry)
         # point outside a feature
         match = tool.get_district_area_match(QgsPointXY(20, 30))
         self.assertFalse(match.isValid())
@@ -182,7 +185,8 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         handler = RedistrictHandler(layer, 'fldtxt')
         factory = DecoratorFactory()
-        tool = InteractiveRedistrictingTool(canvas, handler, factory)
+        registry = DistrictRegistry(districts=['a', 'b'])
+        tool = InteractiveRedistrictingTool(canvas, handler, district_registry=registry, decorator_factory=factory)
 
         # mouse over a feature's interior
         point = canvas.mapSettings().mapToPixel().transform(20, 33)
