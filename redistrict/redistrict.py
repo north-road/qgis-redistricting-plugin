@@ -182,6 +182,8 @@ class LinzRedistrict:
         self.dock = LinzRedistrictingDockWidget()
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
 
+        self.set_task(self.TASK_GN)
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         self.redistricting_toolbar.deleteLater()
@@ -215,6 +217,9 @@ class LinzRedistrict:
 
         for canvas in self.iface.mapCanvases():
             canvas.refreshAllLayers()
+
+        if self.tool is not None:
+            self.tool.deleteLater()
 
     def get_name_for_task(self, task: str) -> str:
         """
