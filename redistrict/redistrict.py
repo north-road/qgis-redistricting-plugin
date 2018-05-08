@@ -70,6 +70,7 @@ class LinzRedistrict:
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
         self.stats_tool_action = None
+        self.theme_menu = None
         self.tool = None
         self.dock = None
 
@@ -142,6 +143,17 @@ class LinzRedistrict:
         switch_menu.addAction(switch_maori_electorate_action)
         self.redistricting_menu.addMenu(switch_menu)
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
+
+        self.theme_menu = QMenu()
+        self.theme_menu.aboutToShow.connect(self.populate_theme_menu)
+
+        themes_tool_button = QToolButton()
+        themes_tool_button.setAutoRaise(True)
+        themes_tool_button.setToolTip('Map Themes')
+        themes_tool_button.setIcon(GuiUtils.get_icon('themes.svg'))
+        themes_tool_button.setPopupMode(QToolButton.InstantPopup)
+        themes_tool_button.setMenu(self.theme_menu)
+        self.redistricting_toolbar.addWidget(themes_tool_button)
 
         self.iface.addToolBar(self.redistricting_toolbar)
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
@@ -237,3 +249,12 @@ class LinzRedistrict:
         """
         self.tool = DistrictStatisticsTool(canvas=self.iface.mapCanvas(), gui_handler=self.get_gui_handler())
         self.iface.mapCanvas().setMapTool(self.tool)
+
+    def populate_theme_menu(self):
+        """
+        Adds available themes to the theme menu
+        """
+        self.theme_menu.clear()
+        for theme in QgsProject.instance().mapThemeCollection().mapThemes():
+            theme_action = QAction(theme, parent=self.theme_menu)
+            self.theme_menu.addAction(theme_action)
