@@ -257,4 +257,14 @@ class LinzRedistrict:
         self.theme_menu.clear()
         for theme in QgsProject.instance().mapThemeCollection().mapThemes():
             theme_action = QAction(theme, parent=self.theme_menu)
+            theme_action.triggered.connect(lambda state, new_theme=theme: self.switch_theme(new_theme))
             self.theme_menu.addAction(theme_action)
+
+    def switch_theme(self, new_theme):
+        """
+        Switches to the selected map theme
+        :param new_theme: new map theme to show
+        """
+        root = QgsProject.instance().layerTreeRoot()
+        model = self.iface.layerTreeView().layerTreeModel()
+        QgsProject.instance().mapThemeCollection().applyTheme(new_theme, root, model)
