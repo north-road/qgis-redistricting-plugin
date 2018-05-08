@@ -276,6 +276,7 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
 
         field_index = self.source_layer.fields().lookupField(self.source_field)
         request = QgsFeatureRequest().setFilterRect(rect)
+        self.modify_district_request(request)
         request.setSubsetOfAttributes([field_index])
         for f in self.source_layer.getFeatures(request):
             return f[field_index]

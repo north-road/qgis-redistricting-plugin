@@ -18,6 +18,9 @@ import unittest
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from qgis.core import (QgsVectorLayer,
                        QgsFeature,
+                       QgsGeometry,
+                       QgsRectangle,
+                       QgsCoordinateReferenceSystem,
                        NULL)
 
 
@@ -220,6 +223,42 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         self.assertTrue(LinzElectoralDistrictRegistry.variation_exceeds_allowance(quota=100000, population=95000))
         self.assertTrue(LinzElectoralDistrictRegistry.variation_exceeds_allowance(quota=50000, population=56000))
         self.assertTrue(LinzElectoralDistrictRegistry.variation_exceeds_allowance(quota=50000, population=44000))
+
+    def testVectorDistrictAtPoint(self):
+        """
+        Test getting vector layer district at point
+        """
+        layer = QgsVectorLayer(
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=type:string&field=estimated_pop:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes(["GN district", "GN"])
+        f.setGeometry(QgsGeometry.fromWkt('Polygon((1 10, 10 10, 10 20, 1 20, 1 10))'))
+        f2 = QgsFeature()
+        f2.setAttributes(["M district", "M"])
+        f2.setGeometry(QgsGeometry.fromWkt('Polygon((1 10, 10 10, 10 20, 1 20, 1 10))'))
+        layer.dataProvider().addFeatures([f, f2])
+
+        quota_layer = make_quota_layer()
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='GN',
+            source_field='fld1',
+            title_field='fld1')
+
+        self.assertEqual(
+            reg.get_district_at_point(QgsRectangle(5, 15, 5.2, 16.2), QgsCoordinateReferenceSystem('EPSG:4326')),
+            'GN district')
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='M',
+            source_field='fld1',
+            title_field='fld1')
+        self.assertEqual(
+            reg.get_district_at_point(QgsRectangle(5, 15, 5.2, 16.2), QgsCoordinateReferenceSystem('EPSG:4326')),
+            'M district')
 
 
 if __name__ == "__main__":
