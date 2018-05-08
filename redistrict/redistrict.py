@@ -20,7 +20,9 @@ from qgis.PyQt.QtCore import (Qt,
                               QCoreApplication)
 from qgis.PyQt.QtWidgets import (QToolBar,
                                  QAction,
-                                 QMessageBox)
+                                 QMessageBox,
+                                 QToolButton,
+                                 QMenu)
 from qgis.core import (QgsProject,
                        Qgis)
 from .linz.linz_district_registry import (
@@ -63,6 +65,7 @@ class LinzRedistrict:
             self.translator.load(locale_path)
             QCoreApplication.installTranslator(self.translator)
 
+        self.redistricting_menu = None
         self.redistricting_toolbar = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
@@ -127,6 +130,19 @@ class LinzRedistrict:
             self.trigger_stats_tool)
         self.redistricting_toolbar.addAction(self.stats_tool_action)
 
+        self.redistricting_menu = QMenu(self.tr('Redistricting'))
+        switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
+        switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
+
+        switch_ni_general_electorate_action = QAction(self.tr('NI General Electorate'), parent=switch_menu)
+        switch_menu.addAction(switch_ni_general_electorate_action)
+        switch_si_general_electorate_action = QAction(self.tr('SI General Electorate'), parent=switch_menu)
+        switch_menu.addAction(switch_si_general_electorate_action)
+        switch_maori_electorate_action = QAction(self.tr('Māori Electorate'), parent=switch_menu)
+        switch_menu.addAction(switch_maori_electorate_action)
+        self.redistricting_menu.addMenu(switch_menu)
+        self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
+
         self.iface.addToolBar(self.redistricting_toolbar)
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
                                            self.iface.mapCanvas())
@@ -140,7 +156,9 @@ class LinzRedistrict:
         """Removes the plugin menu item and icon from QGIS GUI."""
         self.redistricting_toolbar.deleteLater()
         self.dock.deleteLater()
-        self.tool.deleteLater()
+        self.redistricting_menu.deleteLater()
+        if self.tool is not None:
+            self.tool.deleteLater()
 
     def toggle_redistrict_actions(self):
         """
