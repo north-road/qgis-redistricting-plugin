@@ -64,6 +64,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         reg = LinzElectoralDistrictRegistry(
             source_layer=layer,
             quota_layer=quota_layer,
+            electorate_type='',
             source_field='fld1',
             title_field='fld1')
         self.assertEqual(reg.district_list(),
@@ -77,6 +78,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         reg = LinzElectoralDistrictRegistry(
             source_layer=layer,
             quota_layer=quota_layer,
+            electorate_type='',
             source_field='fld2',
             title_field='fld2')
         self.assertEqual(reg.district_list(),
@@ -114,6 +116,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         reg = LinzElectoralDistrictRegistry(
             source_layer=layer,
             quota_layer=quota_layer,
+            electorate_type='',
             source_field='fld1',
             title_field='fld1')
 
@@ -154,6 +157,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         reg = LinzElectoralDistrictRegistry(
             source_layer=layer,
             quota_layer=quota_layer,
+            electorate_type='',
             source_field='fld1',
             title_field='fld1')
 

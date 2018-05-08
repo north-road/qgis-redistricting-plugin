@@ -26,9 +26,10 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
     values from a vector layer
     """
 
-    def __init__(self, source_layer,
-                 source_field,
-                 title_field,
+    def __init__(self, source_layer: QgsVectorLayer,
+                 source_field: str,
+                 title_field: str,
+                 electorate_type: str,
                  quota_layer: QgsVectorLayer,
                  name='districts',
                  type_string_title='Electorate'):
@@ -37,6 +38,8 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         :param source_layer: vector layer to retrieve districts from
         :param source_field: source field (name) to retrieve districts
         from
+        :param title_field: field name for district titles
+        :param electorate_type: electorate types to show, e.g. "GN"
         :param quota_layer: layer containing quota for district types
         :param name: unique identifying name for registry
         :param type_string_title: title case string for district
@@ -49,6 +52,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
                          type_string_title=type_string_title,
                          type_string_sentence='electorate',
                          type_string_sentence_plural='electorates')
+        self.electorate_type = electorate_type
         self.type_field = 'type'
         self.estimated_population_field = 'estimated_pop'
 

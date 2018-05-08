@@ -47,6 +47,7 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
         registry = LinzElectoralDistrictRegistry(
             source_layer=layer,
             quota_layer=quota_layer,
+            electorate_type='',
             source_field='fld1',
             title_field='fld2')
 

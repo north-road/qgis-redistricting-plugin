@@ -93,12 +93,6 @@ class LinzRedistrict:
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
-        self.district_registry = LinzElectoralDistrictRegistry(
-            source_layer=self.electorate_layer,
-            source_field='electorate_id',
-            quota_layer=self.quota_layer,
-            title_field='name',
-            name='General NI')
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -222,7 +216,7 @@ class LinzRedistrict:
         for canvas in self.iface.mapCanvases():
             canvas.refreshAllLayers()
 
-    def get_name_for_task(self, task: str):
+    def get_name_for_task(self, task: str) -> str:
         """
         Returns a friendly name for a task
         """
@@ -232,7 +226,19 @@ class LinzRedistrict:
             return self.tr('General (South Island)')
         return self.tr('Māori')
 
-    def get_handler(self):
+    def get_district_registry(self) -> LinzElectoralDistrictRegistry:
+        """
+        Returns the current district registry
+        """
+        return LinzElectoralDistrictRegistry(
+            source_layer=self.electorate_layer,
+            source_field='electorate_id',
+            quota_layer=self.quota_layer,
+            electorate_type=self.task,
+            title_field='name',
+            name='General NI')
+
+    def get_handler(self) -> LinzRedistrictHandler:
         """
         Returns the current redistricting handler
         """
@@ -241,27 +247,29 @@ class LinzRedistrict:
                                      electorate_layer=self.electorate_layer,
                                      electorate_layer_field='electorate_id')
 
-    def get_gui_handler(self):
+    def get_gui_handler(self) -> LinzRedistrictGuiHandler:
         """
         Returns the current redistricting GUI handler
         """
         return LinzRedistrictGuiHandler(redistrict_dock=self.dock,
-                                        district_registry=self.district_registry)
+                                        district_registry=self.get_district_registry())
 
     def redistrict_selected(self):
         """
         Redistrict the currently selected meshblocks
         """
-        dlg = DistrictPicker(district_registry=self.district_registry,
+        dlg = DistrictPicker(district_registry=self.get_district_registry(),
                              parent=self.iface.mainWindow())
         if dlg.selected_district is None:
             return
+
+        district_registry = self.get_district_registry()
 
         if dlg.requires_confirmation and QMessageBox.question(self.iface.mainWindow(),
                                                               self.tr('Redistrict Selected'),
                                                               self.tr(
                                                                   'Are you sure you want to redistrict the selected meshblocks to “{}”?'
-                                                              ).format(self.district_registry.get_district_title(
+                                                              ).format(district_registry.get_district_title(
                                                                   dlg.selected_district)),
                                                               QMessageBox.Yes | QMessageBox.No,
                                                               QMessageBox.No) != QMessageBox.Yes:
@@ -271,11 +279,11 @@ class LinzRedistrict:
         gui_handler = self.get_gui_handler()
         handler.begin_edit_group(
             QCoreApplication.translate('LinzRedistrict', 'Redistrict to {}').format(
-                self.district_registry.get_district_title(dlg.selected_district)))
+                district_registry.get_district_title(dlg.selected_district)))
         if handler.assign_district(self.meshblock_layer.selectedFeatureIds(), dlg.selected_district):
             self.iface.messageBar().pushMessage(
                 self.tr('Redistricted selected meshblocks to {}').format(
-                    self.district_registry.get_district_title(dlg.selected_district)), level=Qgis.Success)
+                    district_registry.get_district_title(dlg.selected_district)), level=Qgis.Success)
             gui_handler.show_stats_for_district(dlg.selected_district)
             self.meshblock_layer.removeSelection()
         else:
@@ -289,7 +297,7 @@ class LinzRedistrict:
         """
 
         self.tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
-                                                 district_registry=self.district_registry,
+                                                 district_registry=self.get_district_registry(),
                                                  decorator_factory=CentroidDecoratorFactory(self.electorate_layer))
         self.iface.mapCanvas().setMapTool(self.tool)
 
