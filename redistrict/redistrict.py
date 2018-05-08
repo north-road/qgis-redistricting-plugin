@@ -26,6 +26,7 @@ from qgis.PyQt.QtWidgets import (QToolBar,
                                  QMenu)
 from qgis.core import (QgsProject,
                        QgsMapThemeCollection,
+                       QgsExpressionContextUtils,
                        Qgis)
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
@@ -143,13 +144,13 @@ class LinzRedistrict:
         switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
         switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
 
-        switch_ni_general_electorate_action = QAction(self.tr('General (North Island)'), parent=switch_menu)
+        switch_ni_general_electorate_action = QAction(self.get_name_for_task(self.TASK_GN), parent=switch_menu)
         switch_ni_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GN))
         switch_menu.addAction(switch_ni_general_electorate_action)
-        switch_si_general_electorate_action = QAction(self.tr('General (South Island)'), parent=switch_menu)
+        switch_si_general_electorate_action = QAction(self.get_name_for_task(self.TASK_GS), parent=switch_menu)
         switch_si_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GS))
         switch_menu.addAction(switch_si_general_electorate_action)
-        switch_maori_electorate_action = QAction(self.tr('Māori'), parent=switch_menu)
+        switch_maori_electorate_action = QAction(self.get_name_for_task(self.TASK_M), parent=switch_menu)
         switch_maori_electorate_action.triggered.connect(partial(self.set_task, self.TASK_M))
         switch_menu.addAction(switch_maori_electorate_action)
         self.redistricting_menu.addMenu(switch_menu)
@@ -211,6 +212,25 @@ class LinzRedistrict:
         :param task: task, eg 'GN','GS' or 'M'
         """
         self.task = task
+        QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.task)
+
+        self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.get_name_for_task(self.task))
+
+        self.iface.layerTreeView().refreshLayerSymbology(self.electorate_layer.id())
+        self.iface.layerTreeView().refreshLayerSymbology(self.meshblock_layer.id())
+
+        for canvas in self.iface.mapCanvases():
+            canvas.refreshAllLayers()
+
+    def get_name_for_task(self, task: str):
+        """
+        Returns a friendly name for a task
+        """
+        if task == self.TASK_GN:
+            return self.tr('General (North Island)')
+        elif task == self.TASK_GS:
+            return self.tr('General (South Island)')
+        return self.tr('Māori')
 
     def get_handler(self):
         """
@@ -284,15 +304,14 @@ class LinzRedistrict:
         """
         Lists available map themes for the current task
         """
-        return [theme for theme in QgsProject.instance().mapThemeCollection().mapThemes()
-                if ' ' + self.task in theme]
+        return QgsProject.instance().mapThemeCollection().mapThemes()
 
     def clean_theme_name(self, theme_name: str):
         """
-        Cleans up a theme name, removing the task component
+        Cleans up a theme name
         :param theme_name: name of theme
         """
-        return theme_name.replace(self.task, '').strip()
+        return theme_name.strip()
 
     def populate_theme_menu(self, menu, new_map=False):
         """
