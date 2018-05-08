@@ -14,6 +14,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 import os.path
+from functools import partial
 from qgis.PyQt.QtCore import (Qt,
                               QSettings,
                               QTranslator,
@@ -24,6 +25,7 @@ from qgis.PyQt.QtWidgets import (QToolBar,
                                  QToolButton,
                                  QMenu)
 from qgis.core import (QgsProject,
+                       QgsMapThemeCollection,
                        Qgis)
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
@@ -71,6 +73,7 @@ class LinzRedistrict:
         self.redistrict_selected_action = None
         self.stats_tool_action = None
         self.theme_menu = None
+        self.new_themed_view_menu = None
         self.tool = None
         self.dock = None
 
@@ -145,15 +148,27 @@ class LinzRedistrict:
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
 
         self.theme_menu = QMenu()
-        self.theme_menu.aboutToShow.connect(self.populate_theme_menu)
+        self.theme_menu.aboutToShow.connect(partial(self.populate_theme_menu, self.theme_menu, False))
 
         themes_tool_button = QToolButton()
         themes_tool_button.setAutoRaise(True)
-        themes_tool_button.setToolTip('Map Themes')
+        themes_tool_button.setToolTip(self.tr('Map Themes'))
         themes_tool_button.setIcon(GuiUtils.get_icon('themes.svg'))
         themes_tool_button.setPopupMode(QToolButton.InstantPopup)
         themes_tool_button.setMenu(self.theme_menu)
         self.redistricting_toolbar.addWidget(themes_tool_button)
+
+        self.new_themed_view_menu = QMenu()
+        self.new_themed_view_menu.aboutToShow.connect(
+            partial(self.populate_theme_menu, self.new_themed_view_menu, True))
+
+        new_themed_map_tool_button = QToolButton()
+        new_themed_map_tool_button.setAutoRaise(True)
+        new_themed_map_tool_button.setToolTip(self.tr('New Theme Map View'))
+        new_themed_map_tool_button.setIcon(GuiUtils.get_icon('new_themed_map.svg'))
+        new_themed_map_tool_button.setPopupMode(QToolButton.InstantPopup)
+        new_themed_map_tool_button.setMenu(self.new_themed_view_menu)
+        self.redistricting_toolbar.addWidget(new_themed_map_tool_button)
 
         self.iface.addToolBar(self.redistricting_toolbar)
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
@@ -250,21 +265,59 @@ class LinzRedistrict:
         self.tool = DistrictStatisticsTool(canvas=self.iface.mapCanvas(), gui_handler=self.get_gui_handler())
         self.iface.mapCanvas().setMapTool(self.tool)
 
-    def populate_theme_menu(self):
+    def populate_theme_menu(self, menu, new_map=False):
         """
         Adds available themes to the theme menu
+        :param menu: menu to populate
+        :param new_map: if True, triggering the action will open a new map canvas
         """
-        self.theme_menu.clear()
-        for theme in QgsProject.instance().mapThemeCollection().mapThemes():
-            theme_action = QAction(theme, parent=self.theme_menu)
-            theme_action.triggered.connect(lambda state, new_theme=theme: self.switch_theme(new_theme))
-            self.theme_menu.addAction(theme_action)
+        menu.clear()
 
-    def switch_theme(self, new_theme):
+        root = QgsProject.instance().layerTreeRoot()
+        model = self.iface.layerTreeView().layerTreeModel()
+        current_theme = QgsMapThemeCollection.createThemeFromCurrentState(root, model)
+
+        for theme in QgsProject.instance().mapThemeCollection().mapThemes():
+            is_current_theme = current_theme == QgsProject.instance().mapThemeCollection().mapThemeState(theme)
+            theme_action = QAction(theme, parent=menu)
+            theme_action.triggered.connect(
+                lambda state, new_theme=theme, open_new_map=new_map: self.switch_theme(new_theme, open_new_map))
+            if is_current_theme:
+                theme_action.setCheckable(True)
+                theme_action.setChecked(True)
+            menu.addAction(theme_action)
+
+    def get_unique_canvas_name(self, theme_name: str) -> str:
+        """
+        Generates a unique name for a canvas showing the specified theme1
+        :param theme_name: name of theme to show in canvas
+        """
+        new_name = theme_name
+        clash = True
+        counter = 1
+        while clash:
+            clash = False
+            for canvas in self.iface.mapCanvases():
+                if canvas.objectName() == new_name:
+                    clash = True
+                    counter += 1
+                    new_name = theme_name + ' ' + str(counter)
+                    break
+            if not clash:
+                return new_name
+
+    def switch_theme(self, new_theme: str, open_new_map: bool):
         """
         Switches to the selected map theme
         :param new_theme: new map theme to show
+        :param open_new_map: set to True to open a new map canvas
         """
         root = QgsProject.instance().layerTreeRoot()
         model = self.iface.layerTreeView().layerTreeModel()
-        QgsProject.instance().mapThemeCollection().applyTheme(new_theme, root, model)
+
+        if open_new_map:
+            new_name = self.get_unique_canvas_name(new_theme)
+            new_canvas = self.iface.createNewMapCanvas(new_name)
+            new_canvas.setTheme(new_theme)
+        else:
+            QgsProject.instance().mapThemeCollection().applyTheme(new_theme, root, model)
