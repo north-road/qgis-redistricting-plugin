@@ -43,6 +43,10 @@ from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
 class LinzRedistrict:
     """QGIS Plugin Implementation."""
 
+    TASK_GN = 'GN'
+    TASK_GS = 'GS'
+    TASK_M = 'M'
+
     def __init__(self, iface):
         """Constructor.
 
@@ -76,6 +80,7 @@ class LinzRedistrict:
         self.new_themed_view_menu = None
         self.tool = None
         self.dock = None
+        self.task = self.TASK_GN
 
         self.electorate_layer = QgsProject.instance().mapLayersByName(
             'general')[0]
@@ -138,11 +143,14 @@ class LinzRedistrict:
         switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
         switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
 
-        switch_ni_general_electorate_action = QAction(self.tr('NI General Electorate'), parent=switch_menu)
+        switch_ni_general_electorate_action = QAction(self.tr('General (North Island)'), parent=switch_menu)
+        switch_ni_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GN))
         switch_menu.addAction(switch_ni_general_electorate_action)
-        switch_si_general_electorate_action = QAction(self.tr('SI General Electorate'), parent=switch_menu)
+        switch_si_general_electorate_action = QAction(self.tr('General (South Island)'), parent=switch_menu)
+        switch_si_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GS))
         switch_menu.addAction(switch_si_general_electorate_action)
-        switch_maori_electorate_action = QAction(self.tr('Māori Electorate'), parent=switch_menu)
+        switch_maori_electorate_action = QAction(self.tr('Māori'), parent=switch_menu)
+        switch_maori_electorate_action.triggered.connect(partial(self.set_task, self.TASK_M))
         switch_menu.addAction(switch_maori_electorate_action)
         self.redistricting_menu.addMenu(switch_menu)
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
@@ -196,6 +204,13 @@ class LinzRedistrict:
         has_selection = bool(self.meshblock_layer.selectedFeatureIds())
         self.redistrict_selected_action.setEnabled(enabled and has_selection)
         self.interactive_redistrict_action.setEnabled(enabled)
+
+    def set_task(self, task: str):
+        """
+        Sets the current task
+        :param task: task, eg 'GN','GS' or 'M'
+        """
+        self.task = task
 
     def get_handler(self):
         """
@@ -265,6 +280,20 @@ class LinzRedistrict:
         self.tool = DistrictStatisticsTool(canvas=self.iface.mapCanvas(), gui_handler=self.get_gui_handler())
         self.iface.mapCanvas().setMapTool(self.tool)
 
+    def map_themes_for_task(self):
+        """
+        Lists available map themes for the current task
+        """
+        return [theme for theme in QgsProject.instance().mapThemeCollection().mapThemes()
+                if ' ' + self.task in theme]
+
+    def clean_theme_name(self, theme_name: str):
+        """
+        Cleans up a theme name, removing the task component
+        :param theme_name: name of theme
+        """
+        return theme_name.replace(self.task, '').strip()
+
     def populate_theme_menu(self, menu, new_map=False):
         """
         Adds available themes to the theme menu
@@ -277,9 +306,9 @@ class LinzRedistrict:
         model = self.iface.layerTreeView().layerTreeModel()
         current_theme = QgsMapThemeCollection.createThemeFromCurrentState(root, model)
 
-        for theme in QgsProject.instance().mapThemeCollection().mapThemes():
+        for theme in self.map_themes_for_task():
             is_current_theme = current_theme == QgsProject.instance().mapThemeCollection().mapThemeState(theme)
-            theme_action = QAction(theme, parent=menu)
+            theme_action = QAction(self.clean_theme_name(theme), parent=menu)
             theme_action.triggered.connect(
                 lambda state, new_theme=theme, open_new_map=new_map: self.switch_theme(new_theme, open_new_map))
             if is_current_theme:
