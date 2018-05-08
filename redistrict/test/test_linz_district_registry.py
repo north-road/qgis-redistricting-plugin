@@ -84,6 +84,33 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         self.assertEqual(reg.district_list(),
                          ['xtest1', 'xtest2', 'xtest3'])
 
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='GN',
+            source_field='fld1',
+            title_field='fld2')
+        self.assertEqual(reg.district_list(),
+                         ['test1', 'test4'])
+        self.assertEqual(reg.district_titles(),
+                         {NULL: 'test1', 'xtest1': 'test4'})
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='GS',
+            source_field='fld1',
+            title_field='fld2')
+        self.assertEqual(reg.district_list(),
+                         ['test2'])
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='M',
+            source_field='fld1',
+            title_field='fld2')
+        self.assertEqual(reg.district_list(),
+                         ['test3'])
+
     def testDistrictTypeString(self):
         """
         Test district_type_title
