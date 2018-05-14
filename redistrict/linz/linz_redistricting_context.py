@@ -13,10 +13,11 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QObject, pyqtSignal
+from redistrict.linz.scenario_registry import ScenarioRegistry
 
 
-class LinzRedistrictingContext():
+class LinzRedistrictingContext(QObject):
     """
     Contains settings relating to the general context of a LINZ redistricting
     operation
@@ -26,8 +27,16 @@ class LinzRedistrictingContext():
     TASK_GS = 'GS'
     TASK_M = 'M'
 
-    def __init__(self):
+    scenario_changed = pyqtSignal()
+
+    def __init__(self, scenario_registry: ScenarioRegistry):
+        """
+        Constructor for redistricting context
+        :param scenario_registry: linked scenario registry
+        """
+        super().__init__()
         self.scenario = 1
+        self.scenario_registry = scenario_registry
         self.task = self.TASK_GN
 
     @staticmethod
@@ -46,3 +55,17 @@ class LinzRedistrictingContext():
         Returns the friendly name corresponding to the current task
         """
         return LinzRedistrictingContext.get_name_for_task(self.task)
+
+    def get_name_for_current_scenario(self) -> str:
+        """
+        Returns the friendly name corresponding to the current scenario
+        """
+        return self.scenario_registry.get_scenario_name(self.scenario)
+
+    def set_scenario(self, scenario: int):
+        """
+        Changes to current scenario
+        :param scenario: new scenario
+        """
+        self.scenario = scenario
+        self.scenario_changed.emit()

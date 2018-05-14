@@ -87,8 +87,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.tool = None
         self.dock = None
         self.scenarios_tool_button = None
-        self.context = LinzRedistrictingContext()
-        self.context.task = self.TASK_GN
+        self.context = None
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -198,6 +197,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.dock = LinzRedistrictingDockWidget(context=self.context)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
 
+        self.context.scenario_changed.connect(self.update_dock_title)
+
         self.scenarios_tool_button = QToolButton()
         self.scenarios_tool_button.setAutoRaise(True)
         self.scenarios_tool_button.setToolTip('Scenarios')
@@ -252,6 +253,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.scenario_registry = ScenarioRegistry(source_layer=self.scenario_layer,
                                                   id_field='scenario_id',
                                                   name_field='name')
+
+        self.context = LinzRedistrictingContext(scenario_registry=self.scenario_registry)
+        self.context.task = self.TASK_GN
 
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
@@ -476,5 +480,19 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         Allows user to switch the current scenario
         """
         dlg = ScenarioSelectionDialog(scenario_registry=self.scenario_registry, parent=self.iface.mainWindow())
-        dlg.exec_()
+        if dlg.exec_():
+            self.switch_scenario(dlg.selected_scenario())
         dlg.deleteLater()
+
+    def switch_scenario(self, scenario: int):
+        """
+        Switches the current scenario to a new scenario
+        :param scenario: new scenario ID
+        """
+        self.context.set_scenario(scenario)
+
+    def update_dock_title(self):
+        """
+        Update dock title
+        """
+        self.dock.update_dock_title(self.context)

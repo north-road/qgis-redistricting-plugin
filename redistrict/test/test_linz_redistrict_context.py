@@ -18,6 +18,8 @@ import unittest
 from redistrict.linz.linz_redistricting_context import (
     LinzRedistrictingContext
 )
+from redistrict.linz.scenario_registry import ScenarioRegistry
+from redistrict.test.test_linz_scenario_registry import make_scenario_layer
 
 
 class LINZRedistrictContextTest(unittest.TestCase):
@@ -27,7 +29,9 @@ class LINZRedistrictContextTest(unittest.TestCase):
         """
         Test getters/settings
         """
-        context = LinzRedistrictingContext()
+        scenario_layer = make_scenario_layer()
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         self.assertIn(context.task, (LinzRedistrictingContext.TASK_GN,
                                      LinzRedistrictingContext.TASK_GS,
                                      LinzRedistrictingContext.TASK_M))
@@ -36,6 +40,8 @@ class LINZRedistrictContextTest(unittest.TestCase):
         self.assertIsNotNone(context.scenario)
         context.scenario = 10
         self.assertEqual(context.scenario, 10)
+        context.set_scenario(3)
+        self.assertEqual(context.scenario, 3)
 
     def testNameForTask(self):
         """
@@ -51,7 +57,9 @@ class LINZRedistrictContextTest(unittest.TestCase):
         """
         Test retrieving friendly name for currenttask
         """
-        context = LinzRedistrictingContext()
+        scenario_layer = make_scenario_layer()
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         context.task = LinzRedistrictingContext.TASK_GN
         self.assertEqual(context.get_name_for_current_task(),
                          'General (North Island)')

@@ -17,6 +17,8 @@ __revision__ = '$Format:%H$'
 import unittest
 from redistrict.linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from redistrict.linz.linz_redistricting_context import LinzRedistrictingContext
+from redistrict.linz.scenario_registry import ScenarioRegistry
+from redistrict.test.test_linz_scenario_registry import make_scenario_layer
 from .utilities import get_qgis_app
 
 QGIS_APP, CANVAS, IFACE, PARENT = get_qgis_app()
@@ -29,7 +31,9 @@ class LinzRedistrictingDockWidgetTest(unittest.TestCase):
         """
         Test constructing dock
         """
-        context = LinzRedistrictingContext()
+        scenario_layer = make_scenario_layer()
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         widget = LinzRedistrictingDockWidget(context=context, iface=IFACE)
         self.assertIsNotNone(widget)
 
@@ -37,15 +41,17 @@ class LinzRedistrictingDockWidgetTest(unittest.TestCase):
         """
         Test title updates
         """
-        context = LinzRedistrictingContext()
+        scenario_layer = make_scenario_layer()
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         context.task = LinzRedistrictingContext.TASK_GS
-        context.scenario = 4
+        context.scenario = 1
         widget = LinzRedistrictingDockWidget(context=context, iface=IFACE)
-        self.assertEqual(widget.windowTitle(), 'Redistricting - General (South Island) - Scenario 4')
+        self.assertEqual(widget.windowTitle(), 'Redistricting - General (South Island) - Scenario 1')
         context.task = LinzRedistrictingContext.TASK_GN
-        context.scenario = 41
+        context.scenario = 3
         widget.update_dock_title(context=context)
-        self.assertEqual(widget.windowTitle(), 'Redistricting - General (North Island) - Scenario 41')
+        self.assertEqual(widget.windowTitle(), 'Redistricting - General (North Island) - scenario 3')
 
 
 if __name__ == "__main__":
