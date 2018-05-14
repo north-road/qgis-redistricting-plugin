@@ -13,10 +13,13 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+import time
 import os
-from qgis.PyQt.QtCore import (Qt,
+from qgis.PyQt.QtCore import (QCoreApplication,
+                              Qt,
                               QPoint)
 from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QProgressDialog
 
 
 class GuiUtils:
@@ -58,3 +61,31 @@ class GuiUtils:
             return QIcon()
 
         return QIcon(path)
+
+
+class BlockingDialog(QProgressDialog):
+    """
+    Mega-hacky workaround around QProgressDialog delayed painting.
+    Avoids black dialogs.
+    """
+
+    def __init__(self, title, text, parent=None):
+        """
+        :param title: Dialog title
+        :param text: Dialog text
+        :param parent: Parent widget
+        """
+        super().__init__(text, 'Cancel', 0, 0, parent)
+        self.setWindowTitle(title)
+        self.setMinimumDuration(1)
+
+    def force_show_and_paint(self):
+        """
+        Forces the dialog to show and be painted at least once - no more black dialogs!
+        """
+        self.show()
+        for i in range(10):  # pylint: disable=unused-variable
+            time.sleep(0.01)
+            self.setValue(0)
+            self.forceShow()
+            QCoreApplication.processEvents()

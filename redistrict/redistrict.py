@@ -39,7 +39,8 @@ from .gui.district_selection_dialog import (
     DistrictPicker)
 from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
 from .gui.district_statistics_tool import DistrictStatisticsTool
-from .gui.gui_utils import GuiUtils
+from .gui.gui_utils import (GuiUtils,
+                            BlockingDialog)
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
@@ -508,6 +509,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         dlg.setHintString(self.tr('Enter name for new scenario'))
         dlg.setOverwriteEnabled(False)
         if dlg.exec_():
+            progress_dialog = BlockingDialog(self.tr('Branching Scenario'), self.tr('Branching scenario...'))
+            progress_dialog.force_show_and_paint()
+
             res, error = self.scenario_registry.branch_scenario(scenario_id=self.context.scenario,
                                                                 new_scenario_name=dlg.name())
             if not res:
