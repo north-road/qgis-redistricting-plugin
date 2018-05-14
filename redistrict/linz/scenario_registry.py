@@ -47,6 +47,10 @@ class ScenarioRegistry():
         self.name_field = name_field
         self.name_field_index = source_layer.fields().lookupField(self.name_field)
         assert self.name_field_index >= 0
+        self.created_field = 'created'
+        self.created_field_index = source_layer.fields().lookupField(self.created_field)
+        self.created_by_field = 'created_by'
+        self.created_by_field_index = source_layer.fields().lookupField(self.created_by_field)
         self.meshblock_electorate_layer = meshblock_electorate_layer
 
     def get_scenario_name(self, scenario):
@@ -143,10 +147,25 @@ class ScenarioRegistry():
         next_id = self.source_layer.maximumValue(self.id_field_index) + 1
 
         scenario_feature = QgsFeature()
-        scenario_feature.setAttributes(
-            [next_id, new_scenario_name, QDateTime.currentDateTime(), QgsApplication.userFullName()])
+        scenario_feature.initAttributes(self.source_layer.fields().count())
+        scenario_feature[self.id_field_index] = next_id
+        scenario_feature[self.name_field_index] = new_scenario_name
+        scenario_feature[self.created_field_index] = QDateTime.currentDateTime()
+        scenario_feature[self.created_by_field_index] = QgsApplication.userFullName()
 
         if not self.source_layer.dataProvider().addFeatures([scenario_feature]):
             return False, QCoreApplication.translate('LinzRedistrict', 'Could not create scenario')
+
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', scenario_id))
+        current_meshblocks = self.meshblock_electorate_layer.getFeatures(request)
+        scenario_id_idx = self.meshblock_electorate_layer.fields().lookupField('scenario_id')
+        new_features = []
+        for f in current_meshblocks:
+            f[scenario_id_idx] = next_id
+            new_features.append(f)
+
+        self.meshblock_electorate_layer.startEditing()
+        self.meshblock_electorate_layer.addFeatures(new_features)
 
         return next_id, None

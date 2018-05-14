@@ -48,9 +48,9 @@ def make_meshblock_electorate_layer() -> QgsVectorLayer:
         "NoGeometry?field=id:int&field=scenario_id:int&field=meshblock_number:int&field=code:string&field=code2:string",
         "source", "memory")
     f = QgsFeature()
-    f.setAttributes([1, 0, 0, 'a', 'x'])
+    f.setAttributes([1, 2, 0, 'a', 'x'])
     f2 = QgsFeature()
-    f2.setAttributes([2, 0, 1, 'b', 'y'])
+    f2.setAttributes([2, 2, 1, 'b', 'y'])
     f3 = QgsFeature()
     f3.setAttributes([3, 1, 0, 'c', 'z'])
     f4 = QgsFeature()
@@ -197,6 +197,34 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertEqual(f[1], 'Scenario 5')
         self.assertEqual(f[2].date(), QDateTime.currentDateTime().date())
         self.assertEqual(f[3], QgsApplication.userFullName())
+
+        f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
+        self.assertEqual(f, [[3, 4, 0, 'c', 'z'],
+                             [4, 4, 1, 'd', 'zz'],
+                             [1, 2, 0, 'a', 'x'],
+                             [2, 2, 1, 'b', 'y'],
+                             [3, 1, 0, 'c', 'z'],
+                             [4, 1, 1, 'd', 'zz']])
+
+        res, error = reg.branch_scenario(2, 'Scenario 6')
+        self.assertEqual(res, 5)
+        self.assertFalse(error)
+
+        f = [f for f in layer.getFeatures()][-1]
+        self.assertEqual(f[0], res)
+        self.assertEqual(f[1], 'Scenario 6')
+        self.assertEqual(f[2].date(), QDateTime.currentDateTime().date())
+        self.assertEqual(f[3], QgsApplication.userFullName())
+
+        f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
+        self.assertEqual(f, [[3, 4, 0, 'c', 'z'],
+                             [4, 4, 1, 'd', 'zz'],
+                             [1, 5, 0, 'a', 'x'],
+                             [2, 5, 1, 'b', 'y'],
+                             [1, 2, 0, 'a', 'x'],
+                             [2, 2, 1, 'b', 'y'],
+                             [3, 1, 0, 'c', 'z'],
+                             [4, 1, 1, 'd', 'zz']])
 
 
 if __name__ == "__main__":

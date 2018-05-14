@@ -28,7 +28,8 @@ from qgis.core import (QgsProject,
                        QgsMapThemeCollection,
                        QgsExpressionContextUtils,
                        Qgis)
-from qgis.gui import QgsMapTool
+from qgis.gui import (QgsMapTool,
+                      QgsNewNameDialog)
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
 from .linz.linz_redistrict_handler import LinzRedistrictHandler
@@ -218,9 +219,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         scenarios_menu.addSeparator()
 
-        store_scenario_action = QAction(self.tr('Branch to New Scenario...'), parent=scenarios_menu)
-        # store_scenario_action.triggered.connect(branch_scenario)
-        scenarios_menu.addAction(store_scenario_action)
+        branch_scenario_action = QAction(self.tr('Branch to New Scenario...'), parent=scenarios_menu)
+        branch_scenario_action.triggered.connect(self.branch_scenario)
+        scenarios_menu.addAction(branch_scenario_action)
         import_scenario_action = QAction(self.tr('Import Scenario from Database...'), parent=scenarios_menu)
         # import_scenario_action.triggered.connect(import_scenario)
         scenarios_menu.addAction(import_scenario_action)
@@ -494,6 +495,28 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         :param scenario: new scenario ID
         """
         self.context.set_scenario(scenario)
+
+    def branch_scenario(self):
+        """
+        Branches the current scenario to a new scenario
+        """
+        current_scenario_name = self.context.get_name_for_current_scenario()
+        existing_names = list(self.scenario_registry.scenario_titles().keys())
+        dlg = QgsNewNameDialog(current_scenario_name, self.tr('{} Copy').format(current_scenario_name),
+                               existing=existing_names, parent=self.iface.mainWindow())
+        dlg.setWindowTitle(self.tr('Branch to New Scenario'))
+        dlg.setHintString(self.tr('Enter name for new scenario'))
+        dlg.setOverwriteEnabled(False)
+        if dlg.exec_():
+            res, error = self.scenario_registry.branch_scenario(scenario_id=self.context.scenario,
+                                                                new_scenario_name=dlg.name())
+            if not res:
+                self.iface.messageBar().pushMessage(
+                    error, level=Qgis.Critical)
+            else:
+                self.iface.messageBar().pushMessage(
+                    self.tr('Branched scenario to “{}”').format(dlg.name()), level=Qgis.Success)
+                self.context.set_scenario(res)
 
     def update_dock_title(self):
         """
