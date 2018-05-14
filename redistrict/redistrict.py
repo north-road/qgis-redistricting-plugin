@@ -42,9 +42,10 @@ from .gui.gui_utils import GuiUtils
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
+from .linz.scenario_selection_dialog import ScenarioSelectionDialog
 
 
-class LinzRedistrict:
+class LinzRedistrict:  # pylint: disable=too-many-public-methods
     """QGIS Plugin Implementation."""
 
     TASK_GN = 'GN'
@@ -85,6 +86,7 @@ class LinzRedistrict:
         self.new_themed_view_menu = None
         self.tool = None
         self.dock = None
+        self.scenarios_tool_button = None
         self.context = LinzRedistrictingContext()
         self.context.task = self.TASK_GN
 
@@ -137,7 +139,7 @@ class LinzRedistrict:
         self.redistricting_menu.addMenu(switch_menu)
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
 
-    def create_redistricting_ui(self):
+    def create_redistricting_ui(self):  # pylint: disable=too-many-statements
         """
         Creates the UI components relating to redistricting operations
         """
@@ -195,6 +197,34 @@ class LinzRedistrict:
 
         self.dock = LinzRedistrictingDockWidget(context=self.context)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
+
+        self.scenarios_tool_button = QToolButton()
+        self.scenarios_tool_button.setAutoRaise(True)
+        self.scenarios_tool_button.setToolTip('Scenarios')
+        self.scenarios_tool_button.setIcon(GuiUtils.get_icon(icon='scenarios.svg'))
+        self.scenarios_tool_button.setPopupMode(QToolButton.InstantPopup)
+
+        scenarios_menu = QMenu(parent=self.scenarios_tool_button)
+        switch_scenario_action = QAction(self.tr('Switch to Existing Scenario...'), parent=scenarios_menu)
+        switch_scenario_action.triggered.connect(self.select_current_scenario)
+        scenarios_menu.addAction(switch_scenario_action)
+
+        scenarios_menu.addSeparator()
+        update_scenario_action = QAction(self.tr('Update Statistics for Scenario...'), parent=scenarios_menu)
+        # update_scenario_action.triggered.connect(update_scenario)
+        scenarios_menu.addAction(update_scenario_action)
+
+        scenarios_menu.addSeparator()
+
+        store_scenario_action = QAction(self.tr('Branch to New Scenario...'), parent=scenarios_menu)
+        # store_scenario_action.triggered.connect(branch_scenario)
+        scenarios_menu.addAction(store_scenario_action)
+        import_scenario_action = QAction(self.tr('Import Scenario from Database...'), parent=scenarios_menu)
+        # import_scenario_action.triggered.connect(import_scenario)
+        scenarios_menu.addAction(import_scenario_action)
+
+        self.scenarios_tool_button.setMenu(scenarios_menu)
+        self.dock.dock_toolbar().addWidget(self.scenarios_tool_button)
 
         self.set_task(self.TASK_GN)
 
@@ -440,3 +470,11 @@ class LinzRedistrict:
             new_canvas.setTheme(new_theme)
         else:
             QgsProject.instance().mapThemeCollection().applyTheme(new_theme, root, model)
+
+    def select_current_scenario(self):
+        """
+        Allows user to switch the current scenario
+        """
+        dlg = ScenarioSelectionDialog(scenario_registry=self.scenario_registry, parent=self.iface.mainWindow())
+        dlg.exec_()
+        dlg.deleteLater()
