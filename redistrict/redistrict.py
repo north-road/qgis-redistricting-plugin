@@ -23,8 +23,10 @@ from qgis.PyQt.QtWidgets import (QToolBar,
                                  QAction,
                                  QMessageBox,
                                  QToolButton,
-                                 QMenu)
-from qgis.core import (QgsProject,
+                                 QMenu,
+                                 QFileDialog)
+from qgis.core import (QgsApplication,
+                       QgsProject,
                        QgsMapThemeCollection,
                        QgsExpressionContextUtils,
                        Qgis)
@@ -45,6 +47,7 @@ from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
 from .linz.scenario_selection_dialog import ScenarioSelectionDialog
+from .linz.db_utils import CopyFileTask
 
 
 class LinzRedistrict:  # pylint: disable=too-many-public-methods
@@ -98,6 +101,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.quota_layer = None
         self.meshblock_electorate_layer = None
         self.scenario_registry = None
+        self.db_source = None
+
+        self.task = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -230,6 +236,24 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.scenarios_tool_button.setMenu(scenarios_menu)
         self.dock.dock_toolbar().addWidget(self.scenarios_tool_button)
 
+        options_menu = QMenu(parent=self.dock.dock_toolbar())
+        # options_menu.addMenu(electorate_menu)
+        # options_menu.addSeparator()
+
+        master_db_menu = QMenu(self.tr('Database'), parent=options_menu)
+        export_master_action = QAction(self.tr('Export Database...'), parent=master_db_menu)
+        export_master_action.triggered.connect(self.export_database)
+        master_db_menu.addAction(export_master_action)
+        options_menu.addMenu(master_db_menu)
+
+        options_button = QToolButton(parent=self.dock.dock_toolbar())
+        options_button.setAutoRaise(True)
+        options_button.setToolTip('Options')
+        options_button.setIcon(GuiUtils.get_icon('options.svg'))
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        options_button.setMenu(options_menu)
+        self.dock.dock_toolbar().addWidget(options_button)
+
         self.set_task(self.TASK_GN)
 
     def begin_redistricting(self):
@@ -254,6 +278,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             'scenarios')[0]
         self.meshblock_electorate_layer = QgsProject.instance().mapLayersByName(
             'meshblock_electorates')[0]
+        self.db_source = self.electorate_layer.dataProvider().dataSourceUri().split('|')[0]
 
         self.scenario_registry = ScenarioRegistry(source_layer=self.scenario_layer,
                                                   id_field='scenario_id',
@@ -527,3 +552,37 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         Update dock title
         """
         self.dock.update_dock_title(self.context)
+
+    def report_success(self, message: str):
+        """
+        Reports a success message
+        """
+        self.iface.messageBar().pushMessage(
+            message, level=Qgis.Success)
+
+    def report_failure(self, message: str):
+        """
+        Reports a failure message
+        """
+        self.iface.messageBar().pushMessage(
+            message, level=Qgis.Critical)
+
+    def export_database(self):
+        """
+        Exports the current database using a background task
+        """
+        destination, filter = QFileDialog.getSaveFileName(self.iface.mainWindow(), self.tr('Export Database'), '',
+                                                  initialFilter='*.gpkg')
+        if not destination:
+            return
+
+        if not destination.endswith('.gpkg'):
+            destination += '.gpkg'
+
+        self.task = CopyFileTask(self.tr('Exporting database'), {self.db_source: destination})
+        self.task.taskCompleted.connect(
+            partial(self.report_success, self.tr('Exported database to {}').format(destination)))
+        self.task.taskTerminated.connect(
+            partial(self.report_failure, self.tr('Error while exporting database to {}').format(destination)))
+
+        QgsApplication.taskManager().addTask(self.task)
