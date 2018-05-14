@@ -15,6 +15,7 @@ __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsFeatureRequest,
+                       QgsFeature,
                        QgsExpression,
                        QgsVectorLayer)
 from redistrict.core.district_registry import VectorLayerDistrictRegistry
@@ -166,3 +167,28 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         :param: population: actual population
         """
         return abs((population - quota) / quota) >= 0.05
+
+    def create_electorate(self, new_electorate_code, new_electorate_name: str) -> (bool, str):
+        """
+        Creates a new electorate
+        :param new_electorate_code: code for new electorate
+        :param new_electorate_name: name for name electorate
+        :return: boolean representing success or failure of creation, and error string
+        """
+        if self.district_name_exists(new_electorate_name):
+            return False, QCoreApplication.translate('LinzRedistrict', 'An electorate with this name already exists')
+
+        id_field_idx = self.source_layer.fields().lookupField('electorate_id')
+        new_id = int(self.source_layer.maximumValue(id_field_idx)) + 1
+
+        f = QgsFeature()
+        f.initAttributes(self.source_layer.fields().count())
+        f[self.source_layer.fields().lookupField(self.title_field)] = new_electorate_name
+        f[self.type_field_index] = self.electorate_type
+        f[id_field_idx] = new_id
+        f[self.source_field_index] = new_electorate_code
+
+        if not self.source_layer.dataProvider().addFeatures([f]):
+            return False, QCoreApplication.translate('LinzRedistrict', 'Could not create new electorate')
+
+        return True, None

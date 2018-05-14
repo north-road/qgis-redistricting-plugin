@@ -260,6 +260,50 @@ class LinzDistrictRegistryTest(unittest.TestCase):
             reg.get_district_at_point(QgsRectangle(5, 15, 5.2, 16.2), QgsCoordinateReferenceSystem('EPSG:4326')),
             'M district')
 
+    def testCreateElectorate(self):
+        """
+        Test creating electorates
+        """
+        layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=fld1:string&field=type:string&field=estimated_pop:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes([1, "test4", 'GN', 1000])
+        f2 = QgsFeature()
+        f2.setAttributes([2, "test2", 'GN', 2000])
+        f3 = QgsFeature()
+        f3.setAttributes([3, "test3", 'M', 3000])
+        layer.dataProvider().addFeatures([f, f2, f3])
+        quota_layer = make_quota_layer()
+
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='GN',
+            source_field='fld1',
+            title_field='fld1')
+
+        res, error = reg.create_electorate('test2', 'test2')
+        self.assertFalse(res)
+        self.assertIn('already exists', error)
+
+        # duplicate name check is across electorate types
+        res, error = reg.create_electorate('test3', 'test3')
+        self.assertFalse(res)
+        self.assertIn('already exists', error)
+
+        # valid
+        res, error = reg.create_electorate('test5', 'test5')
+        self.assertTrue(res)
+        self.assertFalse(error)
+        self.assertEqual([f['electorate_id'] for f in layer.getFeatures()], [1, 2, 3, 4])
+        self.assertEqual([f['fld1'] for f in layer.getFeatures()], ['test4', 'test2', 'test3', 'test5'])
+        self.assertEqual([f['type'] for f in layer.getFeatures()], ['GN', 'GN', 'M', 'GN'])
+
+        res, error = reg.create_electorate('test5', 'test5')
+        self.assertFalse(res)
+        self.assertIn('already exists', error)
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(LinzElectoralDistrictRegistry)
