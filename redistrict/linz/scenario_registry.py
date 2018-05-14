@@ -246,13 +246,13 @@ class ScenarioRegistry():
         :param scenario_id: scenario id
         """
         request = QgsFeatureRequest()
-        request.setSubsetOfAttributes([])
 
         type_field = '{}_id'.format(electorate_type.lower())
+        type_field_index = self.meshblock_electorate_layer.fields().lookupField(type_field)
+        assert type_field_index >= 0
 
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', scenario_id))
         request.combineFilterExpression(QgsExpression.createFieldEqualityExpression(type_field, electorate_id))
-        request.setLimit(1)
 
         return self.meshblock_electorate_layer.getFeatures(request)
 

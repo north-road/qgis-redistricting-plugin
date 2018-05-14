@@ -745,5 +745,19 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         if not dlg.exec_():
             return
 
-        district = dlg.selected_district()
-        registry.toggle_electorate_deprecation(district)
+        electorate_id = dlg.selected_district()
+        electorate_type = registry.get_district_type(electorate_id)
+
+        mbs = [str(f['meshblock_number']) for f in
+               self.scenario_registry.electorate_meshblocks(electorate_id=electorate_id,
+                                                            electorate_type=electorate_type,
+                                                            scenario_id=self.context.scenario)]
+        if mbs:
+            warning_string = ', '.join(mbs[:5])
+            if len(mbs) > 5:
+                warning_string += '...'
+            QMessageBox.warning(self.iface.mainWindow(), self.tr('Deprecate Electorate'),
+                                self.tr('Cannot deprecate an electorate which has meshblocks assigned!') + '\n\n' + self.tr('Assigned meshblocks include:') + ' ' + warning_string)
+            return
+        else:
+            registry.toggle_electorate_deprecation(electorate_id)
