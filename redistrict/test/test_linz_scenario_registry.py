@@ -17,7 +17,9 @@ __revision__ = '$Format:%H$'
 import unittest
 from collections import OrderedDict
 from redistrict.linz.scenario_registry import ScenarioRegistry
-from qgis.core import (QgsVectorLayer,
+from qgis.PyQt.QtCore import QDateTime
+from qgis.core import (QgsApplication,
+                       QgsVectorLayer,
                        QgsFeature)
 
 
@@ -26,7 +28,7 @@ def make_scenario_layer() -> QgsVectorLayer:
     Makes a dummy scenario layer for testing
     """
     layer = QgsVectorLayer(
-        "NoGeometry?field=id:int&field=name:string",
+        "NoGeometry?field=id:int&field=name:string&field=created:datetime&field=created_by:string",
         "source", "memory")
     f = QgsFeature()
     f.setAttributes([1, "Scenario 1"])
@@ -113,6 +115,55 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertFalse(reg.scenario_name_exists('bbbb'))
         self.assertTrue(reg.scenario_name_exists('Scenario 1'))
         self.assertTrue(reg.scenario_name_exists('scenario 3'))
+
+    def testScenarioExists(self):
+        """
+        Test scenario exists
+        """
+        layer = make_scenario_layer()
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name'
+        )
+        self.assertFalse(reg.scenario_exists(-1))
+        self.assertTrue(reg.scenario_exists(1))
+        self.assertTrue(reg.scenario_exists(3))
+        self.assertFalse(reg.scenario_exists(5))
+
+    def testBranch(self):
+        """
+        Test branching scenario
+        """
+        layer = make_scenario_layer()
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name'
+        )
+
+        # dupe name
+        res, error = reg.branch_scenario(1, 'Scenario 1')
+        self.assertFalse(res)
+        self.assertIn('already exists', error)
+
+        # missing source scenario
+        res, error = reg.branch_scenario(5, 'Scenario 5')
+        self.assertFalse(res)
+        self.assertIn('does not exist', error)
+
+        # good
+        res, error = reg.branch_scenario(1, 'Scenario 5')
+        self.assertEqual(res, 4)
+        self.assertFalse(error)
+
+        f = [f for f in layer.getFeatures()][-1]
+        self.assertEqual(f[0], res)
+        self.assertEqual(f[1], 'Scenario 5')
+        self.assertEqual(f[2].date(), QDateTime.currentDateTime().date())
+        self.assertEqual(f[3], QgsApplication.userFullName())
 
 
 if __name__ == "__main__":

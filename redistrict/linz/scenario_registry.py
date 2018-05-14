@@ -14,9 +14,13 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 from collections import OrderedDict
+from qgis.PyQt.QtCore import (QCoreApplication,
+                              QDateTime)
 from qgis.core import (QgsFeatureRequest,
                        QgsExpression,
                        QgsVectorLayer,
+                       QgsFeature,
+                       QgsApplication,
                        NULL)
 
 
@@ -105,9 +109,41 @@ class ScenarioRegistry():
             return True
         return False
 
-    def branch_scenario(self, new_scenario_name: str):
+    def scenario_exists(self, scenario_id) -> bool:
         """
-        Branches the current scenario to a new scenario
+        Returns true if the given scenario exists
+        :param scenario_id: ID for scenario
+        """
+        request = QgsFeatureRequest()
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([])
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.id_field, scenario_id))
+        request.setLimit(1)
+        for f in self.source_layer.getFeatures(request):  # pylint: disable=unused-variable
+            # found a matching feature
+            return True
+        return False
+
+    def branch_scenario(self, scenario_id, new_scenario_name: str):
+        """
+        Branches a scenario to a new scenario
+        :param scenario_id: scenario to branch
         :param new_scenario_name: name for new scenario
+        :returns New scenario ID if branch was successful, and error message if not
         """
-        pass
+        if self.scenario_name_exists(new_scenario_name):
+            return False, QCoreApplication.translate('LinzRedistrict', '{} already exists').format(new_scenario_name)
+        if not self.scenario_exists(scenario_id):
+            return False, QCoreApplication.translate('LinzRedistrict', 'Scenario {} does not exist').format(scenario_id)
+
+        # all good to go
+        next_id = self.source_layer.maximumValue(self.id_field_index) + 1
+
+        scenario_feature = QgsFeature()
+        scenario_feature.setAttributes(
+            [next_id, new_scenario_name, QDateTime.currentDateTime(), QgsApplication.userFullName()])
+
+        if not self.source_layer.dataProvider().addFeatures([scenario_feature]):
+            return False, QCoreApplication.translate('LinzRedistrict', 'Could not create scenario')
+
+        return next_id, None
