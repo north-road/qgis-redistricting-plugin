@@ -53,6 +53,7 @@ class ScenarioRegistry():
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.id_field, scenario))
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([self.name_field_index])
+        request.setLimit(1)
         f = next(self.source_layer.getFeatures(request))
         return f[self.name_field_index]
 
@@ -88,3 +89,25 @@ class ScenarioRegistry():
         for d in sorted(districts.keys()):
             result[d] = districts[d]
         return result
+
+    def scenario_name_exists(self, new_scenario_name: str) -> bool:
+        """
+        Returns true if the given scenario name already exists
+        :param new_scenario_name: name of scenario to test
+        """
+        request = QgsFeatureRequest()
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([])
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.name_field, new_scenario_name))
+        request.setLimit(1)
+        for f in self.source_layer.getFeatures(request):  # pylint: disable=unused-variable
+            # found a matching feature
+            return True
+        return False
+
+    def branch_scenario(self, new_scenario_name: str):
+        """
+        Branches the current scenario to a new scenario
+        :param new_scenario_name: name for new scenario
+        """
+        pass

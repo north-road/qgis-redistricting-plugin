@@ -201,6 +201,7 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, district))
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([title_field_index])
+        request.setLimit(1)
         try:
             f = next(self.source_layer.getFeatures(request))
         except StopIteration:

@@ -99,6 +99,21 @@ class ScenarioRegistryTest(unittest.TestCase):
         )
         self.assertEqual(reg.scenario_titles(), OrderedDict([('Scenario 1', 1), ('scenario 3', 3), ('scenario B', 2)]))
 
+    def testScenarioNameExists(self):
+        """
+        Test scenario name exists
+        """
+        layer = make_scenario_layer()
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name'
+        )
+        self.assertFalse(reg.scenario_name_exists('bbbb'))
+        self.assertTrue(reg.scenario_name_exists('Scenario 1'))
+        self.assertTrue(reg.scenario_name_exists('scenario 3'))
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(ScenarioRegistry)

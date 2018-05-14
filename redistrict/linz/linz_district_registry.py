@@ -89,6 +89,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, district))
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([self.type_field_index])
+        request.setLimit(1)
         f = next(self.source_layer.getFeatures(request))
         return f[self.type_field_index]
 
@@ -120,6 +121,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression('type', district_type))
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([quota_field_index])
+        request.setLimit(1)
         f = next(self.quota_layer.getFeatures(request))
         return f[quota_field_index]
 
@@ -141,6 +143,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, district))
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([self.estimated_pop_field_index])
+        request.setLimit(1)
         f = next(self.source_layer.getFeatures(request))
         return f[self.estimated_pop_field_index]
 
