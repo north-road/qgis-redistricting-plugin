@@ -587,12 +587,12 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         scenario_uri = '{}|layername=scenarios'.format(source)
         foreign_scenario_layer = QgsVectorLayer(scenario_uri, 'foreign_scenarios')
         if not foreign_scenario_layer.isValid():
-            self.report_failure(self.tr('Could not import scenarios from {}').format(source))
+            self.report_failure(self.tr('Could not import scenarios from “{}”').format(source))
             return
         meshblock_electorates_uri = '{}|layername=meshblock_electorates'.format(source)
         foreign_meshblock_electorates_layer = QgsVectorLayer(meshblock_electorates_uri, 'foreign_meshblock_electorates')
         if not foreign_meshblock_electorates_layer.isValid():
-            self.report_failure(self.tr('Could not import scenarios from {}').format(source))
+            self.report_failure(self.tr('Could not import scenarios from “{}”').format(source))
             return
 
         source_registry = ScenarioRegistry(source_layer=foreign_scenario_layer,
@@ -626,7 +626,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             self.report_failure(error)
         else:
             self.report_success(
-                self.tr('Successfully imported {} to {}').format(source_scenario_name, new_scenario_name))
+                self.tr('Successfully imported “{}” to “{}”').format(source_scenario_name, new_scenario_name))
 
     def update_dock_title(self):
         """
@@ -665,9 +665,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         self.task = CopyFileTask(self.tr('Exporting database'), {self.db_source: destination})
         self.task.taskCompleted.connect(
-            partial(self.report_success, self.tr('Exported database to {}').format(destination)))
+            partial(self.report_success, self.tr('Exported database to “{}”').format(destination)))
         self.task.taskTerminated.connect(
-            partial(self.report_failure, self.tr('Error while exporting database to {}').format(destination)))
+            partial(self.report_failure, self.tr('Error while exporting database to “{}”').format(destination)))
 
         QgsApplication.taskManager().addTask(self.task)
 
@@ -699,15 +699,15 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         if QFile.exists(destination):
             if not QFile.remove(destination):
-                self.report_failure(self.tr('Could not backup current database to {}').format(destination))
+                self.report_failure(self.tr('Could not backup current database to “{}”').format(destination))
                 return
 
         if not QFile.copy(self.db_source, destination):
-            self.report_failure(self.tr('Could not backup current database to {}').format(destination))
+            self.report_failure(self.tr('Could not backup current database to “{}”').format(destination))
             return
 
         if not QFile.remove(self.db_source):
-            self.report_failure(self.tr('Could not remove current master database at {}').format(self.db_source))
+            self.report_failure(self.tr('Could not remove current master database at “{}”').format(self.db_source))
 
         if not QFile.copy(source, self.db_source):
             self.report_failure(self.tr('Critical error occurred while replacing master database'))
