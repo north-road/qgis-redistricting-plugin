@@ -391,14 +391,14 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             QCoreApplication.translate('LinzRedistrict', 'Redistrict to {}').format(
                 district_registry.get_district_title(dlg.selected_district)))
         if handler.assign_district(self.meshblock_layer.selectedFeatureIds(), dlg.selected_district):
-            self.iface.messageBar().pushMessage(
+            self.report_success(
                 self.tr('Redistricted selected meshblocks to {}').format(
-                    district_registry.get_district_title(dlg.selected_district)), level=Qgis.Success)
+                    district_registry.get_district_title(dlg.selected_district)))
             gui_handler.show_stats_for_district(dlg.selected_district)
             self.meshblock_layer.removeSelection()
         else:
-            self.iface.messageBar().pushMessage(
-                self.tr('Could not redistricted selected meshblocks'), level=Qgis.Critical)
+            self.report_failure(
+                self.tr('Could not redistricted selected meshblocks'))
         handler.end_edit_group()
 
     def set_current_tool(self, tool: QgsMapTool):
@@ -541,11 +541,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             res, error = self.scenario_registry.branch_scenario(scenario_id=self.context.scenario,
                                                                 new_scenario_name=dlg.name())
             if not res:
-                self.iface.messageBar().pushMessage(
-                    error, level=Qgis.Critical)
+                self.report_failure(error)
             else:
-                self.iface.messageBar().pushMessage(
-                    self.tr('Branched scenario to “{}”').format(dlg.name()), level=Qgis.Success)
+                self.report_success(self.tr('Branched scenario to “{}”').format(dlg.name()))
                 self.context.set_scenario(res)
 
     def update_dock_title(self):
