@@ -28,6 +28,7 @@ from qgis.core import (QgsProject,
                        QgsMapThemeCollection,
                        QgsExpressionContextUtils,
                        Qgis)
+from qgis.gui import QgsMapTool
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
 from .linz.linz_redistrict_handler import LinzRedistrictHandler
@@ -118,13 +119,16 @@ class LinzRedistrict:
         switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
         switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
 
-        switch_ni_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GN), parent=switch_menu)
+        switch_ni_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GN),
+                                                      parent=switch_menu)
         switch_ni_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GN))
         switch_menu.addAction(switch_ni_general_electorate_action)
-        switch_si_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GS), parent=switch_menu)
+        switch_si_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GS),
+                                                      parent=switch_menu)
         switch_si_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GS))
         switch_menu.addAction(switch_si_general_electorate_action)
-        switch_maori_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_M), parent=switch_menu)
+        switch_maori_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_M),
+                                                 parent=switch_menu)
         switch_maori_electorate_action.triggered.connect(partial(self.set_task, self.TASK_M))
         switch_menu.addAction(switch_maori_electorate_action)
         self.redistricting_menu.addMenu(switch_menu)
@@ -322,22 +326,41 @@ class LinzRedistrict:
                 self.tr('Could not redistricted selected meshblocks'), level=Qgis.Critical)
         handler.end_edit_group()
 
+    def set_current_tool(self, tool: QgsMapTool):
+        """
+        Sets the current map tool
+        :param tool: new map tool
+        """
+        if self.tool is not None:
+            # Disconnect from old tool
+            self.tool.deactivated.disconnect(self.tool_deactivated)
+            self.tool.deleteLater()
+        self.tool = tool
+        self.tool.deactivated.connect(self.tool_deactivated)
+        self.iface.mapCanvas().setMapTool(self.tool)
+
+    def tool_deactivated(self):
+        """
+        Triggered on tool deactivation
+        """
+        self.tool = None
+
     def interactive_redistrict(self):
         """
         Interactively redistrict the currently selected meshblocks
         """
 
-        self.tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
-                                                 district_registry=self.get_district_registry(),
-                                                 decorator_factory=CentroidDecoratorFactory(self.electorate_layer))
-        self.iface.mapCanvas().setMapTool(self.tool)
+        tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
+                                            district_registry=self.get_district_registry(),
+                                            decorator_factory=CentroidDecoratorFactory(self.electorate_layer))
+        self.set_current_tool(tool=tool)
 
     def trigger_stats_tool(self):
         """
         Triggers the district statistics tool
         """
-        self.tool = DistrictStatisticsTool(canvas=self.iface.mapCanvas(), gui_handler=self.get_gui_handler())
-        self.iface.mapCanvas().setMapTool(self.tool)
+        tool = DistrictStatisticsTool(canvas=self.iface.mapCanvas(), gui_handler=self.get_gui_handler())
+        self.set_current_tool(tool=tool)
 
     def map_themes_for_task(self):
         """
