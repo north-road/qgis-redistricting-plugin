@@ -31,6 +31,7 @@ from qgis.core import (QgsProject,
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
 from .linz.linz_redistrict_handler import LinzRedistrictHandler
+from .linz.linz_redistricting_context import LinzRedistrictingContext
 from .gui.district_selection_dialog import (
     DistrictPicker)
 from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
@@ -82,7 +83,8 @@ class LinzRedistrict:
         self.new_themed_view_menu = None
         self.tool = None
         self.dock = None
-        self.task = self.TASK_GN
+        self.context = LinzRedistrictingContext()
+        self.context.task = self.TASK_GN
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -184,7 +186,7 @@ class LinzRedistrict:
 
         self.toggle_redistrict_actions()
 
-        self.dock = LinzRedistrictingDockWidget()
+        self.dock = LinzRedistrictingDockWidget(context=self.context)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
 
         self.set_task(self.TASK_GN)
@@ -239,10 +241,10 @@ class LinzRedistrict:
         Sets the current task
         :param task: task, eg 'GN','GS' or 'M'
         """
-        self.task = task
-        QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.task)
+        self.context.task = task
+        QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.context.task)
 
-        self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.get_name_for_task(self.task))
+        self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.get_name_for_task(self.context.task))
 
         self.iface.layerTreeView().refreshLayerSymbology(self.electorate_layer.id())
         self.iface.layerTreeView().refreshLayerSymbology(self.meshblock_layer.id())
@@ -252,6 +254,8 @@ class LinzRedistrict:
 
         if self.tool is not None:
             self.tool.deleteLater()
+
+        self.dock.update_dock_title(context=self.context)
 
     def get_name_for_task(self, task: str) -> str:
         """
@@ -271,7 +275,7 @@ class LinzRedistrict:
             source_layer=self.electorate_layer,
             source_field='electorate_id',
             quota_layer=self.quota_layer,
-            electorate_type=self.task,
+            electorate_type=self.context.task,
             title_field='name',
             name='General NI')
 

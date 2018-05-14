@@ -16,6 +16,7 @@ __revision__ = '$Format:%H$'
 
 import unittest
 from redistrict.linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
+from redistrict.linz.linz_redistricting_context import LinzRedistrictingContext
 from .utilities import get_qgis_app
 
 QGIS_APP, CANVAS, IFACE, PARENT = get_qgis_app()
@@ -28,7 +29,8 @@ class LinzRedistrictingDockWidgetTest(unittest.TestCase):
         """
         Test constructing dock
         """
-        widget = LinzRedistrictingDockWidget(IFACE)
+        context = LinzRedistrictingContext()
+        widget = LinzRedistrictingDockWidget(context=context, iface=IFACE)
         self.assertIsNotNone(widget)
 
 

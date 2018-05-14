@@ -14,6 +14,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 from redistrict.gui.redistricting_dock_widget import RedistrictingDockWidget
+from redistrict.linz.linz_redistricting_context import LinzRedistrictingContext
 
 
 class LinzRedistrictingDockWidget(RedistrictingDockWidget):
@@ -21,10 +22,19 @@ class LinzRedistrictingDockWidget(RedistrictingDockWidget):
     LINZ Specific redistricting dock widget
     """
 
-    def __init__(self, iface=None):
+    def __init__(self, context: LinzRedistrictingContext, iface=None):
         """
         Constructor for LINZ redistricting dock
+        :param context: initial dock context
         :param iface: QGIS interface
         """
         super().__init__(iface)
-        self.setWindowTitle(self.tr('Redistricting - Scenario 1'))
+        self.update_dock_title(context=context)
+
+    def update_dock_title(self, context: LinzRedistrictingContext):
+        """
+        Refreshes the dock title text, using the settings from a supplied
+        context.
+        :param context: redistricting context
+        """
+        self.setWindowTitle(self.tr('Redistricting - {} - Scenario {}').format(context.task, context.scenario))
