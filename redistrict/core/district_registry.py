@@ -192,6 +192,7 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
             self.title_field = title_field
         else:
             self.title_field = self.source_field
+        self.title_field_index = self.source_layer.fields().lookupField(self.title_field)
 
     def flags(self):
         """
@@ -204,17 +205,16 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
             return super().get_district_title(district)
 
         # lookup matching feature
-        title_field_index = self.source_layer.fields().lookupField(self.title_field)
         request = QgsFeatureRequest()
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, district))
         request.setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes([title_field_index])
+        request.setSubsetOfAttributes([self.title_field_index])
         request.setLimit(1)
         try:
             f = next(self.source_layer.getFeatures(request))
         except StopIteration:
             return super().get_district_title(district)
-        return f[title_field_index]
+        return f[self.title_field_index]
 
     def district_name_exists(self, district) -> bool:
         request = QgsFeatureRequest()
@@ -264,13 +264,12 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         Returns a dictionary of sorted district titles to corresponding district id/code
         """
         field_index = self.source_layer.fields().lookupField(self.source_field)
-        title_field_index = self.source_layer.fields().lookupField(self.title_field)
         request = QgsFeatureRequest()
         self.modify_district_request(request)
         request.setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes([field_index, title_field_index])
+        request.setSubsetOfAttributes([field_index, self.title_field_index])
 
-        districts = {f[title_field_index]: f[field_index]
+        districts = {f[self.title_field_index]: f[field_index]
                      for f in self.source_layer.getFeatures(request)
                      if f[field_index] != NULL}
         result = OrderedDict()

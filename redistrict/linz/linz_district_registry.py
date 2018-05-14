@@ -14,7 +14,8 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsFeatureRequest,
+from qgis.core import (NULL,
+                       QgsFeatureRequest,
                        QgsFeature,
                        QgsExpression,
                        QgsVectorLayer)
@@ -196,3 +197,21 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
             return False, QCoreApplication.translate('LinzRedistrict', 'Could not create new electorate')
 
         return True, None
+
+    def toggle_electorate_deprecation(self, electorate):
+        """
+        Toggles the deprecation flag for an electorate
+        :param electorate: electorate id
+        """
+        request = QgsFeatureRequest()
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([self.deprecated_field_index])
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate))
+        f = next(self.source_layer.getFeatures(request))
+
+        is_deprecated = f[self.deprecated_field_index]
+        if is_deprecated == NULL:
+            is_deprecated = False
+
+        new_status = 0 if is_deprecated else 1
+        self.source_layer.dataProvider().changeAttributeValues({f.id(): {self.deprecated_field_index: new_status}})

@@ -307,6 +307,39 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         self.assertFalse(res)
         self.assertIn('already exists', error)
 
+    def testDeprecation(self):
+        """
+        Test deprecating electorates
+        """
+        layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes([1, "code4", "test4", 'GN', 1000, True])
+        f2 = QgsFeature()
+        f2.setAttributes([2, "code2", "test2", 'GN', 2000, False])
+        f3 = QgsFeature()
+        f3.setAttributes([3, "code3", "test3", 'GN', 3000, True])
+        layer.dataProvider().addFeatures([f, f2, f3])
+        quota_layer = make_quota_layer()
+
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='GN',
+            source_field='electorate_id',
+            title_field='fld1')
+
+        self.assertEqual([f['deprecated'] for f in layer.getFeatures()], [True, False, True])
+        reg.toggle_electorate_deprecation(1)
+        self.assertEqual([f['deprecated'] for f in layer.getFeatures()], [False, False, True])
+        reg.toggle_electorate_deprecation(1)
+        self.assertEqual([f['deprecated'] for f in layer.getFeatures()], [True, False, True])
+        reg.toggle_electorate_deprecation(2)
+        self.assertEqual([f['deprecated'] for f in layer.getFeatures()], [True, True, True])
+        reg.toggle_electorate_deprecation(3)
+        self.assertEqual([f['deprecated'] for f in layer.getFeatures()], [True, True, False])
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(LinzElectoralDistrictRegistry)
