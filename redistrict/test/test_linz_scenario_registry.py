@@ -45,7 +45,7 @@ def make_meshblock_electorate_layer() -> QgsVectorLayer:
     Makes a dummy meshblock-electorate layer for testing
     """
     layer = QgsVectorLayer(
-        "NoGeometry?field=id:int&field=scenario_id:int&field=meshblock_number:int&field=code:string&field=code2:string",
+        "NoGeometry?field=id:int&field=scenario_id:int&field=meshblock_number:int&field=gn_code:string&field=gs_code:string",
         "source", "memory")
     f = QgsFeature()
     f.setAttributes([1, 2, 0, 'a', 'x'])
@@ -303,6 +303,84 @@ class ScenarioRegistryTest(unittest.TestCase):
                                                               new_scenario_name='copied scenario')
         self.assertFalse(res)
         self.assertIn('already exists', error)
+
+    def testElectorateMeshblocks(self):
+        """
+        Test retrieving meshblocks belong to an electorate for a scenario
+        """
+        layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
+        )
+
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='c', electorate_type='GN', scenario_id=1)]
+        self.assertEqual(res, [0])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='d', electorate_type='GN', scenario_id=1)]
+        self.assertEqual(res, [1])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='a', electorate_type='GN', scenario_id=1)]
+        self.assertEqual(res, [])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='z', electorate_type='GS', scenario_id=1)]
+        self.assertEqual(res, [0])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='zz', electorate_type='GS', scenario_id=1)]
+        self.assertEqual(res, [1])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='x', electorate_type='GS', scenario_id=1)]
+        self.assertEqual(res, [])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='a', electorate_type='GN', scenario_id=2)]
+        self.assertEqual(res, [0])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='b', electorate_type='GN', scenario_id=2)]
+        self.assertEqual(res, [1])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='c', electorate_type='GN', scenario_id=2)]
+        self.assertEqual(res, [])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='x', electorate_type='GS', scenario_id=2)]
+        self.assertEqual(res, [0])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='y', electorate_type='GS', scenario_id=2)]
+        self.assertEqual(res, [1])
+        res = [f['meshblock_number'] for f in
+               reg.electorate_meshblocks(electorate_code='z', electorate_type='GS', scenario_id=2)]
+        self.assertEqual(res, [])
+
+    def testElectorateHasMeshblocks(self):
+        """
+        Test checking whether an electorate has meshblocks assigned
+        """
+        layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
+        )
+
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='c', electorate_type='GN', scenario_id=1))
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='d', electorate_type='GN', scenario_id=1))
+        self.assertFalse(reg.electorate_has_meshblocks(electorate_code='a', electorate_type='GN', scenario_id=1))
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='z', electorate_type='GS', scenario_id=1))
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='zz', electorate_type='GS', scenario_id=1))
+        self.assertFalse(reg.electorate_has_meshblocks(electorate_code='x', electorate_type='GS', scenario_id=1))
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='a', electorate_type='GN', scenario_id=2))
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='b', electorate_type='GN', scenario_id=2))
+        self.assertFalse(reg.electorate_has_meshblocks(electorate_code='c', electorate_type='GN', scenario_id=2))
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='x', electorate_type='GS', scenario_id=2))
+        self.assertTrue(reg.electorate_has_meshblocks(electorate_code='y', electorate_type='GS', scenario_id=2))
+        self.assertFalse(reg.electorate_has_meshblocks(electorate_code='z', electorate_type='GS', scenario_id=2))
 
 
 if __name__ == "__main__":

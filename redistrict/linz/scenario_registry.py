@@ -22,6 +22,7 @@ from qgis.core import (QgsFeatureRequest,
                        QgsVectorLayer,
                        QgsFeature,
                        QgsApplication,
+                       QgsFeatureIterator,
                        NULL)
 
 
@@ -221,15 +222,51 @@ class ScenarioRegistry():
         if self.scenario_name_exists(new_scenario_name):
             return False, QCoreApplication.translate('LinzRedistrict', '{} already exists').format(new_scenario_name)
         if not source_registry.scenario_exists(source_scenario_id):
-            return False, QCoreApplication.translate('LinzRedistrict', 'Scenario {} does not exist in database').format(source_scenario_id)
+            return False, QCoreApplication.translate('LinzRedistrict', 'Scenario {} does not exist in database').format(
+                source_scenario_id)
 
         # all good to go
         new_id, error = self.__insert_new_scenario(new_scenario_name=new_scenario_name)
         if not new_id:
             return False, error
 
-        ScenarioRegistry.__copy_records_from_scenario(source_meshblock_electorate_layer=source_registry.meshblock_electorate_layer,
-                                                      source_scenario_id=source_scenario_id,
-                                                      dest_meshblock_electorate_layer=self.meshblock_electorate_layer,
-                                                      new_scenario_id=new_id)
+        ScenarioRegistry.__copy_records_from_scenario(
+            source_meshblock_electorate_layer=source_registry.meshblock_electorate_layer,
+            source_scenario_id=source_scenario_id,
+            dest_meshblock_electorate_layer=self.meshblock_electorate_layer,
+            new_scenario_id=new_id)
         return new_id, None
+
+    def electorate_meshblocks(self, electorate_code, electorate_type: str, scenario_id) -> QgsFeatureIterator:
+        """
+        Returns meshblock features currently assigned to an electorate in a
+        given scenario
+        :param electorate_code: electorate code
+        :param electorate_type: electorate type, e.g. 'GN','GS','M'
+        :param scenario_id: scenario id
+        """
+        request = QgsFeatureRequest()
+        request.setSubsetOfAttributes([])
+
+        type_field = '{}_code'.format(electorate_type.lower())
+
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', scenario_id))
+        request.combineFilterExpression(QgsExpression.createFieldEqualityExpression(type_field, electorate_code))
+        request.setLimit(1)
+
+        return self.meshblock_electorate_layer.getFeatures(request)
+
+    def electorate_has_meshblocks(self, electorate_code, electorate_type: str, scenario_id) -> bool:
+        """
+        Returns true if the given electorate has meshblocks within the specified scenario
+        :param electorate_code: electorate code
+        :param electorate_type: electorate type, e.g. 'GN','GS','M'
+        :param scenario_id: scenario id
+        """
+        try:
+            next(self.electorate_meshblocks(electorate_code=electorate_code, electorate_type=electorate_type,
+                                            scenario_id=scenario_id))
+        except StopIteration:
+            return False
+
+        return True
