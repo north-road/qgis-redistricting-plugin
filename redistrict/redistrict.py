@@ -85,17 +85,9 @@ class LinzRedistrict:
         self.task = self.TASK_GN
 
         self.is_redistricting = False
-
-        self.electorate_layer = QgsProject.instance().mapLayersByName(
-            'general')[0]
-        self.meshblock_layer = QgsProject.instance().mapLayersByName(
-            'meshblock')[0]
-        self.quota_layer = QgsProject.instance().mapLayersByName(
-            'quotas')[0]
-
-        self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
-        self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
-        self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
+        self.electorate_layer = None
+        self.meshblock_layer = None
+        self.quota_layer = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -206,6 +198,19 @@ class LinzRedistrict:
 
         self.is_redistricting = True
         self.begin_action.setChecked(True)
+
+        # matching layers
+        # TODO - use paths, not project layers
+        self.electorate_layer = QgsProject.instance().mapLayersByName(
+            'general')[0]
+        self.meshblock_layer = QgsProject.instance().mapLayersByName(
+            'meshblock')[0]
+        self.quota_layer = QgsProject.instance().mapLayersByName(
+            'quotas')[0]
+
+        self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
+        self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
+        self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
 
         self.create_redistricting_ui()
 
