@@ -43,7 +43,7 @@ class GuiUtils:
         toolbar.show()
 
     @staticmethod
-    def get_icon(icon):
+    def get_icon(icon: str):
         """
         Returns a plugin icon
         :param icon: icon name (svg file name)
