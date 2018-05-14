@@ -32,6 +32,7 @@ from qgis.gui import QgsMapTool
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
 from .linz.linz_redistrict_handler import LinzRedistrictHandler
+from .linz.scenario_registry import ScenarioRegistry
 from .linz.linz_redistricting_context import LinzRedistrictingContext
 from .gui.district_selection_dialog import (
     DistrictPicker)
@@ -90,7 +91,9 @@ class LinzRedistrict:
         self.is_redistricting = False
         self.electorate_layer = None
         self.meshblock_layer = None
+        self.scenario_layer = None
         self.quota_layer = None
+        self.scenario_registry = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -213,6 +216,12 @@ class LinzRedistrict:
             'meshblock')[0]
         self.quota_layer = QgsProject.instance().mapLayersByName(
             'quotas')[0]
+        self.scenario_layer = QgsProject.instance().mapLayersByName(
+            'scenarios')[0]
+
+        self.scenario_registry = ScenarioRegistry(source_layer=self.scenario_layer,
+                                                  id_field='scenario_id',
+                                                  name_field='name')
 
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
