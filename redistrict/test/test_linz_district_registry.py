@@ -170,6 +170,38 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         except:  # noqa, pylint: disable=bare-except
             pass
 
+    def testCodes(self):
+        """
+        Test retrieving codes for electorates
+        """
+        layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=fld1:string&field=code:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes(["test1", "xtest1", 'GN'])
+        f2 = QgsFeature()
+        f2.setAttributes(["test2", "xtest2", 'GS'])
+        f3 = QgsFeature()
+        f3.setAttributes(["test3", "xtest3", 'M'])
+        layer.dataProvider().addFeatures([f, f2, f3])
+        quota_layer = make_quota_layer()
+
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='',
+            source_field='fld1',
+            title_field='fld1')
+
+        self.assertEqual(reg.get_code_for_electorate('test1'), 'xtest1')
+        self.assertEqual(reg.get_code_for_electorate('test2'), 'xtest2')
+        self.assertEqual(reg.get_code_for_electorate('test3'), 'xtest3')
+        try:
+            reg.get_code_for_electorate('X')
+            assert 'Unexpected success - expecting assert'
+        except:  # noqa, pylint: disable=bare-except
+            pass
+
     def testPopulations(self):
         """
         Test retrieving populations for districts

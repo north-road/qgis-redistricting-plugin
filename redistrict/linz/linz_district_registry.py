@@ -140,6 +140,22 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         district_type = self.get_district_type(district)
         return self.get_quota_for_district_type(district_type)
 
+    def get_code_for_electorate(self, electorate_id):
+        """
+        Returns the electorate code for a given electorate_id
+        :param electorate_id: electorate id
+        """
+        code_field_index = self.source_layer.fields().lookupField('code')
+        assert code_field_index >= 0
+
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate_id))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([code_field_index])
+        request.setLimit(1)
+        f = next(self.source_layer.getFeatures(request))
+        return f[code_field_index]
+
     def get_estimated_population(self, district) -> int:
         """
         Returns the estimated (offline) population for the district
