@@ -33,6 +33,20 @@ class LinzRedistrictingDockWidgetTest(unittest.TestCase):
         widget = LinzRedistrictingDockWidget(context=context, iface=IFACE)
         self.assertIsNotNone(widget)
 
+    def testTitle(self):
+        """
+        Test title updates
+        """
+        context = LinzRedistrictingContext()
+        context.task = LinzRedistrictingContext.TASK_GS
+        context.scenario = 4
+        widget = LinzRedistrictingDockWidget(context=context, iface=IFACE)
+        self.assertEqual(widget.windowTitle(), 'Redistricting - General (South Island) - Scenario 4')
+        context.task = LinzRedistrictingContext.TASK_GN
+        context.scenario = 41
+        widget.update_dock_title(context=context)
+        self.assertEqual(widget.windowTitle(), 'Redistricting - General (North Island) - Scenario 41')
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(LinzRedistrictingDockWidgetTest)

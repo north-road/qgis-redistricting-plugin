@@ -37,4 +37,5 @@ class LinzRedistrictingDockWidget(RedistrictingDockWidget):
         context.
         :param context: redistricting context
         """
-        self.setWindowTitle(self.tr('Redistricting - {} - Scenario {}').format(context.task, context.scenario))
+        self.setWindowTitle(self.tr('Redistricting - {} - Scenario {}').format(context.get_name_for_current_task(),
+                                                                               context.scenario))
