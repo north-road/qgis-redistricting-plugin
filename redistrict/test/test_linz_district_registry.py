@@ -265,14 +265,14 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test creating electorates
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=fld1:string&field=type:string&field=estimated_pop:int",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int",
             "source", "memory")
         f = QgsFeature()
-        f.setAttributes([1, "test4", 'GN', 1000])
+        f.setAttributes([1, "code4", "test4", 'GN', 1000])
         f2 = QgsFeature()
-        f2.setAttributes([2, "test2", 'GN', 2000])
+        f2.setAttributes([2, "code2", "test2", 'GN', 2000])
         f3 = QgsFeature()
-        f3.setAttributes([3, "test3", 'M', 3000])
+        f3.setAttributes([3, "code3", "test3", 'M', 3000])
         layer.dataProvider().addFeatures([f, f2, f3])
         quota_layer = make_quota_layer()
 
@@ -280,7 +280,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
             source_layer=layer,
             quota_layer=quota_layer,
             electorate_type='GN',
-            source_field='fld1',
+            source_field='electorate_id',
             title_field='fld1')
 
         res, error = reg.create_electorate('test2', 'test2')
@@ -293,11 +293,12 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         self.assertIn('already exists', error)
 
         # valid
-        res, error = reg.create_electorate('test5', 'test5')
+        res, error = reg.create_electorate('code5', 'test5')
         self.assertTrue(res)
         self.assertFalse(error)
         self.assertEqual([f['electorate_id'] for f in layer.getFeatures()], [1, 2, 3, 4])
         self.assertEqual([f['fld1'] for f in layer.getFeatures()], ['test4', 'test2', 'test3', 'test5'])
+        self.assertEqual([f['code'] for f in layer.getFeatures()], ['code4', 'code2', 'code3', 'code5'])
         self.assertEqual([f['type'] for f in layer.getFeatures()], ['GN', 'GN', 'M', 'GN'])
 
         res, error = reg.create_electorate('test5', 'test5')

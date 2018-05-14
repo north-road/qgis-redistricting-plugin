@@ -178,15 +178,15 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         if self.district_name_exists(new_electorate_name):
             return False, QCoreApplication.translate('LinzRedistrict', 'An electorate with this name already exists')
 
-        id_field_idx = self.source_layer.fields().lookupField('electorate_id')
-        new_id = int(self.source_layer.maximumValue(id_field_idx)) + 1
+        code_field_idx = self.source_layer.fields().lookupField('code')
+        new_id = int(self.source_layer.maximumValue(self.source_field_index)) + 1
 
         f = QgsFeature()
         f.initAttributes(self.source_layer.fields().count())
         f[self.source_layer.fields().lookupField(self.title_field)] = new_electorate_name
         f[self.type_field_index] = self.electorate_type
-        f[id_field_idx] = new_id
-        f[self.source_field_index] = new_electorate_code
+        f[self.source_field_index] = new_id
+        f[code_field_idx] = new_electorate_code
 
         if not self.source_layer.dataProvider().addFeatures([f]):
             return False, QCoreApplication.translate('LinzRedistrict', 'Could not create new electorate')

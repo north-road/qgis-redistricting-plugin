@@ -52,6 +52,7 @@ from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
 from .linz.scenario_selection_dialog import ScenarioSelectionDialog
 from .linz.db_utils import CopyFileTask
+from .linz.create_electorate_dialog import CreateElectorateDialog
 
 
 class LinzRedistrict:  # pylint: disable=too-many-public-methods
@@ -718,7 +719,20 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         """
         Triggered when creating a new electorate
         """
-        pass
+        registry = self.get_district_registry()
+        dlg = CreateElectorateDialog(registry=registry,
+                                     context=self.context, parent=self.iface.mainWindow())
+        if not dlg.exec_():
+            return
+
+        new_name = dlg.name()
+        new_code = dlg.code()
+
+        res, error = registry.create_electorate(new_electorate_code=new_code, new_electorate_name=new_name)
+        if not res:
+            self.report_failure(error)
+        else:
+            self.report_success(self.tr('Created electorate “{}”').format(new_name))
 
     def deprecate_electorate(self):
         """
