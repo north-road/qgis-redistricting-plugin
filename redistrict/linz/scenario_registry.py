@@ -237,34 +237,34 @@ class ScenarioRegistry():
             new_scenario_id=new_id)
         return new_id, None
 
-    def electorate_meshblocks(self, electorate_code, electorate_type: str, scenario_id) -> QgsFeatureIterator:
+    def electorate_meshblocks(self, electorate_id, electorate_type: str, scenario_id) -> QgsFeatureIterator:
         """
         Returns meshblock features currently assigned to an electorate in a
         given scenario
-        :param electorate_code: electorate code
+        :param electorate_id: electorate id
         :param electorate_type: electorate type, e.g. 'GN','GS','M'
         :param scenario_id: scenario id
         """
         request = QgsFeatureRequest()
         request.setSubsetOfAttributes([])
 
-        type_field = '{}_code'.format(electorate_type.lower())
+        type_field = '{}_id'.format(electorate_type.lower())
 
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', scenario_id))
-        request.combineFilterExpression(QgsExpression.createFieldEqualityExpression(type_field, electorate_code))
+        request.combineFilterExpression(QgsExpression.createFieldEqualityExpression(type_field, electorate_id))
         request.setLimit(1)
 
         return self.meshblock_electorate_layer.getFeatures(request)
 
-    def electorate_has_meshblocks(self, electorate_code, electorate_type: str, scenario_id) -> bool:
+    def electorate_has_meshblocks(self, electorate_id, electorate_type: str, scenario_id) -> bool:
         """
         Returns true if the given electorate has meshblocks within the specified scenario
-        :param electorate_code: electorate code
+        :param electorate_id: electorate id
         :param electorate_type: electorate type, e.g. 'GN','GS','M'
         :param scenario_id: scenario id
         """
         try:
-            next(self.electorate_meshblocks(electorate_code=electorate_code, electorate_type=electorate_type,
+            next(self.electorate_meshblocks(electorate_id=electorate_id, electorate_type=electorate_type,
                                             scenario_id=scenario_id))
         except StopIteration:
             return False
