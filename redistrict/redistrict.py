@@ -101,8 +101,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.quota_layer = None
         self.meshblock_electorate_layer = None
         self.scenario_registry = None
-        self.db_source = None
-
+        self.db_source = os.path.join(self.plugin_dir,
+                                      'db','nz_db.gpkg')
         self.task = None
 
     # noinspection PyMethodMayBeStatic
