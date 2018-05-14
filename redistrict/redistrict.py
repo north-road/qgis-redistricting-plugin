@@ -16,6 +16,7 @@ __revision__ = '$Format:%H$'
 import os.path
 from functools import partial
 from qgis.PyQt.QtCore import (Qt,
+                              QFile,
                               QSettings,
                               QTranslator,
                               QCoreApplication)
@@ -245,6 +246,10 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         export_master_action = QAction(self.tr('Export Database...'), parent=master_db_menu)
         export_master_action.triggered.connect(self.export_database)
         master_db_menu.addAction(export_master_action)
+        import_master_action = QAction(self.tr('Import Master Database...'), parent=master_db_menu)
+        import_master_action.triggered.connect(self.import_master_database)
+        master_db_menu.addAction(import_master_action)
+
         options_menu.addMenu(master_db_menu)
 
         options_button = QToolButton(parent=self.dock.dock_toolbar())
@@ -587,7 +592,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         QgsApplication.taskManager().addTask(self.task)
 
-    def import_database(self):
+    def import_master_database(self):
         """
         Imports a new master database, replacing the current database
         """
@@ -597,10 +602,35 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         if not source:
             return
 
-        QgsProject.instance().clear()
         dlg = ConfirmationDialog(self.tr('Import Master Database'),
                                  self.tr(
                                      'Importing a new master database will completely replace the existing district database.\n\nThis action cannot be reversed!\n\nEnter \'I ACCEPT\' to continue.'),
                                  self.tr('I ACCEPT'), parent=self.iface.mainWindow())
         if not dlg.exec_():
             return
+
+        # force backup of existing database
+        destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                           self.tr('Backup Current Database'), '',
+                                                           filter='Database Files (*.gpkg)')
+        if not destination:
+            return
+
+        if QFile.exists(destination):
+            if not QFile.remove(destination):
+                self.report_failure(self.tr('Could not backup current database to {}').format(destination))
+                return
+
+        if not QFile.copy(self.db_source, destination):
+            self.report_failure(self.tr('Could not backup current database to {}').format(destination))
+            return
+
+        QgsProject.instance().clear()
+
+        if not QFile.remove(self.db_source):
+            self.report_failure(self.tr('Could not remove current master database at {}').format(self.db_source))
+
+        if not QFile.copy(source, self.db_source):
+            self.report_failure(self.tr('Critical error occurred while replacing master database'))
+        else:
+            self.report_success(self.tr('New master database imported successfully'))
