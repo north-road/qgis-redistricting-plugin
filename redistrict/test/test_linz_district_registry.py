@@ -49,7 +49,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test a LinzDistrictRegistry
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN', 1000])
@@ -61,7 +61,9 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         f4.setAttributes(["test1", NULL, 'GN', 4000])
         f5 = QgsFeature()
         f5.setAttributes(["test2", "xtest2", 'GS', 5000])
-        layer.dataProvider().addFeatures([f, f2, f3, f4, f5])
+        f6 = QgsFeature()
+        f6.setAttributes(["test5", "xtest5", 'GN', 5000, True])
+        layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
         quota_layer = make_quota_layer()
 
         reg = LinzElectoralDistrictRegistry(
@@ -132,7 +134,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test retrieving quotas for districts
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN'])
@@ -173,7 +175,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test retrieving populations for districts
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN', 1000])
@@ -229,7 +231,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test getting vector layer district at point
         """
         layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:string&field=type:string&field=estimated_pop:int",
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["GN district", "GN"])
@@ -265,7 +267,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test creating electorates
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "code4", "test4", 'GN', 1000])

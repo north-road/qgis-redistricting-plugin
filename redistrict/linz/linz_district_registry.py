@@ -56,6 +56,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         self.electorate_type = electorate_type
         self.type_field = 'type'
         self.estimated_population_field = 'estimated_pop'
+        self.deprecated_field = 'deprecated'
 
         self.source_field_index = self.source_layer.fields().lookupField(self.source_field)
         assert self.source_field_index >= 0
@@ -63,6 +64,8 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         assert self.type_field_index >= 0
         self.estimated_pop_field_index = self.source_layer.fields().lookupField(self.estimated_population_field)
         assert self.estimated_pop_field_index >= 0
+        self.deprecated_field_index = self.source_layer.fields().lookupField(self.deprecated_field)
+        assert self.deprecated_field_index >= 0
 
         self.quota_layer = quota_layer
 
@@ -79,6 +82,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         if self.electorate_type:
             request.setFilterExpression(
                 QgsExpression.createFieldEqualityExpression(self.type_field, self.electorate_type))
+        request.combineFilterExpression('"{}" is null or not "{}"'.format(self.deprecated_field, self.deprecated_field))
         return request
 
     def get_district_type(self, district) -> str:

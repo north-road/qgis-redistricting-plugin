@@ -33,7 +33,7 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
     def testShowStats(self):
         """Test show stats for district"""
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN', 1000])

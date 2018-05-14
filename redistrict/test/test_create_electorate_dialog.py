@@ -41,7 +41,7 @@ class CreateElectorateDialogTest(unittest.TestCase):
                                              meshblock_electorate_layer=None)
 
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=code:string&field=type:string&field=estimated_pop:int",
+            "Point?crs=EPSG:4326&field=fld1:string&field=code:string&field=type:string&field=estimated_pop:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN'])
