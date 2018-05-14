@@ -31,12 +31,14 @@ class ScenarioRegistry():
 
     def __init__(self, source_layer: QgsVectorLayer,
                  id_field: str,
-                 name_field: str):
+                 name_field: str,
+                 meshblock_electorate_layer: QgsVectorLayer):
         """
         Constructor for ScenarioRegistry
         :param source_layer: source layer for registry
         :param id_field: name of scenario id field
         :param name_field: name of scenario name field
+        :param meshblock_electorate_layer: layer containing meshblock to electorate mapping for each scenario
         """
         self.source_layer = source_layer
         self.id_field = id_field
@@ -45,6 +47,7 @@ class ScenarioRegistry():
         self.name_field = name_field
         self.name_field_index = source_layer.fields().lookupField(self.name_field)
         assert self.name_field_index >= 0
+        self.meshblock_electorate_layer = meshblock_electorate_layer
 
     def get_scenario_name(self, scenario):
         """

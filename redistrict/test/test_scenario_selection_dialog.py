@@ -17,7 +17,7 @@ __revision__ = '$Format:%H$'
 import unittest
 from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.scenario_selection_dialog import ScenarioSelectionDialog
-from redistrict.test.test_linz_scenario_registry import make_scenario_layer
+from redistrict.test.test_linz_scenario_registry import make_scenario_layer, make_meshblock_electorate_layer
 
 from .utilities import get_qgis_app
 
@@ -32,9 +32,11 @@ class ScenarioSelectionDialogTest(unittest.TestCase):
         Test creating dialog
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
         registry = ScenarioRegistry(source_layer=layer,
                                     id_field='id',
-                                    name_field='name')
+                                    name_field='name',
+                                    meshblock_electorate_layer=mb_electorate_layer)
         self.assertIsNotNone(ScenarioSelectionDialog(scenario_registry=registry))
 
     def testPopulation(self):
@@ -42,9 +44,11 @@ class ScenarioSelectionDialogTest(unittest.TestCase):
         Test that dialog is correctly populated from registry
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
         registry = ScenarioRegistry(source_layer=layer,
                                     id_field='id',
-                                    name_field='name')
+                                    name_field='name',
+                                    meshblock_electorate_layer=mb_electorate_layer)
         dlg = ScenarioSelectionDialog(scenario_registry=registry)
         self.assertEqual([dlg.list.item(r).text()
                           for r in range(dlg.list.count())],
@@ -58,9 +62,11 @@ class ScenarioSelectionDialogTest(unittest.TestCase):
         Test setting/getting selected scenario
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
         registry = ScenarioRegistry(source_layer=layer,
                                     id_field='id',
-                                    name_field='name')
+                                    name_field='name',
+                                    meshblock_electorate_layer=mb_electorate_layer)
         dlg = ScenarioSelectionDialog(scenario_registry=registry)
 
         dlg.set_selected_scenario(1)
@@ -79,9 +85,11 @@ class ScenarioSelectionDialogTest(unittest.TestCase):
         Test that accepting dialog
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
         registry = ScenarioRegistry(source_layer=layer,
                                     id_field='id',
-                                    name_field='name')
+                                    name_field='name',
+                                    meshblock_electorate_layer=mb_electorate_layer)
         dlg = ScenarioSelectionDialog(scenario_registry=registry)
         dlg.set_selected_scenario('d4')
         dlg.accept()
@@ -91,9 +99,11 @@ class ScenarioSelectionDialogTest(unittest.TestCase):
         Test filtering inside the dialog
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
         registry = ScenarioRegistry(source_layer=layer,
                                     id_field='id',
-                                    name_field='name')
+                                    name_field='name',
+                                    meshblock_electorate_layer=mb_electorate_layer)
         dlg = ScenarioSelectionDialog(scenario_registry=registry)
         self.assertEqual([dlg.list.item(r).text()
                           for r in range(dlg.list.count())],

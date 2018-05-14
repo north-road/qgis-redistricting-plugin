@@ -94,6 +94,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.meshblock_layer = None
         self.scenario_layer = None
         self.quota_layer = None
+        self.meshblock_electorate_layer = None
         self.scenario_registry = None
 
     # noinspection PyMethodMayBeStatic
@@ -249,10 +250,13 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             'quotas')[0]
         self.scenario_layer = QgsProject.instance().mapLayersByName(
             'scenarios')[0]
+        self.meshblock_electorate_layer = QgsProject.instance().mapLayersByName(
+            'meshblock_electorates')[0]
 
         self.scenario_registry = ScenarioRegistry(source_layer=self.scenario_layer,
                                                   id_field='scenario_id',
-                                                  name_field='name')
+                                                  name_field='name',
+                                                  meshblock_electorate_layer=self.meshblock_electorate_layer)
 
         self.context = LinzRedistrictingContext(scenario_registry=self.scenario_registry)
         self.context.task = self.TASK_GN

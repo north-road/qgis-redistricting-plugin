@@ -40,6 +40,25 @@ def make_scenario_layer() -> QgsVectorLayer:
     return layer
 
 
+def make_meshblock_electorate_layer() -> QgsVectorLayer:
+    """
+    Makes a dummy meshblock-electorate layer for testing
+    """
+    layer = QgsVectorLayer(
+        "NoGeometry?field=id:int&field=scenario_id:int&field=meshblock_number:int&field=code:string&field=code2:string",
+        "source", "memory")
+    f = QgsFeature()
+    f.setAttributes([1, 0, 0, 'a', 'x'])
+    f2 = QgsFeature()
+    f2.setAttributes([2, 0, 1, 'b', 'y'])
+    f3 = QgsFeature()
+    f3.setAttributes([3, 1, 0, 'c', 'z'])
+    f4 = QgsFeature()
+    f4.setAttributes([4, 1, 1, 'd', 'zz'])
+    layer.dataProvider().addFeatures([f, f2, f3, f4])
+    return layer
+
+
 class ScenarioRegistryTest(unittest.TestCase):
     """Test ScenarioRegistry."""
 
@@ -48,11 +67,13 @@ class ScenarioRegistryTest(unittest.TestCase):
         Test a LinzDistrictRegistry
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
 
         reg = ScenarioRegistry(
             source_layer=layer,
             id_field='id',
-            name_field='name'
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
         )
         self.assertEqual(reg.source_layer, layer)
         self.assertEqual(reg.id_field, 'id')
@@ -65,11 +86,13 @@ class ScenarioRegistryTest(unittest.TestCase):
         Test retrieving scenario name
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
 
         reg = ScenarioRegistry(
             source_layer=layer,
             id_field='id',
-            name_field='name'
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
         )
         self.assertEqual(reg.get_scenario_name(1), "Scenario 1")
         self.assertEqual(reg.get_scenario_name(2), "scenario B")
@@ -80,11 +103,13 @@ class ScenarioRegistryTest(unittest.TestCase):
         Test retrieving scenario list
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
 
         reg = ScenarioRegistry(
             source_layer=layer,
             id_field='id',
-            name_field='name'
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
         )
         self.assertEqual(reg.scenario_list(), [1, 2, 3])
 
@@ -93,11 +118,13 @@ class ScenarioRegistryTest(unittest.TestCase):
         Test retrieving scenario titles
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
 
         reg = ScenarioRegistry(
             source_layer=layer,
             id_field='id',
-            name_field='name'
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
         )
         self.assertEqual(reg.scenario_titles(), OrderedDict([('Scenario 1', 1), ('scenario 3', 3), ('scenario B', 2)]))
 
@@ -106,11 +133,13 @@ class ScenarioRegistryTest(unittest.TestCase):
         Test scenario name exists
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
 
         reg = ScenarioRegistry(
             source_layer=layer,
             id_field='id',
-            name_field='name'
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
         )
         self.assertFalse(reg.scenario_name_exists('bbbb'))
         self.assertTrue(reg.scenario_name_exists('Scenario 1'))
@@ -121,11 +150,13 @@ class ScenarioRegistryTest(unittest.TestCase):
         Test scenario exists
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
 
         reg = ScenarioRegistry(
             source_layer=layer,
             id_field='id',
-            name_field='name'
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
         )
         self.assertFalse(reg.scenario_exists(-1))
         self.assertTrue(reg.scenario_exists(1))
@@ -137,11 +168,13 @@ class ScenarioRegistryTest(unittest.TestCase):
         Test branching scenario
         """
         layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
 
         reg = ScenarioRegistry(
             source_layer=layer,
             id_field='id',
-            name_field='name'
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
         )
 
         # dupe name

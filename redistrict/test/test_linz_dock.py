@@ -32,7 +32,7 @@ class LinzRedistrictingDockWidgetTest(unittest.TestCase):
         Test constructing dock
         """
         scenario_layer = make_scenario_layer()
-        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name', meshblock_electorate_layer=None)
         context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         widget = LinzRedistrictingDockWidget(context=context, iface=IFACE)
         self.assertIsNotNone(widget)
@@ -42,7 +42,7 @@ class LinzRedistrictingDockWidgetTest(unittest.TestCase):
         Test title updates
         """
         scenario_layer = make_scenario_layer()
-        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name', meshblock_electorate_layer=None)
         context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         context.task = LinzRedistrictingContext.TASK_GS
         context.scenario = 1

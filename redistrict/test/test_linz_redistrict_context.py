@@ -30,7 +30,7 @@ class LINZRedistrictContextTest(unittest.TestCase):
         Test getters/settings
         """
         scenario_layer = make_scenario_layer()
-        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name', meshblock_electorate_layer=None)
         context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         self.assertIn(context.task, (LinzRedistrictingContext.TASK_GN,
                                      LinzRedistrictingContext.TASK_GS,
@@ -58,7 +58,7 @@ class LINZRedistrictContextTest(unittest.TestCase):
         Test retrieving friendly name for currenttask
         """
         scenario_layer = make_scenario_layer()
-        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name')
+        scenario_registry = ScenarioRegistry(source_layer=scenario_layer, id_field='id', name_field='name', meshblock_electorate_layer=None)
         context = LinzRedistrictingContext(scenario_registry=scenario_registry)
         context.task = LinzRedistrictingContext.TASK_GN
         self.assertEqual(context.get_name_for_current_task(),
