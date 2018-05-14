@@ -53,6 +53,7 @@ from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
 from .linz.scenario_selection_dialog import ScenarioSelectionDialog
 from .linz.db_utils import CopyFileTask
 from .linz.create_electorate_dialog import CreateElectorateDialog
+from .linz.deprecate_electorate_dialog import DeprecateElectorateDialog
 
 
 class LinzRedistrict:  # pylint: disable=too-many-public-methods
@@ -738,4 +739,11 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         """
         Triggered when deprecating an electorate
         """
-        pass
+        registry = self.get_district_registry()
+        dlg = DeprecateElectorateDialog(electorate_registry=registry,
+                                        parent=self.iface.mainWindow())
+        if not dlg.exec_():
+            return
+
+        district = dlg.selected_district()
+        registry.toggle_electorate_deprecation(district)
