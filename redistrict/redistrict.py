@@ -76,12 +76,15 @@ class LinzRedistrict:
         self.redistricting_toolbar = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
+        self.begin_action = None
         self.stats_tool_action = None
         self.theme_menu = None
         self.new_themed_view_menu = None
         self.tool = None
         self.dock = None
         self.task = self.TASK_GN
+
+        self.is_redistricting = False
 
         self.electorate_layer = QgsProject.instance().mapLayersByName(
             'general')[0]
@@ -111,6 +114,32 @@ class LinzRedistrict:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
+        self.redistricting_menu = QMenu(self.tr('Redistricting'))
+
+        self.begin_action = QAction(self.tr('Begin Redistricting'))
+        self.begin_action.triggered.connect(self.begin_redistricting)
+        self.begin_action.setCheckable(True)
+        self.redistricting_menu.addAction(self.begin_action)
+
+        switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
+        switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
+
+        switch_ni_general_electorate_action = QAction(self.get_name_for_task(self.TASK_GN), parent=switch_menu)
+        switch_ni_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GN))
+        switch_menu.addAction(switch_ni_general_electorate_action)
+        switch_si_general_electorate_action = QAction(self.get_name_for_task(self.TASK_GS), parent=switch_menu)
+        switch_si_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GS))
+        switch_menu.addAction(switch_si_general_electorate_action)
+        switch_maori_electorate_action = QAction(self.get_name_for_task(self.TASK_M), parent=switch_menu)
+        switch_maori_electorate_action.triggered.connect(partial(self.set_task, self.TASK_M))
+        switch_menu.addAction(switch_maori_electorate_action)
+        self.redistricting_menu.addMenu(switch_menu)
+        self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
+
+    def create_redistricting_ui(self):
+        """
+        Creates the UI components relating to redistricting operations
+        """
         self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
         self.redistricting_toolbar.setObjectName('redistricting')
 
@@ -133,22 +162,6 @@ class LinzRedistrict:
         self.stats_tool_action.triggered.connect(
             self.trigger_stats_tool)
         self.redistricting_toolbar.addAction(self.stats_tool_action)
-
-        self.redistricting_menu = QMenu(self.tr('Redistricting'))
-        switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
-        switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
-
-        switch_ni_general_electorate_action = QAction(self.get_name_for_task(self.TASK_GN), parent=switch_menu)
-        switch_ni_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GN))
-        switch_menu.addAction(switch_ni_general_electorate_action)
-        switch_si_general_electorate_action = QAction(self.get_name_for_task(self.TASK_GS), parent=switch_menu)
-        switch_si_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GS))
-        switch_menu.addAction(switch_si_general_electorate_action)
-        switch_maori_electorate_action = QAction(self.get_name_for_task(self.TASK_M), parent=switch_menu)
-        switch_maori_electorate_action.triggered.connect(partial(self.set_task, self.TASK_M))
-        switch_menu.addAction(switch_maori_electorate_action)
-        self.redistricting_menu.addMenu(switch_menu)
-        self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
 
         self.theme_menu = QMenu()
         self.theme_menu.aboutToShow.connect(partial(self.populate_theme_menu, self.theme_menu, False))
@@ -184,10 +197,24 @@ class LinzRedistrict:
 
         self.set_task(self.TASK_GN)
 
+    def begin_redistricting(self):
+        """
+        Starts the redistricting operation, opening toolbars and docks as needed
+        """
+        if self.is_redistricting:
+            return
+
+        self.is_redistricting = True
+        self.begin_action.setChecked(True)
+
+        self.create_redistricting_ui()
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        self.redistricting_toolbar.deleteLater()
-        self.dock.deleteLater()
+        if self.redistricting_toolbar is not None:
+            self.redistricting_toolbar.deleteLater()
+        if self.dock is not None:
+            self.dock.deleteLater()
         self.redistricting_menu.deleteLater()
         if self.tool is not None:
             self.tool.deleteLater()
