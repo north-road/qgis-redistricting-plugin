@@ -15,6 +15,7 @@ __revision__ = '$Format:%H$'
 
 import os.path
 from functools import partial
+from typing import Optional
 from qgis.PyQt.QtCore import (Qt,
                               QFile,
                               QSettings,
@@ -28,6 +29,7 @@ from qgis.PyQt.QtWidgets import (QToolBar,
                                  QFileDialog)
 from qgis.core import (QgsApplication,
                        QgsProject,
+                       QgsVectorLayer,
                        QgsMapThemeCollection,
                        QgsExpressionContextUtils,
                        Qgis)
@@ -232,7 +234,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         branch_scenario_action.triggered.connect(self.branch_scenario)
         scenarios_menu.addAction(branch_scenario_action)
         import_scenario_action = QAction(self.tr('Import Scenario from Database...'), parent=scenarios_menu)
-        # import_scenario_action.triggered.connect(import_scenario)
+        import_scenario_action.triggered.connect(self.import_scenario)
         scenarios_menu.addAction(import_scenario_action)
 
         self.scenarios_tool_button.setMenu(scenarios_menu)
@@ -528,17 +530,27 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         """
         self.context.set_scenario(scenario)
 
+    def create_new_scenario_name_dlg(self, existing_name: Optional[str],
+                                     initial_scenario_name: str) -> QgsNewNameDialog:
+        """
+        Creates a dialog for entering a new scenario name
+        """
+        existing_names = list(self.scenario_registry.scenario_titles().keys())
+        dlg = QgsNewNameDialog(existing_name, initial_scenario_name,
+                               existing=existing_names, parent=self.iface.mainWindow())
+        dlg.setOverwriteEnabled(False)
+        dlg.setHintString(self.tr('Enter name for new scenario'))
+        dlg.setConflictingNameWarning(self.tr('A scenario with this name already exists!'))
+        return dlg
+
     def branch_scenario(self):
         """
         Branches the current scenario to a new scenario
         """
         current_scenario_name = self.context.get_name_for_current_scenario()
-        existing_names = list(self.scenario_registry.scenario_titles().keys())
-        dlg = QgsNewNameDialog(current_scenario_name, self.tr('{} Copy').format(current_scenario_name),
-                               existing=existing_names, parent=self.iface.mainWindow())
+        dlg = self.create_new_scenario_name_dlg(existing_name=current_scenario_name,
+                                                initial_scenario_name=self.tr('{} Copy').format(current_scenario_name))
         dlg.setWindowTitle(self.tr('Branch to New Scenario'))
-        dlg.setHintString(self.tr('Enter name for new scenario'))
-        dlg.setOverwriteEnabled(False)
         if dlg.exec_():
             progress_dialog = BlockingDialog(self.tr('Branching Scenario'), self.tr('Branching scenario...'))
             progress_dialog.force_show_and_paint()
@@ -550,6 +562,44 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             else:
                 self.report_success(self.tr('Branched scenario to “{}”').format(dlg.name()))
                 self.context.set_scenario(res)
+
+    def import_scenario(self):
+        """
+        Import scenario from another database
+        """
+        source, _filter = QFileDialog.getOpenFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                      self.tr('Import Scenario from Database'), '',
+                                                      filter='Database Files (*.gpkg)')
+        if not source:
+            return
+
+        scenario_uri = '{}|layername=scenarios'.format(source)
+        foreign_scenario_layer = QgsVectorLayer(scenario_uri, 'foreign_scenarios')
+        if not foreign_scenario_layer.isValid():
+            self.report_failure(self.tr('Could not import scenarios from {}').format(source))
+            return
+
+        source_registry = ScenarioRegistry(source_layer=foreign_scenario_layer,
+                                           id_field='scenario_id',
+                                           name_field='name',
+                                           meshblock_electorate_layer=None)
+        dlg = ScenarioSelectionDialog(scenario_registry=source_registry,
+                                      parent=self.iface.mainWindow())
+        dlg.setWindowTitle(self.tr('Import Scenario from Database'))
+        if not dlg.exec_():
+            return
+
+        source_scenario_id = dlg.selected_scenario()
+        source_scenario_name = source_registry.get_scenario_name(source_scenario_id)
+
+        dlg = self.create_new_scenario_name_dlg(existing_name=None,
+                                                initial_scenario_name=source_scenario_name)
+        dlg.setWindowTitle(self.tr('Import Scenario from Database'))
+        dlg.setHintString(self.tr('Enter name for imported scenario'))
+        if not dlg.exec_():
+            return
+
+        new_scenario_name = dlg.name()
 
     def update_dock_title(self):
         """

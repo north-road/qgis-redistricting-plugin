@@ -14,6 +14,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 from collections import OrderedDict
+from typing import Optional
 from qgis.PyQt.QtCore import (QCoreApplication,
                               QDateTime)
 from qgis.core import (QgsFeatureRequest,
@@ -32,7 +33,7 @@ class ScenarioRegistry():
     def __init__(self, source_layer: QgsVectorLayer,
                  id_field: str,
                  name_field: str,
-                 meshblock_electorate_layer: QgsVectorLayer):
+                 meshblock_electorate_layer: Optional[QgsVectorLayer]):
         """
         Constructor for ScenarioRegistry
         :param source_layer: source layer for registry
