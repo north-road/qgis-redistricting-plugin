@@ -67,6 +67,16 @@ class DistrictRegistryTest(unittest.TestCase):
         self.assertEqual(registry.get_district_title('x'), 'x')
         self.assertEqual(registry.get_district_title(3), '3')
 
+    def testDistrictNameExists(self):
+        """
+        Test district name exists
+        """
+        registry = DistrictRegistry(name='registry',
+                                    districts=['district 1', 'district 9'])
+        self.assertFalse(registry.district_name_exists('x'))
+        self.assertTrue(registry.district_name_exists('district 1'))
+        self.assertTrue(registry.district_name_exists('district 9'))
+
     def testRecentDistricts(self):
         """
         Test recent districts setting and retrieval
@@ -146,6 +156,10 @@ class DistrictRegistryTest(unittest.TestCase):
                          ['test4', 'test2', 'test3', 'test1'])
         self.assertEqual(reg.district_titles(),
                          {'test1': 'test1', 'test2': 'test2', 'test3': 'test3', 'test4': 'test4'})
+        self.assertFalse(reg.district_name_exists('x'))
+        self.assertTrue(reg.district_name_exists('test4'))
+        self.assertTrue(reg.district_name_exists('test2'))
+
         reg = VectorLayerDistrictRegistry(
             source_layer=layer,
             source_field='fld2')
@@ -160,6 +174,9 @@ class DistrictRegistryTest(unittest.TestCase):
                          ['test4', 'test2', 'test3', 'test1'])
         self.assertEqual([[k, i] for k, i in reg.district_titles().items()],
                          [[NULL, 'test1'], ['xtest1', 'test4'], ['xtest2', 'test2'], ['xtest3', 'test3']])
+        self.assertFalse(reg.district_name_exists('test4'))
+        self.assertTrue(reg.district_name_exists('xtest1'))
+        self.assertTrue(reg.district_name_exists('xtest2'))
 
     def testVectorDistrictAtPoint(self):
         """

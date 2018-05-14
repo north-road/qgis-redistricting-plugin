@@ -76,7 +76,8 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         """
         request.addOrderBy(self.source_field)
         if self.electorate_type:
-            request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.type_field, self.electorate_type))
+            request.setFilterExpression(
+                QgsExpression.createFieldEqualityExpression(self.type_field, self.electorate_type))
         return request
 
     def get_district_type(self, district) -> str:

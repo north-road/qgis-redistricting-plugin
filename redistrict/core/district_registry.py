@@ -80,6 +80,14 @@ class DistrictRegistry():
         """
         return self._type_string_sentence_plural
 
+    def district_name_exists(self, district) -> bool:
+        """
+        Returns True if the given district name exists
+        :param district:
+        :return:
+        """
+        return district in self.districts
+
     # noinspection PyMethodMayBeStatic
     def get_district_title(self, district):
         """
@@ -207,6 +215,18 @@ class VectorLayerDistrictRegistry(DistrictRegistry):
         except StopIteration:
             return super().get_district_title(district)
         return f[title_field_index]
+
+    def district_name_exists(self, district) -> bool:
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.title_field, district))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([])
+        request.setLimit(1)
+        try:
+            next(self.source_layer.getFeatures(request))
+        except StopIteration:
+            return False
+        return True
 
     # noinspection PyMethodMayBeStatic
     def modify_district_request(self, request):
