@@ -151,7 +151,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.redistricting_menu.addMenu(switch_menu)
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
 
-    def create_redistricting_ui(self):  # pylint: disable=too-many-statements
+    def create_redistricting_ui(self):  # pylint: disable=too-many-statements,too-many-locals
         """
         Creates the UI components relating to redistricting operations
         """
@@ -241,8 +241,19 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.dock.dock_toolbar().addWidget(self.scenarios_tool_button)
 
         options_menu = QMenu(parent=self.dock.dock_toolbar())
-        # options_menu.addMenu(electorate_menu)
-        # options_menu.addSeparator()
+
+        electorate_menu = QMenu(self.tr('Manage Electorates'), parent=options_menu)
+
+        new_electorate_action = QAction(self.tr('Create New Electorate...'), parent=electorate_menu)
+        new_electorate_action.triggered.connect(self.create_new_electorate)
+        electorate_menu.addAction(new_electorate_action)
+
+        deprecate_electorate_action = QAction(self.tr('Deprecate Electorate...'), parent=electorate_menu)
+        deprecate_electorate_action.triggered.connect(self.deprecate_electorate)
+        electorate_menu.addAction(deprecate_electorate_action)
+
+        options_menu.addMenu(electorate_menu)
+        options_menu.addSeparator()
 
         master_db_menu = QMenu(self.tr('Database'), parent=options_menu)
         export_master_action = QAction(self.tr('Export Database...'), parent=master_db_menu)
@@ -578,11 +589,16 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         if not foreign_scenario_layer.isValid():
             self.report_failure(self.tr('Could not import scenarios from {}').format(source))
             return
+        meshblock_electorates_uri = '{}|layername=meshblock_electorates'.format(source)
+        foreign_meshblock_electorates_layer = QgsVectorLayer(meshblock_electorates_uri, 'foreign_meshblock_electorates')
+        if not foreign_meshblock_electorates_layer.isValid():
+            self.report_failure(self.tr('Could not import scenarios from {}').format(source))
+            return
 
         source_registry = ScenarioRegistry(source_layer=foreign_scenario_layer,
                                            id_field='scenario_id',
                                            name_field='name',
-                                           meshblock_electorate_layer=None)
+                                           meshblock_electorate_layer=foreign_meshblock_electorates_layer)
         dlg = ScenarioSelectionDialog(scenario_registry=source_registry,
                                       parent=self.iface.mainWindow())
         dlg.setWindowTitle(self.tr('Import Scenario from Database'))
@@ -600,6 +616,17 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             return
 
         new_scenario_name = dlg.name()
+
+        progress_dialog = BlockingDialog(self.tr('Import Scenario'), self.tr('Importing scenario...'))
+        progress_dialog.force_show_and_paint()
+        result, error = self.scenario_registry.import_scenario_from_other_registry(source_registry=source_registry,
+                                                                                   source_scenario_id=source_scenario_id,
+                                                                                   new_scenario_name=new_scenario_name)
+        if not result:
+            self.report_failure(error)
+        else:
+            self.report_success(
+                self.tr('Successfully imported {} to {}').format(source_scenario_name, new_scenario_name))
 
     def update_dock_title(self):
         """
@@ -634,6 +661,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         if not destination.endswith('.gpkg'):
             destination += '.gpkg'
 
+        QgsProject.instance().clear()
+
         self.task = CopyFileTask(self.tr('Exporting database'), {self.db_source: destination})
         self.task.taskCompleted.connect(
             partial(self.report_success, self.tr('Exported database to {}').format(destination)))
@@ -666,6 +695,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         if not destination:
             return
 
+        QgsProject.instance().clear()
+
         if QFile.exists(destination):
             if not QFile.remove(destination):
                 self.report_failure(self.tr('Could not backup current database to {}').format(destination))
@@ -675,8 +706,6 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             self.report_failure(self.tr('Could not backup current database to {}').format(destination))
             return
 
-        QgsProject.instance().clear()
-
         if not QFile.remove(self.db_source):
             self.report_failure(self.tr('Could not remove current master database at {}').format(self.db_source))
 
@@ -684,3 +713,15 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             self.report_failure(self.tr('Critical error occurred while replacing master database'))
         else:
             self.report_success(self.tr('New master database imported successfully'))
+
+    def create_new_electorate(self):
+        """
+        Triggered when creating a new electorate
+        """
+        pass
+
+    def deprecate_electorate(self):
+        """
+        Triggered when deprecating an electorate
+        """
+        pass

@@ -132,6 +132,60 @@ class ScenarioRegistry():
             return True
         return False
 
+    def next_scenario_id(self):
+        """
+        Returns the next available scenario ID
+        """
+        return max(self.source_layer.maximumValue(self.id_field_index), 0) + 1
+
+    def __insert_new_scenario(self, new_scenario_name: str):
+        """
+        Inserts a scenario into the registry
+        :param new_scenario_name: name for new scenario
+        :return: scenario id if successful, and error message
+        """
+        next_id = self.next_scenario_id()
+
+        scenario_feature = QgsFeature()
+        scenario_feature.initAttributes(self.source_layer.fields().count())
+        scenario_feature[self.id_field_index] = next_id
+        scenario_feature[self.name_field_index] = new_scenario_name
+        scenario_feature[self.created_field_index] = QDateTime.currentDateTime()
+        scenario_feature[self.created_by_field_index] = QgsApplication.userFullName()
+
+        if not self.source_layer.dataProvider().addFeatures([scenario_feature]):
+            return False, QCoreApplication.translate('LinzRedistrict', 'Could not create scenario')
+
+        return next_id, None
+
+    @staticmethod
+    def __copy_records_from_scenario(source_meshblock_electorate_layer: QgsVectorLayer,
+                                     source_scenario_id,
+                                     dest_meshblock_electorate_layer: QgsVectorLayer,
+                                     new_scenario_id):
+        """
+        Copies the records associated with a scenario from one table to
+        another
+        :param source_meshblock_electorate_layer: layer containing source meshblock->electorate mappings
+        :param source_scenario_id: source scenario id
+        :param dest_meshblock_electorate_layer: destination layer for copied meshblock->electorate mappings
+        :param new_scenario_id: new scenario id for copied records
+        """
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', source_scenario_id))
+        current_meshblocks = source_meshblock_electorate_layer.getFeatures(request)
+        scenario_id_idx = source_meshblock_electorate_layer.fields().lookupField('scenario_id')
+        fid_idx = source_meshblock_electorate_layer.fields().lookupField('fid')
+        new_features = []
+        for f in current_meshblocks:
+            f[scenario_id_idx] = new_scenario_id
+            if fid_idx >= 0:
+                f[fid_idx] = NULL
+            new_features.append(f)
+
+        dest_meshblock_electorate_layer.startEditing()
+        dest_meshblock_electorate_layer.addFeatures(new_features)
+
     def branch_scenario(self, scenario_id, new_scenario_name: str):
         """
         Branches a scenario to a new scenario
@@ -145,28 +199,37 @@ class ScenarioRegistry():
             return False, QCoreApplication.translate('LinzRedistrict', 'Scenario {} does not exist').format(scenario_id)
 
         # all good to go
-        next_id = self.source_layer.maximumValue(self.id_field_index) + 1
+        new_id, error = self.__insert_new_scenario(new_scenario_name=new_scenario_name)
+        if not new_id:
+            return False, error
 
-        scenario_feature = QgsFeature()
-        scenario_feature.initAttributes(self.source_layer.fields().count())
-        scenario_feature[self.id_field_index] = next_id
-        scenario_feature[self.name_field_index] = new_scenario_name
-        scenario_feature[self.created_field_index] = QDateTime.currentDateTime()
-        scenario_feature[self.created_by_field_index] = QgsApplication.userFullName()
+        ScenarioRegistry.__copy_records_from_scenario(source_meshblock_electorate_layer=self.meshblock_electorate_layer,
+                                                      source_scenario_id=scenario_id,
+                                                      dest_meshblock_electorate_layer=self.meshblock_electorate_layer,
+                                                      new_scenario_id=new_id)
+        return new_id, None
 
-        if not self.source_layer.dataProvider().addFeatures([scenario_feature]):
-            return False, QCoreApplication.translate('LinzRedistrict', 'Could not create scenario')
+    def import_scenario_from_other_registry(self, source_registry: 'ScenarioRegistry', source_scenario_id,
+                                            new_scenario_name: str) -> (bool, str):
+        """
+        Imports a scenario from another ScenarioRegistry
+        :param source_registry: registry to import scenario from
+        :param source_scenario_id: source scenario id
+        :param new_scenario_name: name from imported scenario
+        :returns boolean for success, and error message if error encountered
+        """
+        if self.scenario_name_exists(new_scenario_name):
+            return False, QCoreApplication.translate('LinzRedistrict', '{} already exists').format(new_scenario_name)
+        if not source_registry.scenario_exists(source_scenario_id):
+            return False, QCoreApplication.translate('LinzRedistrict', 'Scenario {} does not exist in database').format(source_scenario_id)
 
-        request = QgsFeatureRequest()
-        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', scenario_id))
-        current_meshblocks = self.meshblock_electorate_layer.getFeatures(request)
-        scenario_id_idx = self.meshblock_electorate_layer.fields().lookupField('scenario_id')
-        new_features = []
-        for f in current_meshblocks:
-            f[scenario_id_idx] = next_id
-            new_features.append(f)
+        # all good to go
+        new_id, error = self.__insert_new_scenario(new_scenario_name=new_scenario_name)
+        if not new_id:
+            return False, error
 
-        self.meshblock_electorate_layer.startEditing()
-        self.meshblock_electorate_layer.addFeatures(new_features)
-
-        return next_id, None
+        ScenarioRegistry.__copy_records_from_scenario(source_meshblock_electorate_layer=source_registry.meshblock_electorate_layer,
+                                                      source_scenario_id=source_scenario_id,
+                                                      dest_meshblock_electorate_layer=self.meshblock_electorate_layer,
+                                                      new_scenario_id=new_id)
+        return new_id, None

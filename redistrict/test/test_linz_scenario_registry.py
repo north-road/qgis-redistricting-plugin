@@ -226,6 +226,84 @@ class ScenarioRegistryTest(unittest.TestCase):
                              [3, 1, 0, 'c', 'z'],
                              [4, 1, 1, 'd', 'zz']])
 
+    def testCopyScenarios(self):
+        """
+        Test copying scenarios between registries
+        """
+        layer1 = make_scenario_layer()
+        mb_electorate_layer1 = make_meshblock_electorate_layer()
+
+        reg1 = ScenarioRegistry(
+            source_layer=layer1,
+            id_field='id',
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer1
+        )
+
+        layer2 = make_scenario_layer()
+        layer2.dataProvider().truncate()
+        mb_electorate_layer2 = make_meshblock_electorate_layer()
+        mb_electorate_layer2.dataProvider().truncate()
+
+        reg2 = ScenarioRegistry(
+            source_layer=layer2,
+            id_field='id',
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer2
+        )
+        self.assertEqual(layer2.featureCount(), 0)
+        self.assertEqual(mb_electorate_layer2.featureCount(), 0)
+
+        res, error = reg2.import_scenario_from_other_registry(source_registry=reg1,
+                                                              source_scenario_id=-1,
+                                                              new_scenario_name='copied scenario')
+        self.assertFalse(res)
+        self.assertIn('does not exist ', error)
+
+        # good params
+        res, error = reg2.import_scenario_from_other_registry(source_registry=reg1,
+                                                              source_scenario_id=1,
+                                                              new_scenario_name='copied scenario')
+        self.assertTrue(res)
+        self.assertFalse(error)
+        self.assertEqual(layer2.featureCount(), 1)
+        self.assertEqual(mb_electorate_layer2.featureCount(), 2)
+        f = [f for f in layer2.getFeatures()][-1]
+        self.assertEqual(f[0], res)
+        self.assertEqual(f[1], 'copied scenario')
+        self.assertEqual(f[2].date(), QDateTime.currentDateTime().date())
+        self.assertEqual(f[3], QgsApplication.userFullName())
+
+        f = [f.attributes() for f in mb_electorate_layer2.getFeatures()]
+        self.assertEqual(f, [[3, res, 0, 'c', 'z'],
+                             [4, res, 1, 'd', 'zz']])
+
+        res2, error = reg2.import_scenario_from_other_registry(source_registry=reg1,
+                                                               source_scenario_id=2,
+                                                               new_scenario_name='copied scenario 2')
+        self.assertTrue(res2)
+        self.assertFalse(error)
+        self.assertEqual(layer2.featureCount(), 2)
+        self.assertEqual(mb_electorate_layer2.featureCount(), 4)
+        f = [f for f in layer2.getFeatures()][-1]
+        self.assertEqual(f[0], res2)
+        self.assertEqual(f[1], 'copied scenario 2')
+        self.assertEqual(f[2].date(), QDateTime.currentDateTime().date())
+        self.assertEqual(f[3], QgsApplication.userFullName())
+
+        f = [f.attributes() for f in mb_electorate_layer2.getFeatures()]
+        self.assertEqual(f, [[3, res, 0, 'c', 'z'],
+                             [4, res, 1, 'd', 'zz'],
+                             [1, res2, 0, 'a', 'x'],
+                             [2, res2, 1, 'b', 'y']])
+
+        # dupe name
+        res, error = reg2.import_scenario_from_other_registry(source_registry=reg1,
+                                                              source_scenario_id=-1,
+                                                              new_scenario_name='copied scenario')
+        self.assertFalse(res)
+        self.assertIn('already exists', error)
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(ScenarioRegistry)
