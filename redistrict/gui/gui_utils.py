@@ -19,7 +19,9 @@ from qgis.PyQt.QtCore import (QCoreApplication,
                               Qt,
                               QPoint)
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QProgressDialog
+from qgis.PyQt.QtWidgets import (QProgressDialog,
+                                 QDialogButtonBox)
+from qgis.gui import QgsNewNameDialog
 
 
 class GuiUtils:
@@ -89,3 +91,31 @@ class BlockingDialog(QProgressDialog):
             self.setValue(0)
             self.forceShow()
             QCoreApplication.processEvents()
+
+
+class ConfirmationDialog(QgsNewNameDialog):
+    """
+    A blocking dialog which requires users to enter a preset confirmation string
+    in order to proceed
+    """
+
+    def __init__(self, title='', hint='', confirm_string='', parent=None):
+        """
+        Constructor for ConfirmationDialog
+        :param title: dialog title
+        :param hint: dialog text (hint)
+        :param confirm_string: string which must be entered for OK to be enabled
+        :param parent: parent widget
+        """
+        super().__init__('', '', parent=parent)
+        self.setWindowTitle(title)
+        self.setHintString(hint)
+        self.confirm_string = confirm_string
+        self.newNameChanged.connect(self.on_name_changed)
+
+    def on_name_changed(self):
+        """
+        Triggered when the name is changed
+        """
+        new_name = self.name()
+        self.buttonBox().button(QDialogButtonBox.Ok).setEnabled(new_name == self.confirm_string)

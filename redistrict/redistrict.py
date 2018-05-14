@@ -42,7 +42,8 @@ from .gui.district_selection_dialog import (
 from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
 from .gui.district_statistics_tool import DistrictStatisticsTool
 from .gui.gui_utils import (GuiUtils,
-                            BlockingDialog)
+                            BlockingDialog,
+                            ConfirmationDialog)
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
@@ -102,7 +103,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.meshblock_electorate_layer = None
         self.scenario_registry = None
         self.db_source = os.path.join(self.plugin_dir,
-                                      'db','nz_db.gpkg')
+                                      'db', 'nz_db.gpkg')
         self.task = None
 
     # noinspection PyMethodMayBeStatic
@@ -571,8 +572,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         """
         Exports the current database using a background task
         """
-        destination, filter = QFileDialog.getSaveFileName(self.iface.mainWindow(), self.tr('Export Database'), '',
-                                                  initialFilter='*.gpkg')
+        destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                           self.tr('Export Database'), '',
+                                                           filter='Database Files (*.gpkg)')
         if not destination:
             return
 
@@ -586,3 +588,21 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             partial(self.report_failure, self.tr('Error while exporting database to {}').format(destination)))
 
         QgsApplication.taskManager().addTask(self.task)
+
+    def import_database(self):
+        """
+        Imports a new master database, replacing the current database
+        """
+        source, _filter = QFileDialog.getOpenFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                      self.tr('Import Master Database'), '',
+                                                      filter='Database Files (*.gpkg)')
+        if not source:
+            return
+
+        QgsProject.instance().clear()
+        dlg = ConfirmationDialog(self.tr('Import Master Database'),
+                                 self.tr(
+                                     'Importing a new master database will completely replace the existing district database.\n\nThis action cannot be reversed!\n\nEnter \'I ACCEPT\' to continue.'),
+                                 self.tr('I ACCEPT'), parent=self.iface.mainWindow())
+        if not dlg.exec_():
+            return
