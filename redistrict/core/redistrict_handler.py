@@ -45,6 +45,7 @@ class RedistrictHandler():
         discarding the changes
         """
         self.target_layer.destroyEditCommand()
+        self.target_layer.triggerRepaint()
 
     def assign_district(self, target_ids, new_district):
         """

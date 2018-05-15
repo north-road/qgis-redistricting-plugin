@@ -372,7 +372,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.context.task = task
         QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.context.task)
 
-        self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.context.get_name_for_current_task())
+        #self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.context.get_name_for_current_task())
 
         self.iface.layerTreeView().refreshLayerSymbology(self.electorate_layer.id())
         self.iface.layerTreeView().refreshLayerSymbology(self.meshblock_layer.id())

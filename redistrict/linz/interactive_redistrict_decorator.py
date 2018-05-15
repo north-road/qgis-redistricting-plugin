@@ -62,7 +62,7 @@ class CentroidDecorator(QgsMapCanvasItem):
             pixel = self.toCanvasCoordinates(pole.asPoint())
 
             text_string = ['{}'.format(f['name']),
-                           '{}'.format(int(f['estimate_pop']))]  # ,'M: {}'.format(int(f['Shape_Length']*.5))]
+                           '{}'.format(int(f['estimated_pop']))]  # ,'M: {}'.format(int(f['Shape_Length']*.5))]
             QgsTextRenderer().drawText(QPointF(pixel.x(), pixel.y()), 0, QgsTextRenderer.AlignCenter,
                                        text_string, render_context, self.text_format)
 
