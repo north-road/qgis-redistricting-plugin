@@ -17,9 +17,12 @@ __revision__ = '$Format:%H$'
 import unittest
 from collections import OrderedDict
 from redistrict.linz.scenario_registry import ScenarioRegistry
+from redistrict.linz.scenario_switch_task import ScenarioSwitchTask
 from qgis.PyQt.QtCore import QDateTime
 from qgis.core import (QgsApplication,
                        QgsVectorLayer,
+                       QgsGeometry,
+                       QgsPointXY,
                        QgsFeature)
 
 
@@ -381,6 +384,129 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertTrue(reg.electorate_has_meshblocks(electorate_id='x', electorate_type='GS', scenario_id=2))
         self.assertTrue(reg.electorate_has_meshblocks(electorate_id='y', electorate_type='GS', scenario_id=2))
         self.assertFalse(reg.electorate_has_meshblocks(electorate_id='z', electorate_type='GS', scenario_id=2))
+
+    def testSwitchTask(self):  # pylint: disable=too-many-locals, too-many-statements
+        """
+        Test scenario switch task
+        """
+        layer = make_scenario_layer()
+        mb_electorate_layer = QgsVectorLayer(
+            "NoGeometry?field=id:int&field=scenario_id:int&field=meshblock_number:int&field=gn_id:int&field=gs_id:int&field=m_id:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes([1, 1, 11, 1, 0, 7])
+        f2 = QgsFeature()
+        f2.setAttributes([2, 1, 12, 2, 0, 7])
+        f3 = QgsFeature()
+        f3.setAttributes([3, 1, 13, 2, 0, 7])
+        f4 = QgsFeature()
+        f4.setAttributes([4, 1, 14, 0, 4, 8])
+        f5 = QgsFeature()
+        f5.setAttributes([5, 1, 15, 0, 5, 8])
+        f6 = QgsFeature()
+        f6.setAttributes([6, 1, 16, 0, 5, 8])
+        f7 = QgsFeature()
+        f7.setAttributes([7, 2, 11, 2, 0, 7])
+        f8 = QgsFeature()
+        f8.setAttributes([8, 2, 12, 2, 0, 8])
+        f9 = QgsFeature()
+        f9.setAttributes([9, 2, 13, 3, 0, 7])
+        f10 = QgsFeature()
+        f10.setAttributes([10, 2, 14, 0, 5, 8])
+        f11 = QgsFeature()
+        f11.setAttributes([11, 2, 15, 0, 4, 7])
+        f12 = QgsFeature()
+        f12.setAttributes([12, 2, 16, 0, 4, 8])
+        mb_electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12])
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
+        )
+        electorate_layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes([1, "test1", 'GN', -1, 0])
+        f2 = QgsFeature()
+        f2.setAttributes([2, "test2", 'GN', -1, 0])
+        f3 = QgsFeature()
+        f3.setAttributes([3, "test3", 'GN', -1, 0])
+        f4 = QgsFeature()
+        f4.setAttributes([4, "test4", 'GS', -1, 0])
+        f5 = QgsFeature()
+        f5.setAttributes([5, "test5", 'GS', -1, 0])
+        f6 = QgsFeature()
+        f6.setAttributes([6, "test6", 'GS', -1, 0])
+        f7 = QgsFeature()
+        f7.setAttributes([7, "test7", 'M', -1, 0])
+        f8 = QgsFeature()
+        f8.setAttributes([8, "test8", 'M', -1, 0])
+        electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6, f7, f8])
+
+        meshblock_layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=MeshblockNumber:string&field=offline_pop_m:int&field=offline_pop_gn:int&field=offline_pop_gs:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes(["11", 5, 11, 0])
+        f.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1, 2)))
+        f2 = QgsFeature()
+        f2.setAttributes(["12", 6, 12, 0])
+        f2.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(2, 3)))
+        f3 = QgsFeature()
+        f3.setAttributes(["13", 7, 13, 0])
+        f3.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(4, 5)))
+        f4 = QgsFeature()
+        f4.setAttributes(["14", 8, 0, 20])
+        f4.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(6, 7)))
+        f5 = QgsFeature()
+        f5.setAttributes(["15", 9, 0, 30])
+        f5.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(8, 9)))
+        f6 = QgsFeature()
+        f6.setAttributes(["16", 10, 0, 40])
+        f6.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(10, 11)))
+        meshblock_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
+
+        task = ScenarioSwitchTask(task_name='', electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
+                                  scenario_registry=reg, scenario=1)
+        self.assertTrue(task.run())
+        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 11, 1],
+                                                                                    [2, 'test2', 'GN', 25, 1],
+                                                                                    [3, 'test3', 'GN', 0, 1],
+                                                                                    [4, 'test4', 'GS', 20, 1],
+                                                                                    [5, 'test5', 'GS', 70, 1],
+                                                                                    [6, 'test6', 'GS', 0, 1],
+                                                                                    [7, 'test7', 'M', 18, 1],
+                                                                                    [8, 'test8', 'M', 27, 1]])
+        self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['Point (1 2)',
+                                                                                          'MultiPoint ((2 3),(4 5))',
+                                                                                          'GeometryCollection ()',
+                                                                                          'Point (6 7)',
+                                                                                          'MultiPoint ((8 9),(10 11))',
+                                                                                          'GeometryCollection ()',
+                                                                                          'MultiPoint ((1 2),(2 3),(4 5))',
+                                                                                          'MultiPoint ((6 7),(8 9),(10 11))'])
+        task = ScenarioSwitchTask(task_name='', electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
+                                  scenario_registry=reg, scenario=2)
+        self.assertTrue(task.run())
+        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 0, 2],
+                                                                                    [2, 'test2', 'GN', 23, 2],
+                                                                                    [3, 'test3', 'GN', 13, 2],
+                                                                                    [4, 'test4', 'GS', 70, 2],
+                                                                                    [5, 'test5', 'GS', 20, 2],
+                                                                                    [6, 'test6', 'GS', 0, 2],
+                                                                                    [7, 'test7', 'M', 21, 2],
+                                                                                    [8, 'test8', 'M', 24, 2]])
+        self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['GeometryCollection ()',
+                                                                                          'MultiPoint ((1 2),(2 3))',
+                                                                                          'Point (4 5)',
+                                                                                          'MultiPoint ((8 9),(10 11))',
+                                                                                          'Point (6 7)',
+                                                                                          'GeometryCollection ()',
+                                                                                          'MultiPoint ((1 2),(4 5),(8 9))',
+                                                                                          'MultiPoint ((2 3),(6 7),(10 11))'])
 
 
 if __name__ == "__main__":
