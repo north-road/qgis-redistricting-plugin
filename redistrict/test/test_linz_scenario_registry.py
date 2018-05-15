@@ -18,6 +18,7 @@ import unittest
 from collections import OrderedDict
 from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.scenario_switch_task import ScenarioSwitchTask
+from redistrict.linz.staged_electorate_update_task import UpdateStagedElectoratesTask
 from qgis.PyQt.QtCore import QDateTime
 from qgis.core import (QgsApplication,
                        QgsVectorLayer,
@@ -447,7 +448,7 @@ class ScenarioRegistryTest(unittest.TestCase):
         electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6, f7, f8])
 
         meshblock_layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=MeshblockNumber:string&field=offline_pop_m:int&field=offline_pop_gn:int&field=offline_pop_gs:int",
+            "Point?crs=EPSG:4326&field=MeshblockNumber:string&field=offline_pop_m:int&field=offline_pop_gn:int&field=offline_pop_gs:int&field=staged_electorate:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["11", 5, 11, 0])
@@ -488,6 +489,15 @@ class ScenarioRegistryTest(unittest.TestCase):
                                                                                           'GeometryCollection ()',
                                                                                           'MultiPoint ((1 2),(2 3),(4 5))',
                                                                                           'MultiPoint ((6 7),(8 9),(10 11))'])
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+                                           scenario_registry=reg, scenario=1, task='GN')
+        self.assertTrue(task.run())
+        self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [1, 2, 2, 0, 0, 0])
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+                                           scenario_registry=reg, scenario=1, task='M')
+        self.assertTrue(task.run())
+        self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [7, 7, 7, 8, 8, 8])
+
         task = ScenarioSwitchTask(task_name='', electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
                                   scenario_registry=reg, scenario=2)
         self.assertTrue(task.run())
@@ -507,6 +517,14 @@ class ScenarioRegistryTest(unittest.TestCase):
                                                                                           'GeometryCollection ()',
                                                                                           'MultiPoint ((1 2),(4 5),(8 9))',
                                                                                           'MultiPoint ((2 3),(6 7),(10 11))'])
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+                                           scenario_registry=reg, scenario=2, task='GN')
+        self.assertTrue(task.run())
+        self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [2, 2, 3, 0, 0, 0])
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+                                           scenario_registry=reg, scenario=2, task='M')
+        self.assertTrue(task.run())
+        self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [7, 8, 7, 8, 7, 8])
 
 
 if __name__ == "__main__":

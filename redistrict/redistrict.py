@@ -32,7 +32,8 @@ from qgis.core import (QgsApplication,
                        QgsVectorLayer,
                        QgsMapThemeCollection,
                        QgsExpressionContextUtils,
-                       Qgis)
+                       Qgis,
+                       QgsTask)
 from qgis.gui import (QgsMapTool,
                       QgsNewNameDialog)
 from .linz.linz_district_registry import (
@@ -55,6 +56,7 @@ from .linz.db_utils import CopyFileTask
 from .linz.create_electorate_dialog import CreateElectorateDialog
 from .linz.deprecate_electorate_dialog import DeprecateElectorateDialog
 from .linz.scenario_switch_task import ScenarioSwitchTask
+from .linz.staged_electorate_update_task import UpdateStagedElectoratesTask
 
 
 class LinzRedistrict:  # pylint: disable=too-many-public-methods
@@ -112,6 +114,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
                                       'db', 'nz_db.gpkg')
         self.task = None
         self.switch_task = None
+        self.staged_task = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -342,6 +345,30 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         Sets the current task
         :param task: task, eg 'GN','GS' or 'M'
         """
+        progress_dialog = BlockingDialog(self.tr('Switch Task'), self.tr('Preparing switch...'))
+        progress_dialog.force_show_and_paint()
+
+        task_name = self.context.get_name_for_task(task)
+        description = self.tr('Switching to task {}').format(task_name)
+
+        self.switch_task = UpdateStagedElectoratesTask(description,
+                                                       meshblock_layer=self.meshblock_layer,
+                                                       scenario_registry=self.scenario_registry,
+                                                       scenario=self.context.scenario,
+                                                       task=task)
+        progress_dialog.deleteLater()
+
+        self.switch_task.taskCompleted.connect(
+            partial(self.task_set, task))
+        self.switch_task.taskTerminated.connect(
+            partial(self.report_failure, self.tr('Error while switching to “{}”').format(task_name)))
+
+        QgsApplication.taskManager().addTask(self.switch_task)
+
+    def task_set(self, task):
+        """
+        Triggered after current task has been set
+        """
         self.context.task = task
         QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.context.task)
 
@@ -353,6 +380,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.refresh_canvases()
         if self.tool is not None:
             self.tool.deleteLater()
+
+        task_name = self.context.get_name_for_task(task)
+        self.report_success(self.tr('Switched to “{}”').format(task_name))
 
         self.dock.update_dock_title(context=self.context)
 
@@ -560,14 +590,21 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
                                               meshblock_layer=self.meshblock_layer,
                                               scenario_registry=self.scenario_registry,
                                               scenario=scenario)
+        self.staged_task = UpdateStagedElectoratesTask(task_name,
+                                                       meshblock_layer=self.meshblock_layer,
+                                                       scenario_registry=self.scenario_registry,
+                                                       scenario=self.context.scenario,
+                                                       task=self.context.task)
+        self.staged_task.addSubTask(self.switch_task, subTaskDependency=QgsTask.ParentDependsOnSubTask)
+
         progress_dialog.deleteLater()
 
-        self.switch_task.taskCompleted.connect(
+        self.staged_task.taskCompleted.connect(
             partial(self.report_success, self.tr('Successfully switched to “{}”').format(scenario_name)))
-        self.switch_task.taskTerminated.connect(
+        self.staged_task.taskTerminated.connect(
             partial(self.report_failure, self.tr('Error while switching to “{}”').format(scenario_name)))
 
-        QgsApplication.taskManager().addTask(self.switch_task)
+        QgsApplication.taskManager().addTask(self.staged_task)
 
         self.context.set_scenario(scenario)
 
