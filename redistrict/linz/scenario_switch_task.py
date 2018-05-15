@@ -1,0 +1,126 @@
+# -*- coding: utf-8 -*-
+"""LINZ Redistricting Plugin - Scenario switching task
+
+.. note:: This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+"""
+
+__author__ = '(C) 2018 by Nyall Dawson'
+__date__ = '20/04/2018'
+__copyright__ = 'Copyright 2018, The QGIS Project'
+# This will get replaced with a git SHA1 when you do a git archive
+__revision__ = '$Format:%H$'
+
+from qgis.core import (QgsTask,
+                       QgsFeatureRequest,
+                       QgsVectorLayer,
+                       QgsGeometry)
+from redistrict.linz.scenario_registry import ScenarioRegistry
+
+
+class ScenarioSwitchTask(QgsTask):
+    """
+    A background task for handling scenario switches
+    """
+
+    ELECTORATE_FEATURE_ID = 'ELECTORATE_FEATURE_ID'
+    ELECTORATE_TYPE = 'ELECTORATE_TYPE '
+    MESHBLOCKS = 'MESHBLOCKS'
+
+    def __init__(self, task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,
+                 scenario_registry: ScenarioRegistry, scenario):
+        """
+        Constructor for ScenarioSwitchTask
+        :param task_name: user-visible, translated name for task
+        :param electorate_layer: electorate layer
+        :param meshblock_layer: meshblock layer
+        :param scenario_registry: scenario registry
+        :param scenario: target scenario id to switch to
+        """
+        super().__init__(task_name)
+
+        self.scenario = scenario
+        self.electorate_layer = electorate_layer
+
+        self.type_idx = electorate_layer.fields().lookupField('type')
+        assert self.type_idx >= 0
+        self.scenario_id_idx = electorate_layer.fields().lookupField('scenario_id')
+        assert self.scenario_id_idx >= 0
+        self.estimated_pop_idx = electorate_layer.fields().lookupField('estimated_pop')
+        assert self.estimated_pop_idx >= 0
+        self.mb_number_idx = scenario_registry.meshblock_electorate_layer.fields().lookupField('meshblock_number')
+        assert self.mb_number_idx >= 0
+        self.mb_off_pop_m_idx = scenario_registry.meshblock_electorate_layer.fields().lookupField('m_id')
+        assert self.mb_off_pop_m_idx >= 0
+        self.mb_off_pop_ni_idx = scenario_registry.meshblock_electorate_layer.fields().lookupField('gn_id')
+        assert self.mb_off_pop_ni_idx >= 0
+        self.mb_off_pop_si_idx = scenario_registry.meshblock_electorate_layer.fields().lookupField('gs_id')
+        assert self.mb_off_pop_si_idx >= 0
+
+        electorate_id_idx = electorate_layer.fields().lookupField('electorate_id')
+        assert electorate_id_idx >= 0
+        meshblock_number_idx = meshblock_layer.fields().lookupField('MeshblockNumber')
+        assert meshblock_number_idx >= 0
+
+        # do a bit of preparatory processing on the main thread for safety
+
+        # dict of meshblock number to geometry
+        self.meshblock_geoms = {}
+        for m in meshblock_layer.getFeatures(QgsFeatureRequest().setSubsetOfAttributes([meshblock_number_idx])):
+            self.meshblock_geoms[int(m[meshblock_number_idx])] = m.geometry()
+
+        # dict of electorates to process (by id)
+        self.electorates_to_process = {}
+        request = QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx])
+        for electorate in electorate_layer.getFeatures(request):
+            # get meshblocks for this electorate in the target scenario
+            electorate_id = electorate[electorate_id_idx]
+            electorate_type = electorate[self.type_idx]
+            electorate_meshblocks = scenario_registry.electorate_meshblocks(electorate_id=electorate_id,
+                                                                            electorate_type=electorate_type,
+                                                                            scenario_id=scenario)
+            self.electorates_to_process[electorate_id] = {self.ELECTORATE_FEATURE_ID: electorate.id(),
+                                                          self.ELECTORATE_TYPE: electorate_type,
+                                                          self.MESHBLOCKS: [m for m in electorate_meshblocks]}
+
+        self.setDependentLayers([electorate_layer])
+
+    def run(self):  # pylint: disable=missing-docstring
+        # first, we build up a complete list of attributes and geometries to change for electorates
+        attribute_change_map = {}
+        geometry_change_map = {}
+        for i, params in enumerate(self.electorates_to_process.values()):
+            self.setProgress(100 * i / len(self.electorates_to_process))
+
+            electorate_feature_id = params[self.ELECTORATE_FEATURE_ID]
+            electorate_type = params[self.ELECTORATE_TYPE]
+            matching_meshblocks = params[self.MESHBLOCKS]
+
+            if electorate_type == 'M':
+                estimated_pop = sum(
+                    [mbf[self.mb_off_pop_m_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_m_idx]])
+            elif electorate_type == 'GN':
+                estimated_pop = sum(
+                    [mbf[self.mb_off_pop_ni_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_ni_idx]])
+            else:
+                estimated_pop = sum(
+                    [mbf[self.mb_off_pop_si_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_si_idx]])
+
+            attribute_change_map[electorate_feature_id] = {self.scenario_id_idx: self.scenario,
+                                                           self.estimated_pop_idx: estimated_pop}
+
+            meshblock_parts = [self.meshblock_geoms[mbf[self.mb_number_idx]] for mbf in matching_meshblocks]
+            electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)
+            electorate_geometry = electorate_geometry.makeValid()
+            geometry_change_map[electorate_feature_id] = electorate_geometry
+
+        # commit changes
+        if not self.electorate_layer.dataProvider().changeAttributeValues(attribute_change_map):
+            return False
+        if not self.electorate_layer.dataProvider().changeGeometryValues(geometry_change_map):
+            return False
+
+        return True

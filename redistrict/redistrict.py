@@ -54,6 +54,7 @@ from .linz.scenario_selection_dialog import ScenarioSelectionDialog
 from .linz.db_utils import CopyFileTask
 from .linz.create_electorate_dialog import CreateElectorateDialog
 from .linz.deprecate_electorate_dialog import DeprecateElectorateDialog
+from .linz.scenario_switch_task import ScenarioSwitchTask
 
 
 class LinzRedistrict:  # pylint: disable=too-many-public-methods
@@ -110,6 +111,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.db_source = os.path.join(self.plugin_dir,
                                       'db', 'nz_db.gpkg')
         self.task = None
+        self.switch_task = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -212,7 +214,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.dock = LinzRedistrictingDockWidget(context=self.context)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
 
-        self.context.scenario_changed.connect(self.update_dock_title)
+        self.context.scenario_changed.connect(self.scenario_changed)
 
         self.scenarios_tool_button = QToolButton()
         self.scenarios_tool_button.setAutoRaise(True)
@@ -348,13 +350,18 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.iface.layerTreeView().refreshLayerSymbology(self.electorate_layer.id())
         self.iface.layerTreeView().refreshLayerSymbology(self.meshblock_layer.id())
 
-        for canvas in self.iface.mapCanvases():
-            canvas.refreshAllLayers()
-
+        self.refresh_canvases()
         if self.tool is not None:
             self.tool.deleteLater()
 
         self.dock.update_dock_title(context=self.context)
+
+    def refresh_canvases(self):
+        """
+        Refreshes all visible map canvases
+        """
+        for canvas in self.iface.mapCanvases():
+            canvas.refreshAllLayers()
 
     def get_district_registry(self) -> LinzElectoralDistrictRegistry:
         """
@@ -541,7 +548,35 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         Switches the current scenario to a new scenario
         :param scenario: new scenario ID
         """
+        electorate_registry = self.get_district_registry()
+        scenario_name = self.scenario_registry.get_scenario_name(scenario)
+        task_name = self.tr('Switching to {}').format(scenario_name)
+
+        progress_dialog = BlockingDialog(self.tr('Switch Scenario'), self.tr('Preparing switch...'))
+        progress_dialog.force_show_and_paint()
+
+        self.switch_task = ScenarioSwitchTask(task_name,
+                                              electorate_layer=electorate_registry.source_layer,
+                                              meshblock_layer=self.meshblock_layer,
+                                              scenario_registry=self.scenario_registry,
+                                              scenario=scenario)
+        progress_dialog.deleteLater()
+
+        self.switch_task.taskCompleted.connect(
+            partial(self.report_success, self.tr('Successfully switched to “{}”').format(scenario_name)))
+        self.switch_task.taskTerminated.connect(
+            partial(self.report_failure, self.tr('Error while switching to “{}”').format(scenario_name)))
+
+        QgsApplication.taskManager().addTask(self.switch_task)
+
         self.context.set_scenario(scenario)
+
+    def scenario_changed(self):
+        """
+        Triggered when the current scenario changes
+        """
+        self.update_dock_title()
+        self.refresh_canvases()
 
     def create_new_scenario_name_dlg(self, existing_name: Optional[str],
                                      initial_scenario_name: str) -> QgsNewNameDialog:
@@ -757,7 +792,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             if len(mbs) > 5:
                 warning_string += '...'
             QMessageBox.warning(self.iface.mainWindow(), self.tr('Deprecate Electorate'),
-                                self.tr('Cannot deprecate an electorate which has meshblocks assigned!') + '\n\n' + self.tr('Assigned meshblocks include:') + ' ' + warning_string)
+                                self.tr(
+                                    'Cannot deprecate an electorate which has meshblocks assigned!') + '\n\n' +
+                                self.tr('Assigned meshblocks include:') + ' ' + warning_string)
             return
         else:
             registry.toggle_electorate_deprecation(electorate_id)
