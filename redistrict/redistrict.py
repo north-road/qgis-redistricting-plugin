@@ -372,7 +372,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.context.task = task
         QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.context.task)
 
-        #self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.context.get_name_for_current_task())
+        # self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.context.get_name_for_current_task())
 
         self.iface.layerTreeView().refreshLayerSymbology(self.electorate_layer.id())
         self.iface.layerTreeView().refreshLayerSymbology(self.meshblock_layer.id())
@@ -658,8 +658,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         if not source:
             return
 
-        scenario_uri = '{}|layername=scenarios'.format(source)
-        foreign_scenario_layer = QgsVectorLayer(scenario_uri, 'foreign_scenarios')
+        foreign_scenario_layer = QgsVectorLayer('{}|layername=scenarios'.format(source), 'foreign_scenarios')
         if not foreign_scenario_layer.isValid():
             self.report_failure(self.tr('Could not import scenarios from “{}”').format(source))
             return
@@ -691,8 +690,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         new_scenario_name = dlg.name()
 
-        progress_dialog = BlockingDialog(self.tr('Import Scenario'), self.tr('Importing scenario...'))
-        progress_dialog.force_show_and_paint()
+        dlg = BlockingDialog(self.tr('Import Scenario'), self.tr('Importing scenario...'))
+        dlg.force_show_and_paint()
         result, error = self.scenario_registry.import_scenario_from_other_registry(source_registry=source_registry,
                                                                                    source_scenario_id=source_scenario_id,
                                                                                    new_scenario_name=new_scenario_name)
