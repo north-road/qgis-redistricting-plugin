@@ -193,8 +193,8 @@ class ScenarioRegistryTest(unittest.TestCase):
 
         # good
         res, error = reg.branch_scenario(1, 'Scenario 5')
-        self.assertEqual(res, 4)
         self.assertFalse(error)
+        self.assertEqual(res, 4)
 
         f = [f for f in layer.getFeatures()][-1]
         self.assertEqual(f[0], res)
@@ -211,8 +211,8 @@ class ScenarioRegistryTest(unittest.TestCase):
                              [4, 1, 1, 'd', 'zz']])
 
         res, error = reg.branch_scenario(2, 'Scenario 6')
-        self.assertEqual(res, 5)
         self.assertFalse(error)
+        self.assertEqual(res, 5)
 
         f = [f for f in layer.getFeatures()][-1]
         self.assertEqual(f[0], res)
