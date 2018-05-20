@@ -92,7 +92,7 @@ pycodestyle:
 	@echo "-----------"
 	@echo "pycodestyle PEP8 issues"
 	@echo "-----------"
-	@pycodestyle --repeat --ignore=E203,E121,E122,E123,E124,E125,E126,E127,E128,E402,E501 --exclude $(PEP8EXCLUDE) redistrict
+	@pycodestyle --repeat --ignore=E203,E121,E122,E123,E124,E125,E126,E127,E128,E402,E501,W504 --exclude $(PEP8EXCLUDE) redistrict
 	@echo "-----------"
 	@echo "Ignored in PEP8 check:"
 	@echo $(PEP8EXCLUDE)
