@@ -24,8 +24,12 @@ __copyright__ = (
 )
 
 import logging
+from typing import List
 from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal, QSize
+from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.core import QgsProject, QgsMapLayer
+from qgis.gui import (QgsMapCanvas,
+                      QgsMessageBar)
 
 LOGGER = logging.getLogger('QGIS')
 
@@ -39,7 +43,7 @@ class QgisInterface(QObject):
     """
     currentLayerChanged = pyqtSignal(QgsMapLayer)
 
-    def __init__(self, canvas):
+    def __init__(self, canvas: QgsMapCanvas):
         """Constructor
         :param canvas:
         """
@@ -58,7 +62,9 @@ class QgisInterface(QObject):
         # For processing module
         self.destCrs = None
 
-    def addLayers(self, layers):
+        self.message_bar = QgsMessageBar()
+
+    def addLayers(self, layers: List[QgsMapLayer]):
         """Handle layers being added to the registry so they show up in canvas.
 
         :param layers: list<QgsMapLayer> list of map layers that were added
@@ -79,7 +85,7 @@ class QgisInterface(QObject):
         self.canvas.setLayers(final_layers)
         # LOGGER.debug('Layer Count After: %s' % len(self.canvas.layers()))
 
-    def addLayer(self, layer):
+    def addLayer(self, layer: QgsMapLayer):
         """Handle a layer being added to the registry so it shows up in canvas.
 
         :param layer: list<QgsMapLayer> list of map layers that were added
@@ -120,7 +126,7 @@ class QgisInterface(QObject):
         """Zoom to extent of active layer."""
         pass
 
-    def addVectorLayer(self, path, base_name, provider_key):
+    def addVectorLayer(self, path: str, base_name: str, provider_key: str):
         """Add a vector layer.
 
         :param path: Path to layer.
@@ -134,7 +140,7 @@ class QgisInterface(QObject):
         """
         pass
 
-    def addRasterLayer(self, path, base_name):
+    def addRasterLayer(self, path: str, base_name: str):
         """Add a raster layer given a raster layer file name
 
         :param path: Path to layer.
@@ -145,7 +151,7 @@ class QgisInterface(QObject):
         """
         pass
 
-    def activeLayer(self):  # pylint: disable=no-self-use
+    def activeLayer(self)->QgsMapLayer:  # pylint: disable=no-self-use
         """Get pointer to the active layer (layer selected in the legend)."""
         # noinspection PyArgumentList
         layers = QgsProject.instance().mapLayers()
@@ -176,7 +182,7 @@ class QgisInterface(QObject):
         """
         pass
 
-    def mapCanvas(self):
+    def mapCanvas(self) -> QgsMapCanvas:
         """Return a pointer to the map canvas."""
         return self.canvas
 
@@ -187,7 +193,7 @@ class QgisInterface(QObject):
         """
         pass
 
-    def addDockWidget(self, area, dock_widget):
+    def addDockWidget(self, area, dock_widget: QDockWidget):
         """Add a dock widget to the main window.
 
         :param area: Where in the ui the dock should be placed.
@@ -202,7 +208,7 @@ class QgisInterface(QObject):
         """Get the legend."""
         return self.canvas
 
-    def iconSize(self, dockedToolbar):
+    def iconSize(self, dockedToolbar) -> int:
         """
         Returns the toolbar icon size.
         :param dockedToolbar: If True, the icon size
@@ -212,3 +218,9 @@ class QgisInterface(QObject):
             return QSize(16, 16)
 
         return QSize(24, 24)
+
+    def messageBar(self) -> QgsMessageBar:
+        """
+        Return the message bar of the main app
+        """
+        return self.message_bar
