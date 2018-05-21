@@ -95,6 +95,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.redistricting_toolbar = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
+        self.start_editing_action = None
         self.begin_action = None
         self.stats_tool_action = None
         self.theme_menu = None
@@ -166,6 +167,15 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         """
         self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
         self.redistricting_toolbar.setObjectName('redistricting')
+
+        self.start_editing_action = QAction(GuiUtils.get_icon(
+            'toggle_editing.svg'), self.tr('Toggle Editing'))
+        self.start_editing_action.setCheckable(True)
+        self.start_editing_action.toggled.connect(
+            self.toggle_editing)
+        self.redistricting_toolbar.addAction(
+            self.start_editing_action)
+        self.start_editing_action.setEnabled(False)
 
         self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
             'interactive_redistrict.svg'), self.tr('Interactive Redistrict'))
@@ -325,6 +335,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.progress_item = MessageBarProgressItem(self.tr('Preparing redistricting'), iface=self.iface)
         self.switch_task.progressChanged.connect(self.progress_item.set_progress)
         self.switch_task.taskCompleted.connect(self.progress_item.close)
+        self.switch_task.taskCompleted.connect(partial(self.start_editing_action.setEnabled, True))
         self.switch_task.taskTerminated.connect(self.progress_item.close)
 
     def unload(self):
@@ -346,6 +357,18 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         has_selection = bool(self.meshblock_layer.selectedFeatureIds())
         self.redistrict_selected_action.setEnabled(enabled and has_selection)
         self.interactive_redistrict_action.setEnabled(enabled)
+
+    def toggle_editing(self, active: bool):
+        """
+        Triggered when editing begins/ends
+        :param active: True if editing is active
+        """
+        tools = self.iface.vectorLayerTools()
+        if active:
+            tools.startEditing(self.meshblock_layer)
+        else:
+            tools.stopEditing(self.meshblock_layer, allowCancel=False)
+        self.set_current_tool(tool=None)
 
     def set_task(self, task: str):
         """
@@ -465,7 +488,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
                 self.tr('Could not redistricted selected meshblocks'))
         handler.end_edit_group()
 
-    def set_current_tool(self, tool: QgsMapTool):
+    def set_current_tool(self, tool: Optional[QgsMapTool]):
         """
         Sets the current map tool
         :param tool: new map tool
@@ -475,8 +498,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             self.tool.deactivated.disconnect(self.tool_deactivated)
             self.tool.deleteLater()
         self.tool = tool
-        self.tool.deactivated.connect(self.tool_deactivated)
-        self.iface.mapCanvas().setMapTool(self.tool)
+        if tool is not None:
+            self.tool.deactivated.connect(self.tool_deactivated)
+            self.iface.mapCanvas().setMapTool(self.tool)
 
     def tool_deactivated(self):
         """
