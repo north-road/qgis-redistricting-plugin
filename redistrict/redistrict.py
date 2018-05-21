@@ -96,6 +96,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
         self.start_editing_action = None
+        self.save_edits_action = None
+        self.rollback_edits_action = None
         self.begin_action = None
         self.stats_tool_action = None
         self.theme_menu = None
@@ -176,6 +178,22 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.redistricting_toolbar.addAction(
             self.start_editing_action)
         self.start_editing_action.setEnabled(False)
+        self.save_edits_action = QAction(GuiUtils.get_icon(
+            'save_edits.svg'), self.tr('Save Staged Edits'))
+        # self.start_editing_action.triggered.connect(
+        #    self.toggle_editing)
+        self.redistricting_toolbar.addAction(
+            self.save_edits_action)
+        self.save_edits_action.setEnabled(False)
+        self.rollback_edits_action = QAction(GuiUtils.get_icon(
+            'rollback_edits.svg'), self.tr('Rollback Edits'))
+        # self.start_editing_action.triggered.connect(
+        #    self.toggle_editing)
+        self.redistricting_toolbar.addAction(
+            self.rollback_edits_action)
+        self.rollback_edits_action.setEnabled(False)
+
+        self.redistricting_toolbar.addSeparator()
 
         self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
             'interactive_redistrict.svg'), self.tr('Interactive Redistrict'))
@@ -325,10 +343,11 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         self.context = LinzRedistrictingContext(scenario_registry=self.scenario_registry)
         self.context.task = self.TASK_GN
-
+        self.meshblock_layer.layerModified.connect(self.update_layer_modified_actions)
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
+        self.meshblock_layer.beforeCommitChanges.connect(self.meshblock_layer_saved)
 
         self.create_redistricting_ui()
 
@@ -357,6 +376,15 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         has_selection = bool(self.meshblock_layer.selectedFeatureIds())
         self.redistrict_selected_action.setEnabled(enabled and has_selection)
         self.interactive_redistrict_action.setEnabled(enabled)
+        self.update_layer_modified_actions()
+
+    def update_layer_modified_actions(self):
+        """
+        Triggered on meshblock layer modification
+        """
+        save_enabled = self.meshblock_layer.isEditable() and self.meshblock_layer.isModified()
+        self.save_edits_action.setEnabled(save_enabled)
+        self.rollback_edits_action.setEnabled(self.meshblock_layer.isModified())
 
     def toggle_editing(self, active: bool):
         """
@@ -865,3 +893,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             return
         else:
             registry.toggle_electorate_deprecation(electorate_id)
+
+    def meshblock_layer_saved(self):
+        """
+        Triggered when the meshblock layer is saved
+        """
+        pass
