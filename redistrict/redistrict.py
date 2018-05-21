@@ -45,6 +45,7 @@ from .gui.district_selection_dialog import (
     DistrictPicker)
 from .gui.interactive_redistrict_tool import InteractiveRedistrictingTool
 from .gui.district_statistics_tool import DistrictStatisticsTool
+from .gui.message_bar_progress import MessageBarProgressItem
 from .gui.gui_utils import (GuiUtils,
                             BlockingDialog,
                             ConfirmationDialog)
@@ -115,6 +116,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.task = None
         self.switch_task = None
         self.staged_task = None
+        self.progress_item = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -319,6 +321,11 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
 
         self.create_redistricting_ui()
+
+        self.progress_item = MessageBarProgressItem(self.tr('Preparing redistricting'))
+        self.switch_task.progressChanged.connect(self.progress_item.set_progress)
+        self.switch_task.taskCompleted.connect(self.progress_item.close)
+        self.switch_task.taskTerminated.connect(self.progress_item.close)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
