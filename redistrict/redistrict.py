@@ -322,7 +322,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         self.create_redistricting_ui()
 
-        self.progress_item = MessageBarProgressItem(self.tr('Preparing redistricting'))
+        self.progress_item = MessageBarProgressItem(self.tr('Preparing redistricting'), iface=self.iface)
         self.switch_task.progressChanged.connect(self.progress_item.set_progress)
         self.switch_task.taskCompleted.connect(self.progress_item.close)
         self.switch_task.taskTerminated.connect(self.progress_item.close)

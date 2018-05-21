@@ -25,7 +25,7 @@ class MessageBarProgressItem(QObject):
     Message bar item which shows a progress report bar
     """
 
-    def __init__(self, text, iface: QgisInterface = None, parent: QObject = None):
+    def __init__(self, text, iface: QgisInterface, parent: QObject = None):
         """
         Constructor for MessageBarProgressItem
         :param text: text to show
