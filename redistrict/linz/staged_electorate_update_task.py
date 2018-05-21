@@ -73,7 +73,7 @@ class UpdateStagedElectoratesTask(QgsTask):
         request.setFlags(QgsFeatureRequest.NoGeometry)
         to_process = self.meshblock_layer.featureCount()
         for i, m in enumerate(self.meshblock_layer.getFeatures(request)):
-            self.setProgress(100 * i / to_process)
+            self.setProgress(80 * i / to_process)
             if not int(m[self.meshblock_number_idx]) in meshblock_electorate:
                 electorate = NULL
             else:
