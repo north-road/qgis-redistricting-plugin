@@ -58,6 +58,7 @@ from .linz.create_electorate_dialog import CreateElectorateDialog
 from .linz.deprecate_electorate_dialog import DeprecateElectorateDialog
 from .linz.scenario_switch_task import ScenarioSwitchTask
 from .linz.staged_electorate_update_task import UpdateStagedElectoratesTask
+from .linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
 
 
 class LinzRedistrict:  # pylint: disable=too-many-public-methods
@@ -114,6 +115,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.quota_layer = None
         self.meshblock_electorate_layer = None
         self.scenario_registry = None
+        self.meshblock_scenario_bridge = None
         self.db_source = os.path.join(self.plugin_dir,
                                       'db', 'nz_db.gpkg')
         self.task = None
@@ -347,7 +349,10 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
-        self.meshblock_layer.beforeCommitChanges.connect(self.meshblock_layer_saved)
+
+        self.meshblock_scenario_bridge = LinzMeshblockScenarioBridge(meshblock_layer=self.meshblock_layer,
+                                                                     meshblock_scenario_layer=self.meshblock_electorate_layer)
+        self.meshblock_scenario_bridge.scenario = self.context.scenario
 
         self.create_redistricting_ui()
 
@@ -403,6 +408,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         Sets the current task
         :param task: task, eg 'GN','GS' or 'M'
         """
+        self.meshblock_scenario_bridge.task = task
         progress_dialog = BlockingDialog(self.tr('Switch Task'), self.tr('Preparing switch...'))
         progress_dialog.force_show_and_paint()
 
@@ -671,6 +677,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         """
         Triggered when the current scenario changes
         """
+        self.meshblock_scenario_bridge.scenario = self.context.scenario
         self.update_dock_title()
         self.refresh_canvases()
 
@@ -893,9 +900,3 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             return
         else:
             registry.toggle_electorate_deprecation(electorate_id)
-
-    def meshblock_layer_saved(self):
-        """
-        Triggered when the meshblock layer is saved
-        """
-        pass

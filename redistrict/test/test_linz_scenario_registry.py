@@ -63,6 +63,21 @@ def make_meshblock_electorate_layer() -> QgsVectorLayer:
     return layer
 
 
+def make_meshblock_layer() -> QgsVectorLayer:
+    """
+    Makes a dummy meshblock layer for testing
+    """
+    layer = QgsVectorLayer(
+        "NoGeometry?field=MeshblockNumber:string&field=staged_electorate:int",
+        "source", "memory")
+    f = QgsFeature()
+    f.setAttributes(['0', 'a'])
+    f2 = QgsFeature()
+    f2.setAttributes(['1', 'b'])
+    layer.dataProvider().addFeatures([f, f2])
+    return layer
+
+
 class ScenarioRegistryTest(unittest.TestCase):
     """Test ScenarioRegistry."""
 
