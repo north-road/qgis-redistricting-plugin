@@ -68,6 +68,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
     TASK_GS = 'GS'
     TASK_M = 'M'
 
+    MESHBLOCK_NUMBER_FIELD = 'MB2018_V1_00'
+
     def __init__(self, iface):
         """Constructor.
 
@@ -351,7 +353,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.meshblock_layer.selectionChanged.connect(self.toggle_redistrict_actions)
 
         self.meshblock_scenario_bridge = LinzMeshblockScenarioBridge(meshblock_layer=self.meshblock_layer,
-                                                                     meshblock_scenario_layer=self.meshblock_electorate_layer)
+                                                                     meshblock_scenario_layer=self.meshblock_electorate_layer,
+                                                                     meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD)
         self.meshblock_scenario_bridge.scenario = self.context.scenario
 
         self.create_redistricting_ui()
@@ -432,6 +435,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         self.switch_task = UpdateStagedElectoratesTask(description,
                                                        meshblock_layer=self.meshblock_layer,
+                                                       meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
                                                        scenario_registry=self.scenario_registry,
                                                        scenario=self.context.scenario,
                                                        task=task)
@@ -682,10 +686,12 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.switch_task = ScenarioSwitchTask(task_name,
                                               electorate_layer=electorate_registry.source_layer,
                                               meshblock_layer=self.meshblock_layer,
+                                              meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
                                               scenario_registry=self.scenario_registry,
                                               scenario=scenario)
         self.staged_task = UpdateStagedElectoratesTask(task_name,
                                                        meshblock_layer=self.meshblock_layer,
+                                                       meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
                                                        scenario_registry=self.scenario_registry,
                                                        scenario=self.context.scenario,
                                                        task=self.context.task)

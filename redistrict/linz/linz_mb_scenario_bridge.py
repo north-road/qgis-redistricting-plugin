@@ -26,11 +26,12 @@ class LinzMeshblockScenarioBridge(QObject):
     and the meshblock-scenario table
     """
 
-    def __init__(self, meshblock_layer: QgsVectorLayer, meshblock_scenario_layer: QgsVectorLayer):
+    def __init__(self, meshblock_layer: QgsVectorLayer, meshblock_scenario_layer: QgsVectorLayer, meshblock_number_field_name: str):
         """
         Constructor
         :param meshblock_layer: meshblock layer
         :param meshblock_scenario_layer: meshblock-scenario table
+        :param meshblock_number_field_name: name of meshblock number field
         """
         super().__init__()
         self.meshblock_layer = meshblock_layer
@@ -38,7 +39,7 @@ class LinzMeshblockScenarioBridge(QObject):
 
         self.staged_electorate_idx = self.meshblock_layer.fields().lookupField('staged_electorate')
         assert self.staged_electorate_idx >= 0
-        self.meshblock_number_idx = self.meshblock_layer.fields().lookupField('MeshblockNumber')
+        self.meshblock_number_idx = self.meshblock_layer.fields().lookupField(meshblock_number_field_name)
         assert self.meshblock_number_idx >= 0
 
         self.target_scenario_idx = self.meshblock_scenario_layer.fields().lookupField('scenario_id')

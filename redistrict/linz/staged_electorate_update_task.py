@@ -27,12 +27,13 @@ class UpdateStagedElectoratesTask(QgsTask):
     """
 
     def __init__(self, task_name: str, meshblock_layer: QgsVectorLayer,  # pylint: disable=too-many-locals
-                 scenario_registry: ScenarioRegistry, scenario, task: str):
+                 meshblock_number_field_name: str, scenario_registry: ScenarioRegistry, scenario, task: str):
         """
         Constructor for ScenarioSwitchTask
         :param task_name: user-visible, translated name for task
         :param electorate_layer: electorate layer
         :param meshblock_layer: meshblock layer
+        :param meshblock_number_field_name: name of meshblock number field
         :param scenario_registry: scenario registry
         :param scenario: target scenario id to switch to
         :param task: current task
@@ -51,7 +52,7 @@ class UpdateStagedElectoratesTask(QgsTask):
         assert self.scenario_id_field_idx >= 0
         self.staged_electorate_field_idx = meshblock_layer.fields().lookupField('staged_electorate')
         assert self.staged_electorate_field_idx >= 0
-        self.meshblock_number_idx = meshblock_layer.fields().lookupField('MeshblockNumber')
+        self.meshblock_number_idx = meshblock_layer.fields().lookupField(meshblock_number_field_name)
         assert self.meshblock_number_idx >= 0
         self.meshblock_layer = meshblock_layer
 

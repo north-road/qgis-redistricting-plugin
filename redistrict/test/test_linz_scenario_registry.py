@@ -487,7 +487,7 @@ class ScenarioRegistryTest(unittest.TestCase):
         meshblock_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
 
         task = ScenarioSwitchTask(task_name='', electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
-                                  scenario_registry=reg, scenario=1)
+                                  meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=1)
         self.assertTrue(task.run())
         self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 11, 1],
                                                                                     [2, 'test2', 'GN', 25, 1],
@@ -505,17 +505,17 @@ class ScenarioRegistryTest(unittest.TestCase):
                                                                                           'GeometryCollection ()',
                                                                                           'MultiPoint ((1 2),(2 3),(4 5))',
                                                                                           'MultiPoint ((6 7),(8 9),(10 11))'])
-        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer, meshblock_number_field_name='MeshblockNumber',
                                            scenario_registry=reg, scenario=1, task='GN')
         self.assertTrue(task.run())
         self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [1, 2, 2, 0, 0, 0])
-        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer, meshblock_number_field_name='MeshblockNumber',
                                            scenario_registry=reg, scenario=1, task='M')
         self.assertTrue(task.run())
         self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [7, 7, 7, 8, 8, 8])
 
         task = ScenarioSwitchTask(task_name='', electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
-                                  scenario_registry=reg, scenario=2)
+                                  meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=2)
         self.assertTrue(task.run())
         self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 0, 2],
                                                                                     [2, 'test2', 'GN', 23, 2],
@@ -533,11 +533,11 @@ class ScenarioRegistryTest(unittest.TestCase):
                                                                                           'GeometryCollection ()',
                                                                                           'MultiPoint ((1 2),(4 5),(8 9))',
                                                                                           'MultiPoint ((2 3),(6 7),(10 11))'])
-        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer, meshblock_number_field_name='MeshblockNumber',
                                            scenario_registry=reg, scenario=2, task='GN')
         self.assertTrue(task.run())
         self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [2, 2, 3, 0, 0, 0])
-        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
+        task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer, meshblock_number_field_name='MeshblockNumber',
                                            scenario_registry=reg, scenario=2, task='M')
         self.assertTrue(task.run())
         self.assertEqual([f['staged_electorate'] for f in meshblock_layer.getFeatures()], [7, 8, 7, 8, 7, 8])

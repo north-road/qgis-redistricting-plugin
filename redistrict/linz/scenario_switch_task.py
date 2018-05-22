@@ -30,12 +30,13 @@ class ScenarioSwitchTask(QgsTask):
     MESHBLOCKS = 'MESHBLOCKS'
 
     def __init__(self, task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,  # pylint: disable=too-many-locals
-                 scenario_registry: ScenarioRegistry, scenario):
+                 meshblock_number_field_name: str, scenario_registry: ScenarioRegistry, scenario):
         """
         Constructor for ScenarioSwitchTask
         :param task_name: user-visible, translated name for task
         :param electorate_layer: electorate layer
         :param meshblock_layer: meshblock layer
+        :param meshblock_number_field_name: name of meshblock number field
         :param scenario_registry: scenario registry
         :param scenario: target scenario id to switch to
         """
@@ -61,7 +62,7 @@ class ScenarioSwitchTask(QgsTask):
 
         electorate_id_idx = electorate_layer.fields().lookupField('electorate_id')
         assert electorate_id_idx >= 0
-        meshblock_number_idx = meshblock_layer.fields().lookupField('MeshblockNumber')
+        meshblock_number_idx = meshblock_layer.fields().lookupField(meshblock_number_field_name)
         assert meshblock_number_idx >= 0
 
         # do a bit of preparatory processing on the main thread for safety

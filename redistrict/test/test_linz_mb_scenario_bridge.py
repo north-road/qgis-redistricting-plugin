@@ -31,7 +31,8 @@ class ScenarioMeshblockBridgeTest(unittest.TestCase):
 
         bridge = LinzMeshblockScenarioBridge(
             meshblock_layer=meshblock_layer,
-            meshblock_scenario_layer=mb_electorate_layer
+            meshblock_scenario_layer=mb_electorate_layer,
+            meshblock_number_field_name='MeshblockNumber'
         )
         self.assertEqual(bridge.meshblock_layer, meshblock_layer)
         self.assertEqual(bridge.meshblock_scenario_layer, mb_electorate_layer)
@@ -45,7 +46,8 @@ class ScenarioMeshblockBridgeTest(unittest.TestCase):
 
         bridge = LinzMeshblockScenarioBridge(
             meshblock_layer=meshblock_layer,
-            meshblock_scenario_layer=mb_electorate_layer
+            meshblock_scenario_layer=mb_electorate_layer,
+            meshblock_number_field_name='MeshblockNumber'
         )
 
         bridge.scenario = 1
@@ -64,7 +66,8 @@ class ScenarioMeshblockBridgeTest(unittest.TestCase):
 
         bridge = LinzMeshblockScenarioBridge(
             meshblock_layer=meshblock_layer,
-            meshblock_scenario_layer=mb_electorate_layer
+            meshblock_scenario_layer=mb_electorate_layer,
+            meshblock_number_field_name='MeshblockNumber'
         )
 
         bridge.task = 'GN'
