@@ -153,10 +153,12 @@ class ScenarioRegistry():
         """
         return max(self.source_layer.maximumValue(self.id_field_index), 0) + 1
 
-    def __insert_new_scenario(self, new_scenario_name: str):
+    def __insert_new_scenario(self, new_scenario_name: str, created_datetime: QDateTime = None, created_by: str = None):
         """
         Inserts a scenario into the registry
         :param new_scenario_name: name for new scenario
+        :param created_datetime: optional datetime for scenario, if not set will be set to current date time
+        :param created_by: creator user name, if not set will be set to current user name
         :return: scenario id if successful, and error message
         """
         next_id = self.next_scenario_id()
@@ -165,8 +167,10 @@ class ScenarioRegistry():
         scenario_feature.initAttributes(self.source_layer.fields().count())
         scenario_feature[self.id_field_index] = next_id
         scenario_feature[self.name_field_index] = new_scenario_name
-        scenario_feature[self.created_field_index] = QDateTime.currentDateTime()
-        scenario_feature[self.created_by_field_index] = QgsApplication.userFullName()
+        scenario_feature[
+            self.created_field_index] = QDateTime.currentDateTime() if created_datetime is None else created_datetime
+        scenario_feature[
+            self.created_by_field_index] = QgsApplication.userFullName() if created_by is None else created_by
 
         if not self.source_layer.dataProvider().addFeatures([scenario_feature]):
             return False, QCoreApplication.translate('LinzRedistrict', 'Could not create scenario')
@@ -239,8 +243,12 @@ class ScenarioRegistry():
             return False, QCoreApplication.translate('LinzRedistrict', 'Scenario {} does not exist in database').format(
                 source_scenario_id)
 
+        source_scenario = source_registry.get_scenario(source_scenario_id)
+
         # all good to go
-        new_id, error = self.__insert_new_scenario(new_scenario_name=new_scenario_name)
+        new_id, error = self.__insert_new_scenario(new_scenario_name=new_scenario_name,
+                                                   created_datetime=source_scenario['created'],
+                                                   created_by=source_scenario['created_by'])
         if not new_id:
             return False, error
 
