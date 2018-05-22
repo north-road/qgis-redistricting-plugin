@@ -327,9 +327,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         # matching layers
         # TODO - use paths, not project layers
         self.electorate_layer = QgsProject.instance().mapLayersByName(
-            'general')[0]
+            'Electorates')[0]
         self.meshblock_layer = QgsProject.instance().mapLayersByName(
-            'meshblock')[0]
+            'Meshblocks')[0]
         self.quota_layer = QgsProject.instance().mapLayersByName(
             'quotas')[0]
         self.scenario_layer = QgsProject.instance().mapLayersByName(
