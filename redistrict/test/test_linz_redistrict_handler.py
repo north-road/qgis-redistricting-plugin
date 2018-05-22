@@ -33,28 +33,28 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         Test batched operations
         """
         meshblock_layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:string&field=fld2:string",
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=offline_pop_gn:int",
             "source", "memory")
         f = QgsFeature()
-        f.setAttributes(["test4", "xtest1"])
+        f.setAttributes(["test4", "xtest1", 10])
         f.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 0, 5, 5)))
         f2 = QgsFeature()
-        f2.setAttributes(["test2", "xtest3"])
+        f2.setAttributes(["test2", "xtest3", 15])
         f2.setGeometry(QgsGeometry.fromRect(QgsRectangle(5, 5, 10, 10)))
         f3 = QgsFeature()
-        f3.setAttributes(["test3", "xtest3"])
+        f3.setAttributes(["test3", "xtest3", 22])
         f3.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 5, 5, 10)))
         f4 = QgsFeature()
-        f4.setAttributes(["test1", NULL])
+        f4.setAttributes(["test1", NULL, 31])
         f4.setGeometry(QgsGeometry.fromRect(QgsRectangle(5, 0, 10, 5)))
         f5 = QgsFeature()
-        f5.setAttributes(["test2", "xtest2"])
+        f5.setAttributes(["test2", "xtest2", 51])
         f5.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 10, 10, 15)))
         success, [f, f2, f3, f4, f5] = meshblock_layer.dataProvider().addFeatures([f, f2, f3, f4, f5])
         self.assertTrue(success)
 
         district_layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:string",
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=estimated_pop:int",
             "source", "memory")
         d = QgsFeature()
         d.setAttributes(["test1"])
@@ -74,7 +74,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, target_field='fld1',
-                                        electorate_layer=district_layer, electorate_layer_field='fld1')
+                                        electorate_layer=district_layer, electorate_layer_field='fld1', task='GN')
         self.assertTrue(meshblock_layer.startEditing())
         handler.begin_edit_group('test')
         self.assertTrue(handler.assign_district([f.id(), f3.id()], 'aaa'))
@@ -108,6 +108,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertFalse([f["fld1"] for f in handler.get_removed_meshblocks('aaa')])
 
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], ['aaa', 'test2', 'aaa', 'test1', 'aaa'])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 15.0, 0.0, 0.0, 83.0])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
@@ -132,6 +133,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         handler.discard_edit_group()
         self.assertFalse(handler.pending_affected_districts)
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], ['aaa', 'test2', 'aaa', 'test1', 'aaa'])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 15.0, 0.0, 0.0, 83.0])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
@@ -145,31 +147,31 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         Test batched operations when district is using an integer field key
         """
         meshblock_layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:int",
+            "Polygon?crs=EPSG:4326&field=fld1:int&field=offline_pop_gn:int",
             "source", "memory")
         f = QgsFeature()
-        f.setAttributes([4])
+        f.setAttributes([4, 1])
         f.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 0, 5, 5)))
         f2 = QgsFeature()
-        f2.setAttributes([2])
+        f2.setAttributes([2, 11])
         f2.setGeometry(QgsGeometry.fromRect(QgsRectangle(5, 5, 10, 10)))
         f3 = QgsFeature()
-        f3.setAttributes([3])
+        f3.setAttributes([3, 21])
         f3.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 5, 5, 10)))
         f4 = QgsFeature()
-        f4.setAttributes([1])
+        f4.setAttributes([1, 31])
         f4.setGeometry(QgsGeometry.fromRect(QgsRectangle(5, 0, 10, 5)))
         f5 = QgsFeature()
-        f5.setAttributes([2])
+        f5.setAttributes([2, 41])
         f5.setGeometry(QgsGeometry.fromRect(QgsRectangle(0, 10, 10, 15)))
         f6 = QgsFeature()
-        f6.setAttributes([NULL])
+        f6.setAttributes([NULL, 51])
         f6.setGeometry(QgsGeometry.fromRect(QgsRectangle(-5, 10, 0, 15)))
         success, [f, f2, f3, f4, f5, f6] = meshblock_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
         self.assertTrue(success)
 
         district_layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:int",
+            "Polygon?crs=EPSG:4326&field=fld1:int&field=estimated_pop:int",
             "source", "memory")
         d = QgsFeature()
         d.setAttributes([1])
@@ -189,7 +191,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, target_field='fld1',
-                                        electorate_layer=district_layer, electorate_layer_field='fld1')
+                                        electorate_layer=district_layer, electorate_layer_field='fld1', task='GN')
         self.assertTrue(meshblock_layer.startEditing())
         handler.begin_edit_group('test')
         self.assertTrue(handler.assign_district([f.id(), f3.id(), f6.id()], 5))
@@ -223,6 +225,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertFalse([f["fld1"] for f in handler.get_removed_meshblocks(5)])
 
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5, 5])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 11.0, 0.0, 0.0, 114.0])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
@@ -247,6 +250,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         handler.discard_edit_group()
         self.assertFalse(handler.pending_affected_districts)
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5, 5])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 11.0, 0.0, 0.0, 114.0])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')

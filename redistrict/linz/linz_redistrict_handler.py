@@ -17,6 +17,9 @@ from qgis.PyQt.QtCore import QVariant
 from qgis.core import (QgsFeatureRequest,
                        QgsFeatureIterator,
                        QgsGeometry,
+                       QgsVectorLayer,
+                       QgsAggregateCalculator,
+                       QgsExpression,
                        NULL)
 from redistrict.core.redistrict_handler import RedistrictHandler
 
@@ -29,18 +32,26 @@ class LinzRedistrictHandler(RedistrictHandler):
     layer boundaries
     """
 
-    def __init__(self, meshblock_layer, target_field, electorate_layer, electorate_layer_field):
+    def __init__(self, meshblock_layer: QgsVectorLayer, target_field: str, electorate_layer: QgsVectorLayer,
+                 electorate_layer_field: str, task: str):
         """
         Constructor
         :param meshblock_layer: meshblock layer
         :param target_field: target field for districts
         :param electorate_layer: electoral district layer
         :param electorate_layer_field: matching field from electorate layer
+        :param task: current task
         """
         super().__init__(target_layer=meshblock_layer, target_field=target_field)
         self.electorate_layer = electorate_layer
         self.electorate_layer_field = electorate_layer_field
         self.pending_affected_districts = {}
+        self.task = task
+
+        self.estimated_pop_idx = self.electorate_layer.fields().lookupField('estimated_pop')
+        assert self.estimated_pop_idx >= 0
+        self.offline_pop_field = 'offline_pop_{}'.format(self.task.lower())
+        assert meshblock_layer.fields().lookupField(self.offline_pop_field) >= 0
 
     def create_affected_district_filter(self):
         """
@@ -145,6 +156,7 @@ class LinzRedistrictHandler(RedistrictHandler):
         # slow. So instead we adjust piece-by-piece by adding or chomping away
         # the affected meshblocks only.
         new_geometries = {}
+        new_attributes = {}
         for district in self.pending_affected_districts.keys():  # pylint: disable=consider-iterating-dictionary
             district_geometry = electorate_features[district].geometry()
             # add new bits
@@ -154,7 +166,15 @@ class LinzRedistrictHandler(RedistrictHandler):
 
             new_geometries[electorate_features[district].id()] = district_geometry
 
+            calc = QgsAggregateCalculator(self.target_layer)
+            calc.setFilter(QgsExpression.createFieldEqualityExpression(self.target_field, district))
+            estimated_pop, ok = calc.calculate(QgsAggregateCalculator.Sum,  # pylint: disable=unused-variable
+                                               self.offline_pop_field)
+
+            new_attributes[electorate_features[district].id()] = {self.estimated_pop_idx: estimated_pop}
+
         self.electorate_layer.dataProvider().changeGeometryValues(new_geometries)
+        self.electorate_layer.dataProvider().changeAttributeValues(new_attributes)
         self.electorate_layer.triggerRepaint()
 
         self.pending_affected_districts = {}

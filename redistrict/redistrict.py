@@ -502,7 +502,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         return LinzRedistrictHandler(meshblock_layer=self.meshblock_layer,
                                      target_field='staged_electorate',
                                      electorate_layer=self.electorate_layer,
-                                     electorate_layer_field='electorate_id')
+                                     electorate_layer_field='electorate_id',
+                                     task=self.context.task)
 
     def get_gui_handler(self) -> LinzRedistrictGuiHandler:
         """
