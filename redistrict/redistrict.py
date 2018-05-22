@@ -575,7 +575,9 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
                                             district_registry=self.get_district_registry(),
-                                            decorator_factory=CentroidDecoratorFactory(self.electorate_layer))
+                                            decorator_factory=CentroidDecoratorFactory(electorate_layer=self.electorate_layer,
+                                                                                       meshblock_layer=self.meshblock_layer,
+                                                                                       task=self.context.task))
         self.set_current_tool(tool=tool)
 
     def trigger_stats_tool(self):

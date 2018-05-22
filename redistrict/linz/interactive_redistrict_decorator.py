@@ -18,10 +18,14 @@ from qgis.PyQt.QtCore import (QSizeF,
 from qgis.PyQt.QtGui import (QImage,
                              QPainter)
 from qgis.core import (QgsFeatureRequest,
+                       QgsExpression,
                        QgsTextFormat,
                        QgsRenderContext,
-                       QgsTextRenderer)
-from qgis.gui import QgsMapCanvasItem
+                       QgsTextRenderer,
+                       QgsVectorLayer,
+                       QgsAggregateCalculator)
+from qgis.gui import (QgsMapCanvas,
+                      QgsMapCanvasItem)
 from redistrict.gui.interactive_redistrict_tool import DecoratorFactory
 
 
@@ -30,15 +34,19 @@ class CentroidDecorator(QgsMapCanvasItem):
     Decorates centroids of features with population statistics
     """
 
-    def __init__(self, canvas, layer):
+    def __init__(self, canvas: QgsMapCanvas, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer, task: str):
         """
         Constructor
         :param canvas: map canvas
-        :param layer: district layer to obtain population from
+        :param electorate_layer: electorates layer
+        :param meshblock_layer: meshblocks layer
+        :param task: current task
         """
         super().__init__(canvas)
         self.canvas = canvas
-        self.layer = layer
+        self.electorate_layer = electorate_layer
+        self.meshblock_layer = meshblock_layer
+        self.task = task
         self.text_format = QgsTextFormat()
         # self.text_format.shadow().setEnabled(True)
         self.text_format.background().setEnabled(True)
@@ -46,7 +54,7 @@ class CentroidDecorator(QgsMapCanvasItem):
         self.text_format.background().setOffset(QPointF(0, -0.7))
         self.text_format.background().setRadii(QSizeF(1, 1))
 
-    def paint(self, painter, option, widget):  # pylint: disable=missing-docstring, unused-argument
+    def paint(self, painter, option, widget):  # pylint: disable=missing-docstring, unused-argument, too-many-locals
         image_size = self.canvas.mapSettings().outputSize()
         image = QImage(image_size.width(), image_size.height(), QImage.Format_ARGB32)
         image.fill(0)
@@ -56,13 +64,20 @@ class CentroidDecorator(QgsMapCanvasItem):
         image_painter.setRenderHint(QPainter.Antialiasing, True)
 
         rect = self.canvas.mapSettings().visibleExtent()
-        for f in self.layer.getFeatures(QgsFeatureRequest().setFilterRect(rect)):
+        request = QgsFeatureRequest()
+        request.setFilterRect(rect)
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('type', self.task))
+
+        for f in self.electorate_layer.getFeatures(request):
             #    pole, dist = f.geometry().clipped(rect).poleOfInaccessibility(rect.width() / 30)
-            pole = f.geometry().clipped(rect).centroid()
-            pixel = self.toCanvasCoordinates(pole.asPoint())
+            pixel = self.toCanvasCoordinates(f.geometry().clipped(rect).centroid().asPoint())
+
+            calc = QgsAggregateCalculator(self.meshblock_layer)
+            calc.setFilter('staged_electorate={}'.format(f['electorate_id']))
+            estimated_pop, ok = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(self.task.lower()))  # pylint: disable=unused-variable
 
             text_string = ['{}'.format(f['name']),
-                           '{}'.format(int(f['estimated_pop']))]  # ,'M: {}'.format(int(f['Shape_Length']*.5))]
+                           '{}'.format(int(estimated_pop))]
             QgsTextRenderer().drawText(QPointF(pixel.x(), pixel.y()), 0, QgsTextRenderer.AlignCenter,
                                        text_string, render_context, self.text_format)
 
@@ -76,15 +91,17 @@ class CentroidDecoratorFactory(DecoratorFactory):
     Factory for CentroidDecorator
     """
 
-    def __init__(self, district_layer):
+    def __init__(self, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer, task: str):
         super().__init__()
-        self.district_layer = district_layer
+        self.electorate_layer = electorate_layer
+        self.meshblock_layer = meshblock_layer
+        self.task = task
 
-    def create_decorator(self, canvas):
+    def create_decorator(self, canvas: QgsMapCanvas):
         """
         Creates a new QgsMapCanvasItem decorator
         :param canvas: associated map canvas
         :return: QgsMapCanvasItem to display on map if decorations
         are desired
         """
-        return CentroidDecorator(canvas, self.district_layer)
+        return CentroidDecorator(canvas, electorate_layer=self.electorate_layer, meshblock_layer=self.meshblock_layer, task=self.task)
