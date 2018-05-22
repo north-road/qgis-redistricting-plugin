@@ -16,7 +16,8 @@ __revision__ = '$Format:%H$'
 import os.path
 from functools import partial
 from typing import Optional
-from qgis.PyQt.QtCore import (Qt,
+from qgis.PyQt.QtCore import (QObject,
+                              Qt,
                               QFile,
                               QSettings,
                               QTranslator,
@@ -61,7 +62,7 @@ from .linz.staged_electorate_update_task import UpdateStagedElectoratesTask
 from .linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
 
 
-class LinzRedistrict:  # pylint: disable=too-many-public-methods
+class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
     """QGIS Plugin Implementation."""
 
     TASK_GN = 'GN'
@@ -78,6 +79,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             application at run time.
         :type iface: QgsInterface
         """
+        super().__init__()
         # Save reference to the QGIS interface
         self.iface = iface
         # initialize plugin directory
@@ -109,6 +111,7 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.dock = None
         self.scenarios_tool_button = None
         self.context = None
+        self.current_dock_electorate = None
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -503,18 +506,36 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         """
         Returns the current redistricting handler
         """
-        return LinzRedistrictHandler(meshblock_layer=self.meshblock_layer,
-                                     target_field='staged_electorate',
-                                     electorate_layer=self.electorate_layer,
-                                     electorate_layer_field='electorate_id',
-                                     task=self.context.task)
+        handler = LinzRedistrictHandler(meshblock_layer=self.meshblock_layer,
+                                        target_field='staged_electorate',
+                                        electorate_layer=self.electorate_layer,
+                                        electorate_layer_field='electorate_id',
+                                        task=self.context.task)
+        handler.redistrict_occured.connect(self.refresh_dock_stats)
+        return handler
 
     def get_gui_handler(self) -> LinzRedistrictGuiHandler:
         """
         Returns the current redistricting GUI handler
         """
-        return LinzRedistrictGuiHandler(redistrict_dock=self.dock,
-                                        district_registry=self.get_district_registry())
+        handler = LinzRedistrictGuiHandler(redistrict_dock=self.dock,
+                                           district_registry=self.get_district_registry())
+        handler.current_district_changed.connect(self.current_dock_electorate_changed)
+        return handler
+
+    def current_dock_electorate_changed(self, electorate):
+        """
+        Triggered when electorate shown in dock changes
+        :param electorate: current electorate shown
+        """
+        self.current_dock_electorate = electorate
+
+    def refresh_dock_stats(self):
+        """
+        Refreshes the stats shown in the dock widget
+        """
+        handler = self.get_gui_handler()
+        handler.show_stats_for_district(self.current_dock_electorate)
 
     def redistrict_selected(self):
         """
@@ -580,9 +601,10 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
                                             district_registry=self.get_district_registry(),
-                                            decorator_factory=CentroidDecoratorFactory(electorate_layer=self.electorate_layer,
-                                                                                       meshblock_layer=self.meshblock_layer,
-                                                                                       task=self.context.task))
+                                            decorator_factory=CentroidDecoratorFactory(
+                                                electorate_layer=self.electorate_layer,
+                                                meshblock_layer=self.meshblock_layer,
+                                                task=self.context.task))
         self.set_current_tool(tool=tool)
 
     def trigger_stats_tool(self):

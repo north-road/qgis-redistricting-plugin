@@ -13,14 +13,18 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import (QCoreApplication,
+                              QObject,
+                              pyqtSignal)
 from redistrict.core.district_registry import DistrictRegistry
 
 
-class RedistrictGuiHandler:
+class RedistrictGuiHandler(QObject):
     """
     Base class for redistrict handling GUI operations.
     """
+
+    current_district_changed = pyqtSignal(int)
 
     def __init__(self, redistrict_dock,
                  district_registry):
@@ -29,6 +33,7 @@ class RedistrictGuiHandler:
         :param redistrict_dock: linked redistricting dock
         :param district_registry: associated district registry
         """
+        super().__init__()
         self._redistrict_dock = redistrict_dock
         self._district_registry = district_registry
 
@@ -56,3 +61,4 @@ class RedistrictGuiHandler:
         else:
             message = ''
         self._redistrict_dock.show_message(message)
+        self.current_district_changed.emit(district)

@@ -13,15 +13,21 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.PyQt.QtCore import (QObject,
+                              pyqtSignal)
 
-class RedistrictHandler():
+
+class RedistrictHandler(QObject):
     """
     Base class for redistrict handling operations. Pushes
     redistricting operations into the target layer's
     edit buffer
     """
 
+    redistrict_occured = pyqtSignal()
+
     def __init__(self, target_layer, target_field):
+        super().__init__()
         self.target_layer = target_layer
         self.target_field = target_field
         self.pending_changes = []
@@ -38,6 +44,7 @@ class RedistrictHandler():
         Ends a batch redistricting edit operation
         """
         self.target_layer.endEditCommand()
+        self.redistrict_occured.emit()
 
     def discard_edit_group(self):
         """
@@ -64,4 +71,5 @@ class RedistrictHandler():
                 success = False
 
         self.target_layer.triggerRepaint()
+        self.redistrict_occured.emit()
         return success

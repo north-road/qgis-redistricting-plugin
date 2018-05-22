@@ -178,6 +178,7 @@ class LinzRedistrictHandler(RedistrictHandler):
         self.electorate_layer.triggerRepaint()
 
         self.pending_affected_districts = {}
+        self.redistrict_occured.emit()
 
     def discard_edit_group(self):
         super().discard_edit_group()

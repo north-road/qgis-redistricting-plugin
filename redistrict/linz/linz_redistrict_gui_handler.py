@@ -69,3 +69,5 @@ class LinzRedistrictGuiHandler(RedistrictGuiHandler):
         <p><a href="xxx">Request population from Statistics NZ</a></p>""").format(
             **contents)
         self.redistrict_dock().show_message(message)
+
+        self.current_district_changed.emit(district)
