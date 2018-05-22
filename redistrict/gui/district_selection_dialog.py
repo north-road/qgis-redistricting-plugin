@@ -205,6 +205,7 @@ class DistrictPicker(QObject):
         canvas.setMapTool(self.previous_map_tool)
 
         self.selected_district = self.picker_tool.get_clicked_district()
+        self.district_registry.push_recent_district(self.selected_district)
         self.picked = True
 
     def picker_canceled(self):
