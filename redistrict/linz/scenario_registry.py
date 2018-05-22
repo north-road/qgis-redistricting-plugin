@@ -55,7 +55,7 @@ class ScenarioRegistry():
         self.created_by_field_index = source_layer.fields().lookupField(self.created_by_field)
         self.meshblock_electorate_layer = meshblock_electorate_layer
 
-    def get_scenario_name(self, scenario):
+    def get_scenario_name(self, scenario) -> str:
         """
         Returns a user-friendly name corresponding to the given scenario
         :param scenario: scenario id to get name for
@@ -69,6 +69,20 @@ class ScenarioRegistry():
         request.setLimit(1)
         f = next(self.source_layer.getFeatures(request))
         return f[self.name_field_index]
+
+    def get_scenario(self, scenario) -> QgsFeature:
+        """
+        Returns the feature corresponding to the given scenario
+        :param scenario: scenario id to get feature for
+        """
+
+        # lookup matching feature
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.id_field, scenario))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setLimit(1)
+        f = next(self.source_layer.getFeatures(request))
+        return f
 
     def scenario_list(self):
         """
@@ -133,7 +147,7 @@ class ScenarioRegistry():
             return True
         return False
 
-    def next_scenario_id(self):
+    def next_scenario_id(self) -> int:
         """
         Returns the next available scenario ID
         """

@@ -24,7 +24,8 @@ from qgis.core import (QgsApplication,
                        QgsVectorLayer,
                        QgsGeometry,
                        QgsPointXY,
-                       QgsFeature)
+                       QgsFeature,
+                       NULL)
 
 
 def make_scenario_layer() -> QgsVectorLayer:
@@ -116,6 +117,24 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertEqual(reg.get_scenario_name(1), "Scenario 1")
         self.assertEqual(reg.get_scenario_name(2), "scenario B")
         self.assertEqual(reg.get_scenario_name(3), "scenario 3")
+
+    def testGetScenario(self):
+        """
+        Test retrieving scenario feature
+        """
+        layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
+        )
+        f = reg.get_scenario(1)
+        self.assertEqual(f.attributes(), [1, 'Scenario 1', NULL, NULL])
+        f = reg.get_scenario(2)
+        self.assertEqual(f.attributes(), [2, 'scenario B', NULL, NULL])
 
     def testGetScenarioList(self):
         """
