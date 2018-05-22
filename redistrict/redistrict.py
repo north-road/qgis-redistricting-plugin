@@ -152,15 +152,15 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         switch_ni_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GN),
                                                       parent=switch_menu)
-        switch_ni_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GN))
+        switch_ni_general_electorate_action.triggered.connect(partial(self.set_task_and_show_progress, self.TASK_GN))
         switch_menu.addAction(switch_ni_general_electorate_action)
         switch_si_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GS),
                                                       parent=switch_menu)
-        switch_si_general_electorate_action.triggered.connect(partial(self.set_task, self.TASK_GS))
+        switch_si_general_electorate_action.triggered.connect(partial(self.set_task_and_show_progress, self.TASK_GS))
         switch_menu.addAction(switch_si_general_electorate_action)
         switch_maori_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_M),
                                                  parent=switch_menu)
-        switch_maori_electorate_action.triggered.connect(partial(self.set_task, self.TASK_M))
+        switch_maori_electorate_action.triggered.connect(partial(self.set_task_and_show_progress, self.TASK_M))
         switch_menu.addAction(switch_maori_electorate_action)
         self.redistricting_menu.addMenu(switch_menu)
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
@@ -429,6 +429,16 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
 
         QgsApplication.taskManager().addTask(self.switch_task)
 
+    def set_task_and_show_progress(self, task):
+        """
+        Sets the current task, showing a progress bar to report status
+        """
+        self.set_task(task)
+        self.progress_item = MessageBarProgressItem(self.tr('Switching to {}').format(self.context.get_name_for_task(task)), iface=self.iface)
+        self.switch_task.progressChanged.connect(self.progress_item.set_progress)
+        self.switch_task.taskCompleted.connect(self.progress_item.close)
+        self.switch_task.taskTerminated.connect(self.progress_item.close)
+
     def task_set(self, task):
         """
         Triggered after current task has been set
@@ -668,6 +678,11 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             partial(self.report_success, self.tr('Successfully switched to “{}”').format(scenario_name)))
         self.staged_task.taskTerminated.connect(
             partial(self.report_failure, self.tr('Error while switching to “{}”').format(scenario_name)))
+
+        self.progress_item = MessageBarProgressItem(self.tr('Switching to {}').format(scenario_name), iface=self.iface)
+        self.staged_task.progressChanged.connect(self.progress_item.set_progress)
+        self.staged_task.taskCompleted.connect(self.progress_item.close)
+        self.staged_task.taskTerminated.connect(self.progress_item.close)
 
         QgsApplication.taskManager().addTask(self.staged_task)
 
