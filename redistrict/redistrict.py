@@ -182,15 +182,15 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         self.start_editing_action.setEnabled(False)
         self.save_edits_action = QAction(GuiUtils.get_icon(
             'save_edits.svg'), self.tr('Save Staged Edits'))
-        # self.start_editing_action.triggered.connect(
-        #    self.toggle_editing)
+        self.save_edits_action.triggered.connect(
+            self.save_edits)
         self.redistricting_toolbar.addAction(
             self.save_edits_action)
         self.save_edits_action.setEnabled(False)
         self.rollback_edits_action = QAction(GuiUtils.get_icon(
             'rollback_edits.svg'), self.tr('Rollback Edits'))
-        # self.start_editing_action.triggered.connect(
-        #    self.toggle_editing)
+        self.rollback_edits_action.triggered.connect(
+            self.rollback_edits)
         self.redistricting_toolbar.addAction(
             self.rollback_edits_action)
         self.rollback_edits_action.setEnabled(False)
@@ -403,6 +403,21 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
             tools.stopEditing(self.meshblock_layer, allowCancel=False)
         self.set_current_tool(tool=None)
 
+    def save_edits(self):
+        """Saves pending edits"""
+        tools = self.iface.vectorLayerTools()
+        tools.saveEdits(self.meshblock_layer)
+
+    def rollback_edits(self):
+        """
+        Rolls back pending edits
+        """
+        if not self.meshblock_layer.isEditable():
+            return
+
+        self.meshblock_layer.rollBack(deleteBuffer=False)
+        self.meshblock_layer.triggerRepaint()
+
     def set_task(self, task: str):
         """
         Sets the current task
@@ -434,7 +449,8 @@ class LinzRedistrict:  # pylint: disable=too-many-public-methods
         Sets the current task, showing a progress bar to report status
         """
         self.set_task(task)
-        self.progress_item = MessageBarProgressItem(self.tr('Switching to {}').format(self.context.get_name_for_task(task)), iface=self.iface)
+        self.progress_item = MessageBarProgressItem(
+            self.tr('Switching to {}').format(self.context.get_name_for_task(task)), iface=self.iface)
         self.switch_task.progressChanged.connect(self.progress_item.set_progress)
         self.switch_task.taskCompleted.connect(self.progress_item.close)
         self.switch_task.taskTerminated.connect(self.progress_item.close)
