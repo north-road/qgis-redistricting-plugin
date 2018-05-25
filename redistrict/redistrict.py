@@ -35,7 +35,8 @@ from qgis.core import (QgsApplication,
                        QgsExpressionContextUtils,
                        Qgis,
                        QgsTask)
-from qgis.gui import (QgsMapTool,
+from qgis.gui import (QgisInterface,
+                      QgsMapTool,
                       QgsNewNameDialog)
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
@@ -71,7 +72,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
     MESHBLOCK_NUMBER_FIELD = 'MB2018_V1_00'
 
-    def __init__(self, iface):
+    def __init__(self, iface: QgisInterface):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
