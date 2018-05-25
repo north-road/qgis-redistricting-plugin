@@ -35,8 +35,19 @@ class LinzRedistrictingMessageBarProgressTest(unittest.TestCase):
         self.assertEqual(item.progress.value(), 50)
 
         item.close()
+
+        item.set_progress(100)
+
         # TODO - maybe a processEvents required here?
         # self.assertIsNone(IFACE.messageBar().currentItem())
+
+        item2 = MessageBarProgressItem('test', iface=IFACE)
+        self.assertIsNotNone(item2)
+
+        item2.set_progress(50)
+        item2.clear_progress()
+        # no error!
+        item.set_progress(100)
 
 
 if __name__ == "__main__":

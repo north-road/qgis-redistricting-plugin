@@ -38,6 +38,7 @@ class MessageBarProgressItem(QObject):
         self.progress = QProgressBar()
         self.progress.setMaximum(100)
         self.progress.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.progressMessageBar.destroyed.connect(self.clear_progress)
         self.progressMessageBar.layout().addWidget(self.progress)
         self.iface.messageBar().pushWidget(self.progressMessageBar,
                                            Qgis.Info)
@@ -46,11 +47,20 @@ class MessageBarProgressItem(QObject):
         """
         Closes the message bar item
         """
-        self.iface.messageBar().popWidget(self.progressMessageBar)
+        if self.progressMessageBar is not None:
+            self.iface.messageBar().popWidget(self.progressMessageBar)
+
+    def clear_progress(self):
+        """
+        Called on deletion of the progress bar, e.g. by user closing the bar
+        """
+        self.progress = None
+        self.progressMessageBar = None
 
     def set_progress(self, progress: int):
         """
         Sets the progress to show in the item
         :param progress: integer for percent progress, 0 - 100
         """
-        self.progress.setValue(progress)
+        if self.progress is not None:
+            self.progress.setValue(progress)
