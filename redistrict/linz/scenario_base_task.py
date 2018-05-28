@@ -107,7 +107,8 @@ class ScenarioBaseTask(QgsTask):
         """
         electorate_geometries = {}
         electorate_attributes = {}
-        for i, params in enumerate(self.electorates_to_process.values()):
+        i = 0
+        for electorate_id, params in self.electorates_to_process.items():
             self.setProgress(100 * i / len(self.electorates_to_process))
 
             electorate_feature_id = params[self.ELECTORATE_FEATURE_ID]
@@ -125,11 +126,12 @@ class ScenarioBaseTask(QgsTask):
                     [mbf[self.mb_off_pop_si_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_si_idx]])
 
             electorate_attributes[electorate_feature_id] = {self.ESTIMATED_POP: estimated_pop,
-                                                            self.ELECTORATE_ID: i}
+                                                            self.ELECTORATE_ID: electorate_id}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
             electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)
             electorate_geometry = electorate_geometry.makeValid()
             electorate_geometries[electorate_feature_id] = electorate_geometry
+            i += 1
 
         return electorate_geometries, electorate_attributes
