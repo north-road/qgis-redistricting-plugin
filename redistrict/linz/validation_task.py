@@ -58,11 +58,21 @@ class ValidationTask(ScenarioBaseTask):
             quota = self.electorate_registry.get_quota_for_district(electorate_id)
             name = self.electorate_registry.get_district_title(electorate_id)
             geometry = electorate_geometries[electorate_feature_id]
+
+            # quota check
             if self.electorate_registry.variation_exceeds_allowance(quota=quota, population=pop):
                 self.results.append({self.ELECTORATE_ID: electorate_id,
                                      self.ELECTORATE_NAME: name,
                                      self.ELECTORATE_GEOMETRY: geometry,
                                      self.ERROR: QCoreApplication.translate('LinzRedistrict',
                                                                             'Outside quota tolerance')})
+
+            # contiguity check
+            if geometry.isMultipart() and geometry.constGet().numGeometries() > 1:
+                self.results.append({self.ELECTORATE_ID: electorate_id,
+                                     self.ELECTORATE_NAME: name,
+                                     self.ELECTORATE_GEOMETRY: geometry,
+                                     self.ERROR: QCoreApplication.translate('LinzRedistrict',
+                                                                            'Electorate is non-contiguous')})
 
         return True

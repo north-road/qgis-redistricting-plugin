@@ -112,10 +112,13 @@ class ValidationTaskTest(unittest.TestCase):
                               task='GN')
 
         self.assertTrue(task.run())
-        self.assertEqual(len(task.results), 1)
-        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_ID], 3)
-        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_NAME], 'test3')
-        self.assertEqual(task.results[0][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual(len(task.results), 2)
+        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_ID], 2)
+        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_NAME], 'test2')
+        self.assertEqual(task.results[0][ValidationTask.ERROR], 'Electorate is non-contiguous')
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 3)
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test3')
+        self.assertEqual(task.results[1][ValidationTask.ERROR], 'Outside quota tolerance')
 
 
 if __name__ == "__main__":
