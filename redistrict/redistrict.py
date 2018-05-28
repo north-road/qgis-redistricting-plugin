@@ -7,6 +7,8 @@ the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
 
+# pylint: disable=too-many-lines
+
 __author__ = '(C) 2018 by Nyall Dawson'
 __date__ = '20/04/2018'
 __copyright__ = 'Copyright 2018, The QGIS Project'
@@ -61,6 +63,7 @@ from .linz.deprecate_electorate_dialog import DeprecateElectorateDialog
 from .linz.scenario_switch_task import ScenarioSwitchTask
 from .linz.staged_electorate_update_task import UpdateStagedElectoratesTask
 from .linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
+from .linz.validation_task import ValidationTask
 
 
 class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
@@ -106,6 +109,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.rollback_edits_action = None
         self.begin_action = None
         self.stats_tool_action = None
+        self.validate_action = None
         self.theme_menu = None
         self.new_themed_view_menu = None
         self.tool = None
@@ -127,6 +131,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.task = None
         self.switch_task = None
         self.staged_task = None
+        self.validation_task = None
         self.progress_item = None
 
     # noinspection PyMethodMayBeStatic
@@ -284,6 +289,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.scenarios_tool_button.setMenu(scenarios_menu)
         self.dock.dock_toolbar().addWidget(self.scenarios_tool_button)
+
+        self.validate_action = QAction(GuiUtils.get_icon('validate.svg'), self.tr('Validate Electorates'))
+        self.validate_action.triggered.connect(self.validate_electorates)
+        self.dock.dock_toolbar().addAction(self.validate_action)
 
         options_menu = QMenu(parent=self.dock.dock_toolbar())
 
@@ -963,3 +972,37 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             return
         else:
             registry.toggle_electorate_deprecation(electorate_id)
+
+    def validate_electorates(self):
+        """
+        Validate electorates
+        """
+        electorate_registry = self.get_district_registry()
+        task_name = self.tr('Validating Electorates')
+
+        progress_dialog = BlockingDialog(self.tr('Validating Electorates'), self.tr('Preparing validation...'))
+        progress_dialog.force_show_and_paint()
+
+        self.validation_task = ValidationTask(task_name,
+                                              electorate_registry=electorate_registry,
+                                              meshblock_layer=self.meshblock_layer,
+                                              meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
+                                              scenario_registry=self.scenario_registry,
+                                              scenario=self.context.scenario,
+                                              task=self.context.task)
+
+        progress_dialog.deleteLater()
+
+        self.validation_task.taskCompleted.connect(self.validation_complete)
+        self.validation_task.taskTerminated.connect(
+            partial(self.report_failure, self.tr('Validation failed')))
+
+        QgsApplication.taskManager().addTask(self.validation_task)
+
+    def validation_complete(self):
+        """
+        Triggered on validation task complete
+        """
+        self.report_success(self.tr('Validation complete'))
+        results = self.validation_task.results
+        self.dock.show_validation_results(results=results)

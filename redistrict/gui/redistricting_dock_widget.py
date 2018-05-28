@@ -17,7 +17,8 @@ from qgis.PyQt.QtWidgets import (QWidget,
                                  QGridLayout,
                                  QToolBar,
                                  QTextBrowser)
-from qgis.gui import QgsDockWidget
+from qgis.gui import (QgsDockWidget,
+                      QgisInterface)
 from qgis.utils import iface
 
 
@@ -26,7 +27,7 @@ class RedistrictingDockWidget(QgsDockWidget):
     Dock widget for display of redistricting statistics and operations
     """
 
-    def __init__(self, _iface=None):
+    def __init__(self, _iface: QgisInterface = None):
         super().__init__()
 
         if _iface is not None:

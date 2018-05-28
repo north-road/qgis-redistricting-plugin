@@ -28,7 +28,6 @@ class ScenarioSwitchTask(ScenarioBaseTask):
     MESHBLOCKS = 'MESHBLOCKS'
 
     def __init__(self, task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,
-                 # pylint: disable=too-many-locals
                  meshblock_number_field_name: str, scenario_registry: ScenarioRegistry, scenario):
         """
         Constructor for ScenarioSwitchTask
@@ -41,7 +40,7 @@ class ScenarioSwitchTask(ScenarioBaseTask):
         """
         super().__init__(task_name=task_name, electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
                          meshblock_number_field_name=meshblock_number_field_name, scenario_registry=scenario_registry,
-                         scenario=scenario)
+                         scenario=scenario, task=None)
 
     def run(self):  # pylint: disable=missing-docstring
         electorate_geometries, electorate_attributes = self.calculate_new_electorates()

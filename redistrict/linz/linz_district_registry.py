@@ -86,14 +86,14 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         request.combineFilterExpression('"{}" is null or not "{}"'.format(self.deprecated_field, self.deprecated_field))
         return request
 
-    def get_district_type(self, district) -> str:
+    def get_district_type(self, electorate_id) -> str:
         """
         Returns the district type (GN/GS/M) for the specified district
-        :param district: district id
+        :param electorate_id: electorate id
         """
         # lookup matching feature
         request = QgsFeatureRequest()
-        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, district))
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate_id))
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([self.type_field_index])
         request.setLimit(1)
@@ -132,12 +132,12 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         f = next(self.quota_layer.getFeatures(request))
         return f[quota_field_index]
 
-    def get_quota_for_district(self, district) -> int:
+    def get_quota_for_district(self, electorate_id) -> int:
         """
-        Returns the quota for the given district
-        :param district: district code/id
+        Returns the quota for the given electorate
+        :param electorate_id: electorate id
         """
-        district_type = self.get_district_type(district)
+        district_type = self.get_district_type(electorate_id)
         return self.get_quota_for_district_type(district_type)
 
     def get_code_for_electorate(self, electorate_id):
@@ -156,14 +156,14 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         f = next(self.source_layer.getFeatures(request))
         return f[code_field_index]
 
-    def get_estimated_population(self, district) -> int:
+    def get_estimated_population(self, electorate_id) -> int:
         """
         Returns the estimated (offline) population for the district
-        :param district: district code/id
+        :param electorate_id: electorate code/id
         """
         # lookup matching feature
         request = QgsFeatureRequest()
-        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, district))
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate_id))
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([self.estimated_pop_field_index])
         request.setLimit(1)

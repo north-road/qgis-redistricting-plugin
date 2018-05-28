@@ -13,6 +13,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from typing import Optional
 from qgis.core import (QgsTask,
                        QgsFeatureRequest,
                        QgsVectorLayer,
@@ -26,12 +27,14 @@ class ScenarioBaseTask(QgsTask):
     """
 
     ELECTORATE_FEATURE_ID = 'ELECTORATE_FEATURE_ID'
+    ELECTORATE_ID = 'ELECTORATE_ID'
     ELECTORATE_TYPE = 'ELECTORATE_TYPE '
     MESHBLOCKS = 'MESHBLOCKS'
     ESTIMATED_POP = 'ESTIMATED_POP'
 
     def __init__(self, task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,  # pylint: disable=too-many-locals
-                 meshblock_number_field_name: str, scenario_registry: ScenarioRegistry, scenario):
+                 meshblock_number_field_name: str, scenario_registry: ScenarioRegistry, scenario,
+                 task: Optional[str] = None):
         """
         Constructor for ScenarioSwitchTask
         :param task_name: user-visible, translated name for task
@@ -40,11 +43,13 @@ class ScenarioBaseTask(QgsTask):
         :param meshblock_number_field_name: name of meshblock number field
         :param scenario_registry: scenario registry
         :param scenario: target scenario id to switch to
+        :param task: current redistricting task
         """
         super().__init__(task_name)
 
         self.scenario = scenario
         self.electorate_layer = electorate_layer
+        self.task = task
 
         self.type_idx = electorate_layer.fields().lookupField('type')
         assert self.type_idx >= 0
@@ -81,6 +86,9 @@ class ScenarioBaseTask(QgsTask):
             # get meshblocks for this electorate in the target scenario
             electorate_id = electorate[electorate_id_idx]
             electorate_type = electorate[self.type_idx]
+            if self.task and electorate_type != self.task:
+                continue
+
             electorate_meshblocks = scenario_registry.electorate_meshblocks(electorate_id=electorate_id,
                                                                             electorate_type=electorate_type,
                                                                             scenario_id=scenario)
@@ -116,7 +124,8 @@ class ScenarioBaseTask(QgsTask):
                 estimated_pop = sum(
                     [mbf[self.mb_off_pop_si_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_si_idx]])
 
-            electorate_attributes[electorate_feature_id] = {self.ESTIMATED_POP: estimated_pop}
+            electorate_attributes[electorate_feature_id] = {self.ESTIMATED_POP: estimated_pop,
+                                                            self.ELECTORATE_ID: i}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
             electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)
