@@ -149,7 +149,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         assert code_field_index >= 0
 
         request = QgsFeatureRequest()
-        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate_id))
+        request.setFilterFid(electorate_id)
         request.setFlags(QgsFeatureRequest.NoGeometry)
         request.setSubsetOfAttributes([code_field_index])
         request.setLimit(1)

@@ -183,7 +183,8 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         f2.setAttributes(["test2", "xtest2", 'GS'])
         f3 = QgsFeature()
         f3.setAttributes(["test3", "xtest3", 'M'])
-        layer.dataProvider().addFeatures([f, f2, f3])
+        ok, (f, f2, f3) = layer.dataProvider().addFeatures([f, f2, f3])
+        self.assertTrue(ok)
         quota_layer = make_quota_layer()
 
         reg = LinzElectoralDistrictRegistry(
@@ -193,11 +194,11 @@ class LinzDistrictRegistryTest(unittest.TestCase):
             source_field='fld1',
             title_field='fld1')
 
-        self.assertEqual(reg.get_code_for_electorate('test1'), 'xtest1')
-        self.assertEqual(reg.get_code_for_electorate('test2'), 'xtest2')
-        self.assertEqual(reg.get_code_for_electorate('test3'), 'xtest3')
+        self.assertEqual(reg.get_code_for_electorate(f.id()), 'xtest1')
+        self.assertEqual(reg.get_code_for_electorate(f2.id()), 'xtest2')
+        self.assertEqual(reg.get_code_for_electorate(f3.id()), 'xtest3')
         try:
-            reg.get_code_for_electorate('X')
+            reg.get_code_for_electorate(-10)
             assert 'Unexpected success - expecting assert'
         except:  # noqa, pylint: disable=bare-except
             pass
