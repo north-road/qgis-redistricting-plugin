@@ -57,8 +57,9 @@ class ValidationTask(ScenarioBaseTask):
         for electorate_feature_id, attributes in electorate_attributes.items():
             electorate_id = attributes[self.ELECTORATE_ID]
             pop = attributes[self.ESTIMATED_POP]
+            electorate_type = attributes[self.ELECTORATE_TYPE]
 
-            quota = self.electorate_registry.get_quota_for_district(electorate_id)
+            quota = self.electorate_registry.get_quota_for_district_type(electorate_type)
             name = self.electorate_registry.get_district_title(electorate_id)
             geometry = electorate_geometries[electorate_feature_id]
 

@@ -33,6 +33,7 @@ def make_user_log_layer() -> QgsVectorLayer:
         "NoGeometry?field=log_id:int&field=timestamp:datetime&field=username:string&field=meshblock_version:string&field=scenario_id:int&field=meshblock_number:string&field=type:string&field=from_electorate_id:int&field=to_electorate_id:int",
         "source", "memory")
     assert layer.isValid()
+
     return layer
 
 

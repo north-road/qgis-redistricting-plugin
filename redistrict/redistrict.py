@@ -64,6 +64,7 @@ from .linz.scenario_switch_task import ScenarioSwitchTask
 from .linz.staged_electorate_update_task import UpdateStagedElectoratesTask
 from .linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
 from .linz.validation_task import ValidationTask
+from .linz.export_task import ExportTask
 
 
 class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
@@ -133,6 +134,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.switch_task = None
         self.staged_task = None
         self.validation_task = None
+        self.export_task = None
         self.progress_item = None
 
     # noinspection PyMethodMayBeStatic
@@ -318,6 +320,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         master_db_menu.addAction(import_master_action)
 
         options_menu.addMenu(master_db_menu)
+
+        export_action = QAction(self.tr('Export Electorates...'), parent=options_menu)
+        export_action.triggered.connect(self.export_electorates)
+        options_menu.addAction(export_action)
 
         options_menu.addSeparator()
         log_action = QAction(self.tr('View Log...'), parent=options_menu)
@@ -1022,3 +1028,41 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Shows the user interaction log
         """
         self.iface.showAttributeTable(self.user_log_layer)
+
+    def export_electorates(self):
+        """
+        Exports the final electorates to a database package
+        """
+        destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                           self.tr('Export Electorates'), '',
+                                                           filter='Database Files (*.gpkg)')
+        if not destination:
+            return
+
+        if not destination.endswith('.gpkg'):
+            destination += '.gpkg'
+
+        electorate_registry = self.get_district_registry()
+        task_name = self.tr('Exporting Electorates')
+
+        progress_dialog = BlockingDialog(self.tr('Exporting Electorates'), self.tr('Preparing export...'))
+        progress_dialog.force_show_and_paint()
+
+        self.export_task = ExportTask(task_name=task_name, dest_file=destination,
+                                      electorate_registry=electorate_registry,
+                                      meshblock_layer=self.meshblock_layer,
+                                      meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
+                                      scenario_registry=self.scenario_registry,
+                                      scenario=self.context.scenario, user_log_layer=self.user_log_layer)
+
+        self.export_task.taskCompleted.connect(
+            partial(self.report_success, self.tr('Export complete')))
+        self.export_task.taskTerminated.connect(self.__export_failed)
+
+        QgsApplication.taskManager().addTask(self.export_task)
+
+    def __export_failed(self):
+        """
+        Triggered on export failure
+        """
+        self.report_failure(self.tr('Export failed: {}').format(self.export_task.message))

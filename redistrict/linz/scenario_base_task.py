@@ -28,7 +28,9 @@ class ScenarioBaseTask(QgsTask):
 
     ELECTORATE_FEATURE_ID = 'ELECTORATE_FEATURE_ID'
     ELECTORATE_ID = 'ELECTORATE_ID'
-    ELECTORATE_TYPE = 'ELECTORATE_TYPE '
+    ELECTORATE_TYPE = 'ELECTORATE_TYPE'
+    ELECTORATE_CODE = 'ELECTORATE_CODE'
+    ELECTORATE_NAME = 'ELECTORATE_NAME'
     MESHBLOCKS = 'MESHBLOCKS'
     ESTIMATED_POP = 'ESTIMATED_POP'
 
@@ -73,24 +75,30 @@ class ScenarioBaseTask(QgsTask):
 
         electorate_id_idx = electorate_layer.fields().lookupField('electorate_id')
         assert electorate_id_idx >= 0
-        meshblock_number_idx = meshblock_layer.fields().lookupField(meshblock_number_field_name)
-        assert meshblock_number_idx >= 0
+        self.code_idx = electorate_layer.fields().lookupField('code')
+        assert self.code_idx >= 0
+        self.name_idx = electorate_layer.fields().lookupField('name')
+        assert self.name_idx >= 0
+        self.meshblock_number_idx = meshblock_layer.fields().lookupField(meshblock_number_field_name)
+        assert self.meshblock_number_idx >= 0
 
         # do a bit of preparatory processing on the main thread for safety
 
         # dict of meshblock number to feature
         meshblocks = {}
         for m in meshblock_layer.getFeatures():
-            meshblocks[int(m[meshblock_number_idx])] = m
+            meshblocks[int(m[self.meshblock_number_idx])] = m
 
         # dict of electorates to process (by id)
         self.electorates_to_process = {}
         request = QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx])
+        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx, self.code_idx, self.name_idx])
         for electorate in electorate_layer.getFeatures(request):
             # get meshblocks for this electorate in the target scenario
             electorate_id = electorate[electorate_id_idx]
             electorate_type = electorate[self.type_idx]
+            electorate_code = electorate[self.code_idx]
+            electorate_name = electorate[self.name_idx]
             if self.task and electorate_type != self.task:
                 continue
 
@@ -102,6 +110,8 @@ class ScenarioBaseTask(QgsTask):
 
             self.electorates_to_process[electorate_id] = {self.ELECTORATE_FEATURE_ID: electorate.id(),
                                                           self.ELECTORATE_TYPE: electorate_type,
+                                                          self.ELECTORATE_CODE: electorate_code,
+                                                          self.ELECTORATE_NAME: electorate_name,
                                                           self.MESHBLOCKS: matching_meshblocks}
 
         self.setDependentLayers([electorate_layer])
@@ -131,7 +141,11 @@ class ScenarioBaseTask(QgsTask):
                     [mbf[self.mb_off_pop_si_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_si_idx]])
 
             electorate_attributes[electorate_feature_id] = {self.ESTIMATED_POP: estimated_pop,
-                                                            self.ELECTORATE_ID: electorate_id}
+                                                            self.ELECTORATE_ID: electorate_id,
+                                                            self.ELECTORATE_TYPE: electorate_type,
+                                                            self.ELECTORATE_NAME: params[self.ELECTORATE_NAME],
+                                                            self.ELECTORATE_CODE: params[self.ELECTORATE_CODE],
+                                                            self.MESHBLOCKS: matching_meshblocks}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
             electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)

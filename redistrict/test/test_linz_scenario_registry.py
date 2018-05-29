@@ -22,7 +22,8 @@ from redistrict.linz.staged_electorate_update_task import UpdateStagedElectorate
 from qgis.PyQt.QtCore import (QDateTime,
                               QDate,
                               QTime)
-from qgis.core import (QgsApplication,
+from qgis.core import (NULL,
+                       QgsApplication,
                        QgsVectorLayer,
                        QgsGeometry,
                        QgsPointXY,
@@ -463,7 +464,7 @@ class ScenarioRegistryTest(unittest.TestCase):
             meshblock_electorate_layer=mb_electorate_layer
         )
         electorate_layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=invalid:int&field=invalid_reason:string",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=invalid:int&field=invalid_reason:string&field=name:string",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "test1", 'GN', -1, 0, 1, 'old invalid'])
@@ -509,14 +510,14 @@ class ScenarioRegistryTest(unittest.TestCase):
         task = ScenarioSwitchTask(task_name='', electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
                                   meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=1)
         self.assertTrue(task.run())
-        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 11, 1, 0, None],
-                                                                                    [2, 'test2', 'GN', 25, 1, 0, None],
-                                                                                    [3, 'test3', 'GN', 0, 1, 0, None],
-                                                                                    [4, 'test4', 'GS', 20, 1, 0, None],
-                                                                                    [5, 'test5', 'GS', 70, 1, 0, None],
-                                                                                    [6, 'test6', 'GS', 0, 1, 0, None],
-                                                                                    [7, 'test7', 'M', 18, 1, 0, None],
-                                                                                    [8, 'test8', 'M', 27, 1, 0, None]])
+        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 11, 1, 0, None, NULL],
+                                                                                    [2, 'test2', 'GN', 25, 1, 0, None, NULL],
+                                                                                    [3, 'test3', 'GN', 0, 1, 0, None, NULL],
+                                                                                    [4, 'test4', 'GS', 20, 1, 0, None, NULL],
+                                                                                    [5, 'test5', 'GS', 70, 1, 0, None, NULL],
+                                                                                    [6, 'test6', 'GS', 0, 1, 0, None, NULL],
+                                                                                    [7, 'test7', 'M', 18, 1, 0, None, NULL],
+                                                                                    [8, 'test8', 'M', 27, 1, 0, None, NULL]])
         self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['Point (1 2)',
                                                                                           'MultiPoint ((2 3),(4 5))',
                                                                                           'GeometryCollection ()',
@@ -539,14 +540,14 @@ class ScenarioRegistryTest(unittest.TestCase):
         task = ScenarioSwitchTask(task_name='', electorate_layer=electorate_layer, meshblock_layer=meshblock_layer,
                                   meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=2)
         self.assertTrue(task.run())
-        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 0, 2, 0, None],
-                                                                                    [2, 'test2', 'GN', 23, 2, 0, None],
-                                                                                    [3, 'test3', 'GN', 13, 2, 0, None],
-                                                                                    [4, 'test4', 'GS', 70, 2, 0, None],
-                                                                                    [5, 'test5', 'GS', 20, 2, 0, None],
-                                                                                    [6, 'test6', 'GS', 0, 2, 0, None],
-                                                                                    [7, 'test7', 'M', 21, 2, 0, None],
-                                                                                    [8, 'test8', 'M', 24, 2, 0, None]])
+        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 0, 2, 0, None, NULL],
+                                                                                    [2, 'test2', 'GN', 23, 2, 0, None, NULL],
+                                                                                    [3, 'test3', 'GN', 13, 2, 0, None, NULL],
+                                                                                    [4, 'test4', 'GS', 70, 2, 0, None, NULL],
+                                                                                    [5, 'test5', 'GS', 20, 2, 0, None, NULL],
+                                                                                    [6, 'test6', 'GS', 0, 2, 0, None, NULL],
+                                                                                    [7, 'test7', 'M', 21, 2, 0, None, NULL],
+                                                                                    [8, 'test8', 'M', 24, 2, 0, None, NULL]])
         self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['GeometryCollection ()',
                                                                                           'MultiPoint ((1 2),(2 3))',
                                                                                           'Point (4 5)',
