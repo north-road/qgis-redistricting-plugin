@@ -33,7 +33,7 @@ class LinzRedistrictHandler(RedistrictHandler):
     """
 
     def __init__(self, meshblock_layer: QgsVectorLayer, target_field: str, electorate_layer: QgsVectorLayer,
-                 electorate_layer_field: str, task: str):
+                 electorate_layer_field: str, task: str, user_log_layer: QgsVectorLayer):
         """
         Constructor
         :param meshblock_layer: meshblock layer
@@ -41,17 +41,34 @@ class LinzRedistrictHandler(RedistrictHandler):
         :param electorate_layer: electoral district layer
         :param electorate_layer_field: matching field from electorate layer
         :param task: current task
+        :param user_log_layer: user log layer
         """
         super().__init__(target_layer=meshblock_layer, target_field=target_field)
         self.electorate_layer = electorate_layer
         self.electorate_layer_field = electorate_layer_field
         self.pending_affected_districts = {}
         self.task = task
+        self.user_log_layer = user_log_layer
 
         self.estimated_pop_idx = self.electorate_layer.fields().lookupField('estimated_pop')
         assert self.estimated_pop_idx >= 0
         self.offline_pop_field = 'offline_pop_{}'.format(self.task.lower())
         assert meshblock_layer.fields().lookupField(self.offline_pop_field) >= 0
+
+        self.user_log_timestamp_idx = self.user_log_layer.fields().lookupField('timestamp')
+        assert self.user_log_timestamp_idx >= 0
+        self.user_log_username_idx = self.user_log_layer.fields().lookupField('username')
+        assert self.user_log_username_idx >= 0
+        self.user_log_scenario_idx = self.user_log_layer.fields().lookupField('scenario_id')
+        assert self.user_log_scenario_idx >= 0
+        self.user_log_mb_number_idx = self.user_log_layer.fields().lookupField('meshblock_number')
+        assert self.user_log_mb_number_idx >= 0
+        self.user_log_type_idx = self.user_log_layer.fields().lookupField('type')
+        assert self.user_log_type_idx >= 0
+        self.user_log_from_idx = self.user_log_layer.fields().lookupField('from_electorate_id')
+        assert self.user_log_from_idx >= 0
+        self.user_log_to_idx = self.user_log_layer.fields().lookupField('to_electorate_id')
+        assert self.user_log_to_idx >= 0
 
     def create_affected_district_filter(self):
         """

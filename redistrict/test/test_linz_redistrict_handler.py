@@ -25,6 +25,17 @@ from qgis.core import (QgsVectorLayer,
                        NULL)
 
 
+def make_user_log_layer() -> QgsVectorLayer:
+    """
+    Makes a dummy user log layer for testing
+    """
+    layer = QgsVectorLayer(
+        "NoGeometry?field=log_id:int&field=timestamp:datetime&field=username:string&field=meshblock_version:string&field=scenario_id:int&field=meshblock_number:int&field=type:string&field=from_electorate_id:int&field=to_electorate_id:int",
+        "source", "memory")
+    assert layer.isValid()
+    return layer
+
+
 class LINZRedistrictHandlerTest(unittest.TestCase):
     """Test LinzRedistrictHandler."""
 
@@ -73,8 +84,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         success, [d, d2, d3, d4, d5] = district_layer.dataProvider().addFeatures([d, d2, d3, d4, d5])
         self.assertTrue(success)
 
+        user_log_layer = make_user_log_layer()
+
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, target_field='fld1',
-                                        electorate_layer=district_layer, electorate_layer_field='fld1', task='GN')
+                                        electorate_layer=district_layer, electorate_layer_field='fld1', task='GN',
+                                        user_log_layer=user_log_layer)
         self.assertTrue(meshblock_layer.startEditing())
         handler.begin_edit_group('test')
         self.assertTrue(handler.assign_district([f.id(), f3.id()], 'aaa'))
@@ -190,18 +204,22 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         success, [d, d2, d3, d4, d5] = district_layer.dataProvider().addFeatures([d, d2, d3, d4, d5])
         self.assertTrue(success)
 
+        user_log_layer = make_user_log_layer()
+
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, target_field='fld1',
-                                        electorate_layer=district_layer, electorate_layer_field='fld1', task='GN')
+                                        electorate_layer=district_layer, electorate_layer_field='fld1', task='GN',
+                                        user_log_layer=user_log_layer)
         self.assertTrue(meshblock_layer.startEditing())
         handler.begin_edit_group('test')
         self.assertTrue(handler.assign_district([f.id(), f3.id(), f6.id()], 5))
         self.assertTrue(handler.assign_district([f5.id()], 5))
 
         # pending changes should be recorded
-        self.assertEqual(handler.pending_affected_districts, {5: {'ADD': [f.id(), f3.id(), f6.id(), f5.id()], 'REMOVE': []},
-                                                              2: {'ADD': [], 'REMOVE': [f5.id()]},
-                                                              3: {'ADD': [], 'REMOVE': [f3.id()]},
-                                                              4: {'ADD': [], 'REMOVE': [f.id()]}})
+        self.assertEqual(handler.pending_affected_districts,
+                         {5: {'ADD': [f.id(), f3.id(), f6.id(), f5.id()], 'REMOVE': []},
+                          2: {'ADD': [], 'REMOVE': [f5.id()]},
+                          3: {'ADD': [], 'REMOVE': [f3.id()]},
+                          4: {'ADD': [], 'REMOVE': [f.id()]}})
         self.assertEqual(handler.create_affected_district_filter(), "fld1 IN (4,3,5,2)")
 
         self.assertCountEqual([f["fld1"] for f in handler.get_affected_districts()], [4, 3, 5, 2])
