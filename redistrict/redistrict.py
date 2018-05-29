@@ -124,6 +124,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.scenario_layer = None
         self.quota_layer = None
         self.meshblock_electorate_layer = None
+        self.user_log_layer = None
         self.scenario_registry = None
         self.meshblock_scenario_bridge = None
         self.db_source = os.path.join(self.plugin_dir,
@@ -307,7 +308,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         electorate_menu.addAction(deprecate_electorate_action)
 
         options_menu.addMenu(electorate_menu)
-        options_menu.addSeparator()
 
         master_db_menu = QMenu(self.tr('Database'), parent=options_menu)
         export_master_action = QAction(self.tr('Export Database...'), parent=master_db_menu)
@@ -318,6 +318,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         master_db_menu.addAction(import_master_action)
 
         options_menu.addMenu(master_db_menu)
+
+        options_menu.addSeparator()
+        log_action = QAction(self.tr('View Log...'), parent=options_menu)
+        log_action.triggered.connect(self.view_log)
+        options_menu.addAction(log_action)
 
         options_button = QToolButton(parent=self.dock.dock_toolbar())
         options_button.setAutoRaise(True)
@@ -351,6 +356,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             'scenarios')[0]
         self.meshblock_electorate_layer = QgsProject.instance().mapLayersByName(
             'meshblock_electorates')[0]
+        self.user_log_layer = QgsProject.instance().mapLayersByName(
+            'user_log')[0]
         self.db_source = self.electorate_layer.dataProvider().dataSourceUri().split('|')[0]
 
         self.scenario_registry = ScenarioRegistry(source_layer=self.scenario_layer,
@@ -1006,3 +1013,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.report_success(self.tr('Validation complete'))
         results = self.validation_task.results
         self.dock.show_validation_results(results=results)
+
+    def view_log(self):
+        """
+        Shows the user interaction log
+        """
+        self.iface.showAttributeTable(self.user_log_layer)
