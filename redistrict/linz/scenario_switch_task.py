@@ -53,7 +53,9 @@ class ScenarioSwitchTask(ScenarioBaseTask):
             attribute_change_map[electorate_feature_id] = {self.scenario_id_idx: self.scenario,
                                                            self.estimated_pop_idx:
                                                                electorate_attributes[electorate_feature_id][
-                                                                   self.ESTIMATED_POP]}
+                                                                   self.ESTIMATED_POP],
+                                                           self.invalid_idx: 0,
+                                                           self.invalid_reason_idx: None}
 
             electorate_geometry = electorate_geometries[electorate_feature_id]
             geometry_change_map[electorate_feature_id] = electorate_geometry

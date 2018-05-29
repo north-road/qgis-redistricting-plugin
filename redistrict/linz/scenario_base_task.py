@@ -66,6 +66,11 @@ class ScenarioBaseTask(QgsTask):
         self.mb_off_pop_si_idx = meshblock_layer.fields().lookupField('offline_pop_gs')
         assert self.mb_off_pop_si_idx >= 0
 
+        self.invalid_reason_idx = self.electorate_layer.fields().lookupField('invalid_reason')
+        assert self.invalid_reason_idx >= 0
+        self.invalid_idx = self.electorate_layer.fields().lookupField('invalid')
+        assert self.invalid_idx >= 0
+
         electorate_id_idx = electorate_layer.fields().lookupField('electorate_id')
         assert electorate_id_idx >= 0
         meshblock_number_idx = meshblock_layer.fields().lookupField(meshblock_number_field_name)

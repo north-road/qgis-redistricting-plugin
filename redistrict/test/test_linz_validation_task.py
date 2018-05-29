@@ -20,7 +20,8 @@ from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.validation_task import ValidationTask
 from redistrict.test.test_linz_scenario_registry import make_scenario_layer
 from redistrict.test.test_linz_district_registry import make_quota_layer
-from qgis.core import (QgsVectorLayer,
+from qgis.core import (NULL,
+                       QgsVectorLayer,
                        QgsGeometry,
                        QgsPointXY,
                        QgsFeature)
@@ -58,24 +59,24 @@ class ValidationTaskTest(unittest.TestCase):
             meshblock_electorate_layer=mb_electorate_layer
         )
         electorate_layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=deprecated:int",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=deprecated:int&field=invalid:int&field=invalid_reason:string",
             "source", "memory")
         f = QgsFeature()
-        f.setAttributes([1, "test1", 'GN', 1, 0])
+        f.setAttributes([1, "test1", 'GN', 1, 0, 0, 1, 'old invalid'])
         f2 = QgsFeature()
-        f2.setAttributes([2, "test2", 'GN', 1, 0])
+        f2.setAttributes([2, "test2", 'GN', 1, 0, 0, 1, 'old invalid 2'])
         f3 = QgsFeature()
-        f3.setAttributes([3, "test3", 'GN', 1, 0])
+        f3.setAttributes([3, "test3", 'GN', 1, 0, 0, 1, 'old invalid 3'])
         f4 = QgsFeature()
-        f4.setAttributes([4, "test4", 'GS', 1, 0])
+        f4.setAttributes([4, "test4", 'GS', 1, 0, 0, 1, 'old invalid 4'])
         f5 = QgsFeature()
-        f5.setAttributes([5, "test5", 'GS', 1, 0])
+        f5.setAttributes([5, "test5", 'GS', 1, 0, 0, 1, 'old invalid 5'])
         f6 = QgsFeature()
-        f6.setAttributes([6, "test6", 'GS', 1, 0])
+        f6.setAttributes([6, "test6", 'GS', 1, 0, 0, 1, 'old invalid 6'])
         f7 = QgsFeature()
-        f7.setAttributes([7, "test7", 'M', 1, 0])
+        f7.setAttributes([7, "test7", 'M', 1, 0, 0, 1, 'old invalid 7'])
         f8 = QgsFeature()
-        f8.setAttributes([8, "test8", 'M', 1, 0])
+        f8.setAttributes([8, "test8", 'M', 1, 0, 0, 1, 'old invalid 8'])
         electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6, f7, f8])
 
         meshblock_layer = QgsVectorLayer(
@@ -119,6 +120,14 @@ class ValidationTaskTest(unittest.TestCase):
         self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 3)
         self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test3')
         self.assertEqual(task.results[1][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL],
+                                                                                    [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous'],
+                                                                                    [3, 'test3', 'GN', 1, 0, 0, 1, 'Outside quota tolerance'],
+                                                                                    [4, 'test4', 'GS', 1, 0, 0, 1, 'old invalid 4'],
+                                                                                    [5, 'test5', 'GS', 1, 0, 0, 1, 'old invalid 5'],
+                                                                                    [6, 'test6', 'GS', 1, 0, 0, 1, 'old invalid 6'],
+                                                                                    [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7'],
+                                                                                    [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8']])
 
 
 if __name__ == "__main__":

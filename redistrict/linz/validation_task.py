@@ -14,7 +14,8 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import QgsVectorLayer
+from qgis.core import (QgsVectorLayer,
+                       NULL)
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.scenario_base_task import ScenarioBaseTask
@@ -51,6 +52,8 @@ class ValidationTask(ScenarioBaseTask):
 
     def run(self):  # pylint: disable=missing-docstring
         electorate_geometries, electorate_attributes = self.calculate_new_electorates()
+
+        attribute_change_map = {}
         for electorate_feature_id, attributes in electorate_attributes.items():
             electorate_id = attributes[self.ELECTORATE_ID]
             pop = attributes[self.ESTIMATED_POP]
@@ -59,20 +62,33 @@ class ValidationTask(ScenarioBaseTask):
             name = self.electorate_registry.get_district_title(electorate_id)
             geometry = electorate_geometries[electorate_feature_id]
 
+            # clear any existing validation result
+            attribute_change_map[electorate_feature_id] = {self.invalid_idx: 0,
+                                                           self.invalid_reason_idx: NULL,
+                                                           self.scenario_id_idx: self.scenario,
+                                                           self.estimated_pop_idx: attributes[self.ESTIMATED_POP]}
             # quota check
             if self.electorate_registry.variation_exceeds_allowance(quota=quota, population=pop):
+                error = QCoreApplication.translate('LinzRedistrict', 'Outside quota tolerance')
                 self.results.append({self.ELECTORATE_ID: electorate_id,
                                      self.ELECTORATE_NAME: name,
                                      self.ELECTORATE_GEOMETRY: geometry,
-                                     self.ERROR: QCoreApplication.translate('LinzRedistrict',
-                                                                            'Outside quota tolerance')})
+                                     self.ERROR: error})
+                attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
+                                                               self.invalid_reason_idx: error}
 
             # contiguity check
             if geometry.isMultipart() and geometry.constGet().numGeometries() > 1:
+                error = QCoreApplication.translate('LinzRedistrict', 'Electorate is non-contiguous')
                 self.results.append({self.ELECTORATE_ID: electorate_id,
                                      self.ELECTORATE_NAME: name,
                                      self.ELECTORATE_GEOMETRY: geometry,
-                                     self.ERROR: QCoreApplication.translate('LinzRedistrict',
-                                                                            'Electorate is non-contiguous')})
+                                     self.ERROR: error})
+                attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
+                                                               self.invalid_reason_idx: error}
+
+        # commit changes
+        if not self.electorate_layer.dataProvider().changeAttributeValues(attribute_change_map):
+            return False
 
         return True
