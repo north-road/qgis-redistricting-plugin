@@ -30,7 +30,7 @@ def make_user_log_layer() -> QgsVectorLayer:
     Makes a dummy user log layer for testing
     """
     layer = QgsVectorLayer(
-        "NoGeometry?field=log_id:int&field=timestamp:datetime&field=username:string&field=meshblock_version:string&field=scenario_id:int&field=meshblock_number:int&field=type:string&field=from_electorate_id:int&field=to_electorate_id:int",
+        "NoGeometry?field=log_id:int&field=timestamp:datetime&field=username:string&field=meshblock_version:string&field=scenario_id:int&field=meshblock_number:string&field=type:string&field=from_electorate_id:int&field=to_electorate_id:int",
         "source", "memory")
     assert layer.isValid()
     return layer
@@ -86,9 +86,10 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
 
         user_log_layer = make_user_log_layer()
 
-        handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, target_field='fld1',
+        handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, meshblock_number_field_name='fld1',
+                                        target_field='fld1',
                                         electorate_layer=district_layer, electorate_layer_field='fld1', task='GN',
-                                        user_log_layer=user_log_layer)
+                                        user_log_layer=user_log_layer, scenario=1)
         self.assertTrue(meshblock_layer.startEditing())
         handler.begin_edit_group('test')
         self.assertTrue(handler.assign_district([f.id(), f3.id()], 'aaa'))
@@ -100,6 +101,8 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
                                                               'test3': {'ADD': [], 'REMOVE': [f3.id()]},
                                                               'test4': {'ADD': [], 'REMOVE': [f.id()]}})
         self.assertEqual(handler.create_affected_district_filter(), "fld1 IN ('test4','test3','aaa','test2')")
+
+        self.assertEqual([f.attributes() for f in user_log_layer.getFeatures()], [])
 
         self.assertCountEqual([f["fld1"] for f in handler.get_affected_districts()], ['test4', 'test3', 'aaa', 'test2'])
         self.assertCountEqual([f["fld1"] for f in handler.get_affected_districts(['fld1'])],
@@ -120,6 +123,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertFalse([f.id() for f in handler.get_removed_meshblocks('test2')])
         self.assertFalse([f.id() for f in handler.get_removed_meshblocks('test3')])
         self.assertFalse([f["fld1"] for f in handler.get_removed_meshblocks('aaa')])
+
+        self.assertEqual([f.attributes()[4:] for f in user_log_layer.getFeatures()],
+                         [[1, 'test4', 'GN', 'test4', 'aaa'],
+                          [1, 'test3', 'GN', 'test3', 'aaa'],
+                          [1, 'test2', 'GN', 'test2', 'aaa']])
 
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], ['aaa', 'test2', 'aaa', 'test1', 'aaa'])
         self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 15.0, 0.0, 0.0, 83.0])
@@ -155,6 +163,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, 0 15, 10 15, 10 10, 5 10, 5 5))')
+
+        self.assertEqual([f.attributes()[4:] for f in user_log_layer.getFeatures()],
+                         [[1, 'test4', 'GN', 'test4', 'aaa'],
+                          [1, 'test3', 'GN', 'test3', 'aaa'],
+                          [1, 'test2', 'GN', 'test2', 'aaa']])
 
     def testBatchedIntField(self):  # pylint: disable=too-many-statements,too-many-locals
         """
@@ -206,9 +219,10 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
 
         user_log_layer = make_user_log_layer()
 
-        handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, target_field='fld1',
+        handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, meshblock_number_field_name='fld1',
+                                        target_field='fld1',
                                         electorate_layer=district_layer, electorate_layer_field='fld1', task='GN',
-                                        user_log_layer=user_log_layer)
+                                        user_log_layer=user_log_layer, scenario=1)
         self.assertTrue(meshblock_layer.startEditing())
         handler.begin_edit_group('test')
         self.assertTrue(handler.assign_district([f.id(), f3.id(), f6.id()], 5))
@@ -252,6 +266,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, -5 10, -5 15, 0 15, 10 15, 10 10, 5 10, 5 5))')
 
+        self.assertEqual([f.attributes()[4:] for f in user_log_layer.getFeatures()],
+                         [[1, 4, 'GN', 4, 5],
+                          [1, 3, 'GN', 3, 5],
+                          [1, 2, 'GN', 2, 5]])
+
         handler.begin_edit_group('test2')
         self.assertTrue(handler.assign_district([f2.id()], 5))
         self.assertTrue(handler.assign_district([f4.id()], 5))
@@ -276,6 +295,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, -5 10, -5 15, 0 15, 10 15, 10 10, 5 10, 5 5))')
+
+        self.assertEqual([f.attributes()[4:] for f in user_log_layer.getFeatures()],
+                         [[1, 4, 'GN', 4, 5],
+                          [1, 3, 'GN', 3, 5],
+                          [1, 2, 'GN', 2, 5]])
 
 
 if __name__ == "__main__":

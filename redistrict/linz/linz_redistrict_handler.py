@@ -13,8 +13,11 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QVariant
-from qgis.core import (QgsFeatureRequest,
+from qgis.PyQt.QtCore import (QDateTime,
+                              QVariant)
+from qgis.core import (QgsApplication,
+                       QgsFeatureRequest,
+                       QgsFeature,
                        QgsFeatureIterator,
                        QgsGeometry,
                        QgsVectorLayer,
@@ -32,26 +35,33 @@ class LinzRedistrictHandler(RedistrictHandler):
     layer boundaries
     """
 
-    def __init__(self, meshblock_layer: QgsVectorLayer, target_field: str, electorate_layer: QgsVectorLayer,
-                 electorate_layer_field: str, task: str, user_log_layer: QgsVectorLayer):
+    def __init__(self, meshblock_layer: QgsVectorLayer, meshblock_number_field_name: str, target_field: str,
+                 electorate_layer: QgsVectorLayer,
+                 electorate_layer_field: str, task: str, user_log_layer: QgsVectorLayer, scenario):
         """
         Constructor
         :param meshblock_layer: meshblock layer
+        :param meshblock_number_field_name: field name for "meshblock number" field
         :param target_field: target field for districts
         :param electorate_layer: electoral district layer
         :param electorate_layer_field: matching field from electorate layer
         :param task: current task
         :param user_log_layer: user log layer
+        :param scenario: current scenario
         """
         super().__init__(target_layer=meshblock_layer, target_field=target_field)
         self.electorate_layer = electorate_layer
         self.electorate_layer_field = electorate_layer_field
         self.pending_affected_districts = {}
+        self.pending_log_entries = []
         self.task = task
         self.user_log_layer = user_log_layer
+        self.scenario = scenario
 
         self.estimated_pop_idx = self.electorate_layer.fields().lookupField('estimated_pop')
         assert self.estimated_pop_idx >= 0
+        self.meshblock_number_idx = self.target_layer.fields().lookupField(meshblock_number_field_name)
+        assert self.meshblock_number_idx >= 0
         self.offline_pop_field = 'offline_pop_{}'.format(self.task.lower())
         assert meshblock_layer.fields().lookupField(self.offline_pop_field) >= 0
 
@@ -194,12 +204,16 @@ class LinzRedistrictHandler(RedistrictHandler):
         self.electorate_layer.dataProvider().changeAttributeValues(new_attributes)
         self.electorate_layer.triggerRepaint()
 
+        self.user_log_layer.dataProvider().addFeatures(self.pending_log_entries)
+
         self.pending_affected_districts = {}
+        self.pending_log_entries = []
         self.redistrict_occured.emit()
 
     def discard_edit_group(self):
         super().discard_edit_group()
         self.pending_affected_districts = {}
+        self.pending_log_entries = []
 
     def assign_district(self, target_ids, new_district):
         """
@@ -208,21 +222,29 @@ class LinzRedistrictHandler(RedistrictHandler):
         :param new_district:
         :return:
         """
+        staged_log_entries = []
         # first, record the previous districts, before they get changed by the super method
         request = QgsFeatureRequest().setFilterFids(target_ids)
         request.setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes([self.target_layer.fields().lookupField(self.target_field)])
+        request.setSubsetOfAttributes(
+            [self.target_layer.fields().lookupField(self.target_field), self.meshblock_number_idx])
         for f in self.target_layer.getFeatures(request):
             district = f[self.target_field]
             if district == NULL:
                 continue
+            meshblock_number = f[self.meshblock_number_idx]
 
             if district not in self.pending_affected_districts:
                 self.pending_affected_districts[district] = {'ADD': [], 'REMOVE': []}
             self.pending_affected_districts[district]['REMOVE'].append(f.id())
 
+            staged_log_entries.append(self.create_log_entry(meshblock_number=meshblock_number, old_district=district,
+                                                            new_district=new_district))
+
         if not super().assign_district(target_ids, new_district):
             return False
+
+        self.pending_log_entries.extend(staged_log_entries)
 
         # if assign was successful, then record all districts affected by this operation
         # (that includes the new district and all old districts)
@@ -232,3 +254,23 @@ class LinzRedistrictHandler(RedistrictHandler):
 
         self.pending_affected_districts[new_district]['ADD'].extend(target_ids)
         return True
+
+    def create_log_entry(self, meshblock_number, old_district, new_district) -> QgsFeature:
+        """
+        Returns a feature corresponding to a new log entry
+        :param meshblock_number: meshblock number
+        :param old_district: previous district
+        :param new_district: new district
+        """
+        f = QgsFeature(self.user_log_layer.fields())
+        f.initAttributes(len(self.user_log_layer.fields()))
+
+        f[self.user_log_timestamp_idx] = QDateTime.currentDateTime()
+        f[self.user_log_username_idx] = QgsApplication.userFullName()
+        f[self.user_log_scenario_idx] = self.scenario
+        f[self.user_log_mb_number_idx] = meshblock_number
+        f[self.user_log_type_idx] = self.task
+        f[self.user_log_from_idx] = old_district
+        f[self.user_log_to_idx] = new_district
+
+        return f

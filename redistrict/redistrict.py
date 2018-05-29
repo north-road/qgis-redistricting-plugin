@@ -524,10 +524,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Returns the current redistricting handler
         """
         handler = LinzRedistrictHandler(meshblock_layer=self.meshblock_layer,
+                                        meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
                                         target_field='staged_electorate',
                                         electorate_layer=self.electorate_layer,
                                         electorate_layer_field='electorate_id',
-                                        task=self.context.task)
+                                        task=self.context.task,
+                                        user_log_layer=self.user_log_layer,
+                                        scenario=self.context.scenario)
         handler.redistrict_occured.connect(self.refresh_dock_stats)
         return handler
 
