@@ -101,7 +101,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
                                                               'test2': {'ADD': [], 'REMOVE': [f5.id()]},
                                                               'test3': {'ADD': [], 'REMOVE': [f3.id()]},
                                                               'test4': {'ADD': [], 'REMOVE': [f.id()]}})
-        self.assertEqual(handler.create_affected_district_filter(), "fld1 IN ('test4','test3','aaa','test2')")
+        self.assertEqual(handler.create_affected_district_filter(), "fld1 IN ('aaa','test2','test3','test4')")
 
         self.assertEqual([f.attributes() for f in user_log_layer.getFeatures()], [])
 
@@ -146,7 +146,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(handler.pending_affected_districts, {'aaa': {'ADD': [f2.id(), f4.id()], 'REMOVE': []},
                                                               'test2': {'ADD': [], 'REMOVE': [f2.id()]},
                                                               'test1': {'ADD': [], 'REMOVE': [f4.id()]}})
-        self.assertEqual(handler.create_affected_district_filter(), "fld1 IN ('test2','aaa','test1')")
+        self.assertEqual(handler.create_affected_district_filter(), "fld1 IN ('aaa','test1','test2')")
         self.assertCountEqual([f["fld1"] for f in handler.get_affected_districts()], ['test2', 'aaa', 'test1'])
         self.assertCountEqual([f.id() for f in handler.get_added_meshblocks('aaa')], [2, 4])
         self.assertCountEqual([f.id() for f in handler.get_removed_meshblocks('test2')], [2])

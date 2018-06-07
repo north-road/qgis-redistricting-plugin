@@ -130,17 +130,17 @@ class DistrictSelectionDialogTest(unittest.TestCase):
                                     type_string_sentence_plural='electorates')
         dlg = DistrictSelectionDialog(registry)
         self.assertEqual(sorted([dlg.list.item(r).text()
-                          for r in range(dlg.list.count())]),
+                                 for r in range(dlg.list.count())]),
                          ['d1', 'd2', 'd3', 'd5',
                           'e4', 'e7', 'e9'])
         dlg.search.setText('eee')  # connection not fired on first change?
         dlg.search.setText('e')
         self.assertEqual(sorted([dlg.list.item(r).text()
-                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()]),
+                                 for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()]),
                          ['e4', 'e7', 'e9'])
         dlg.search.setText('d')
         self.assertEqual(sorted([dlg.list.item(r).text()
-                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()]),
+                                 for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()]),
                          ['d1', 'd2', 'd3', 'd5'])
 
     def testPickFromMap(self):
