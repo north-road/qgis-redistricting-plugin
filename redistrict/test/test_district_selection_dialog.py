@@ -47,13 +47,13 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         registry.push_recent_district('d9')
         registry.push_recent_district('d7')
         dlg = DistrictSelectionDialog(registry)
-        self.assertEqual([dlg.list.item(r).text()
-                          for r in range(dlg.list.count())],
-                         ['d1', 'd2', 'd5', 'd3',
-                          'd4', 'd9', 'd7'])
-        self.assertEqual([dlg.recent_list.item(r).text()
-                          for r in range(dlg.recent_list.count())],
-                         ['d7', 'd9', 'd3'])
+        self.assertEqual(sorted([dlg.list.item(r).text()
+                          for r in range(dlg.list.count())]),
+                         sorted(['d1', 'd2', 'd5', 'd3',
+                          'd4', 'd9', 'd7']))
+        self.assertEqual(sorted([dlg.recent_list.item(r).text()
+                          for r in range(dlg.recent_list.count())]),
+                         sorted(['d7', 'd9', 'd3']))
 
         # strings
         self.assertEqual(dlg.windowTitle(), 'Select New Electorate')
@@ -129,19 +129,19 @@ class DistrictSelectionDialogTest(unittest.TestCase):
                                     type_string_sentence='electorate',
                                     type_string_sentence_plural='electorates')
         dlg = DistrictSelectionDialog(registry)
-        self.assertEqual([dlg.list.item(r).text()
-                          for r in range(dlg.list.count())],
-                         ['d1', 'd2', 'd5', 'd3',
-                          'e4', 'e9', 'e7'])
+        self.assertEqual(sorted([dlg.list.item(r).text()
+                          for r in range(dlg.list.count())]),
+                         ['d1', 'd2', 'd3', 'd5',
+                          'e4', 'e7', 'e9'])
         dlg.search.setText('eee')  # connection not fired on first change?
         dlg.search.setText('e')
-        self.assertEqual([dlg.list.item(r).text()
-                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()],
-                         ['e4', 'e9', 'e7'])
+        self.assertEqual(sorted([dlg.list.item(r).text()
+                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()]),
+                         ['e4', 'e7', 'e9'])
         dlg.search.setText('d')
-        self.assertEqual([dlg.list.item(r).text()
-                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()],
-                         ['d1', 'd2', 'd5', 'd3'])
+        self.assertEqual(sorted([dlg.list.item(r).text()
+                          for r in range(dlg.list.count()) if not dlg.list.item(r).isHidden()]),
+                         ['d1', 'd2', 'd3', 'd5'])
 
     def testPickFromMap(self):
         """
