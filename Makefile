@@ -8,6 +8,10 @@ LOCALES = af
 # lrelease
 LRELEASE ?= lrelease-qt5
 
+# QGIS3 default
+QGISDIR=.local/share/QGIS/QGIS3/profiles/default
+
+
 # translation
 SOURCES = \
 	redistrict/__init__.py \
@@ -47,6 +51,18 @@ test: transcompile
 	@echo "the helper script we have provided first then run make test."
 	@echo "e.g. source run-env-linux.sh <path to qgis install>; make test"
 	@echo "----------------------"
+
+
+deploy:
+	@echo
+	@echo "------------------------------------------"
+	@echo "Deploying (symlinking) plugin to your qgis3 directory."
+	@echo "------------------------------------------"
+	# The deploy  target only works on unix like operating system where
+	# the Python plugin directory is located at:
+	# $HOME/$(QGISDIR)/python/plugins
+	ln -s `pwd`/redistrict $(HOME)/$(QGISDIR)/python/plugins/${PWD##*/}
+
 
 transup:
 	@echo

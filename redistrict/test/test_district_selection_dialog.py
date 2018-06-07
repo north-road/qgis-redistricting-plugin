@@ -48,11 +48,11 @@ class DistrictSelectionDialogTest(unittest.TestCase):
         registry.push_recent_district('d7')
         dlg = DistrictSelectionDialog(registry)
         self.assertEqual(sorted([dlg.list.item(r).text()
-                          for r in range(dlg.list.count())]),
+                                 for r in range(dlg.list.count())]),
                          sorted(['d1', 'd2', 'd5', 'd3',
-                          'd4', 'd9', 'd7']))
+                                 'd4', 'd9', 'd7']))
         self.assertEqual(sorted([dlg.recent_list.item(r).text()
-                          for r in range(dlg.recent_list.count())]),
+                                 for r in range(dlg.recent_list.count())]),
                          sorted(['d7', 'd9', 'd3']))
 
         # strings

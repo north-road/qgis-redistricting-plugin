@@ -92,11 +92,11 @@ class LinzRedistrictHandler(RedistrictHandler):
         if self.electorate_layer.fields().at(field_index).type() == QVariant.String:
             district_filter = "{} IN ('{}')".format(self.electorate_layer_field,
                                                     "','".join(sorted([str(k) for k in
-                                                                self.pending_affected_districts.keys()])))  # pylint: disable=consider-iterating-dictionary
+                                                                       self.pending_affected_districts.keys()])))  # pylint: disable=consider-iterating-dictionary
         else:
             district_filter = "{} IN ({})".format(self.electorate_layer_field,
                                                   ",".join(sorted([str(k) for k in
-                                                            self.pending_affected_districts.keys()])))  # pylint: disable=consider-iterating-dictionary
+                                                                   self.pending_affected_districts.keys()])))  # pylint: disable=consider-iterating-dictionary
         return district_filter
 
     def get_affected_districts(self, attributes_required=None):
