@@ -32,7 +32,7 @@ import urllib.parse
 from qgis.PyQt.QtCore import pyqtSlot, QUrl, QEventLoop, QTimer, QCoreApplication, QObject
 from qgis.PyQt.QtNetwork import QNetworkRequest, QNetworkReply
 
-from qgis.core import QgsNetworkAccessManager, QgsAuthManager, QgsMessageLog
+from qgis.core import QgsNetworkAccessManager, QgsApplication, QgsMessageLog
 
 # Ignored
 DEFAULT_MAX_REDIRECTS = 4
@@ -196,7 +196,7 @@ class NetworkAccessManager():
                 req.setRawHeader(k, v)
         if self.authid:
             self.msg_log("Update request w/ authid: {0}".format(self.authid))
-            QgsAuthManager.instance().updateNetworkRequest(req, self.authid)
+            QgsApplication.authManager().updateNetworkRequest(req, self.authid)
         if self.reply is not None and self.reply.isRunning():
             self.reply.close()
         if method.lower() == 'delete':
@@ -208,6 +208,8 @@ class NetworkAccessManager():
         # Let's log the whole call for debugging purposes:
         self.msg_log("Sending %s request to %s" %
                      (method.upper(), req.url().toString()))
+        if body and headers.get(b'Content-Type', False) == b'application/json':
+            self.msg_log("Sending JSON payload: %s" % body)
         self.on_abort = False
         headers = {h: req.rawHeader(h) for h in req.rawHeaderList()}
         for k, v in list(headers.items()):
@@ -220,7 +222,7 @@ class NetworkAccessManager():
             self.reply = func(req)
         if self.authid:
             self.msg_log("Update reply w/ authid: {0}".format(self.authid))
-            QgsAuthManager.instance().updateNetworkReply(self.reply, self.authid)
+            QgsApplication.authManager().updateNetworkReply(self.reply, self.authid)
 
         # necessary to trap local timout manage by QgsNetworkAccessManager
         # calling QgsNetworkAccessManager::abortRequest
@@ -286,7 +288,7 @@ class NetworkAccessManager():
             # check if errorString is empty, if so, then set err string as
             # reply dump
             if re.match('(.)*server replied: $', self.reply.errorString()):
-                errString = self.reply.errorString() + self.http_call_result.content
+                errString = self.reply.errorString() + self.http_call_result.content.decode('utf-8')
             else:
                 errString = self.reply.errorString()
             # check if self.http_call_result.status_code is available (client abort
