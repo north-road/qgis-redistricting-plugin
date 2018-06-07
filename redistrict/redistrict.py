@@ -53,6 +53,7 @@ from .gui.message_bar_progress import MessageBarProgressItem
 from .gui.gui_utils import (GuiUtils,
                             BlockingDialog,
                             ConfirmationDialog)
+from .gui.district_settings_dialog import DistrictSettingsDialog, SETTINGS_AUTH_CONFIG_KEY
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
@@ -66,6 +67,8 @@ from .linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
 from .linz.validation_task import ValidationTask
 from .linz.export_task import ExportTask
 
+
+API_BASE_URL = 'https://electoral-api-uat.stats.govt.nz/electoral-api-uat/v1/'
 
 class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
     """QGIS Plugin Implementation."""
@@ -103,6 +106,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.redistricting_menu = None
         self.redistricting_toolbar = None
+        self.open_settings_action = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
         self.start_editing_action = None
@@ -156,6 +160,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         self.redistricting_menu = QMenu(self.tr('Redistricting'))
 
+        self.open_settings_action = QAction(GuiUtils.get_icon(
+            'open_settings.svg'), self.tr('Open Settings'))
+        self.open_settings_action.triggered.connect(
+            self.open_settings)
+        self.redistricting_menu.addAction(
+            self.open_settings_action)
+
         self.begin_action = QAction(self.tr('Begin Redistricting'))
         self.begin_action.triggered.connect(self.begin_redistricting)
         self.begin_action.setCheckable(True)
@@ -185,7 +196,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         self.redistricting_toolbar = QToolBar(self.tr('Redistricting'))
         self.redistricting_toolbar.setObjectName('redistricting')
-
         self.start_editing_action = QAction(GuiUtils.get_icon(
             'toggle_editing.svg'), self.tr('Toggle Editing'))
         self.start_editing_action.setCheckable(True)
@@ -431,6 +441,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         else:
             tools.stopEditing(self.meshblock_layer, allowCancel=False)
         self.set_current_tool(tool=None)
+
+    def open_settings(self):
+        """
+        Open the settings dialog
+        """
+        dlg = DistrictSettingsDialog()
+        result = dlg.exec_()
 
     def save_edits(self):
         """Saves pending edits"""
