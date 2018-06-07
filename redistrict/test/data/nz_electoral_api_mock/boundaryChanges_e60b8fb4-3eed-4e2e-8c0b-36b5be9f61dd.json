@@ -1,0 +1,17 @@
+{
+    "populationTable": [
+        {
+            "varianceYear2": 67.55,
+            "electorate": "M01",
+            "currentPopulation": 15,
+            "varianceYear1": 67.23
+        },
+        {
+            "varianceYear2": 132.45,
+            "electorate": "M06",
+            "currentPopulation": 18,
+            "varianceYear1": 132.7
+        }
+    ],
+    "gmsVersion": "LINZ_Output_20180108_2018_V1_00"
+}

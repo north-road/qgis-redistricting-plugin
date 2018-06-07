@@ -91,11 +91,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 class NzElectoralApiTest(unittest.TestCase):
     """Test the NzElectoralApi"""
 
+    DATA_DIR = 'nz_electoral_api'
+    API_VERSION = '1.1.5'
+    REQUEST_ID = "4479c81b-d21d-4f7d-8db8-85491473a274"
+
     @classmethod
     def setUpClass(cls):
         """Class setup"""
         os.chdir(os.path.join(os.path.dirname(
-            __file__), 'data', 'nz_electoral_api'))
+            __file__), 'data', cls.DATA_DIR))
         cls.httpd = http.server.HTTPServer(('localhost', 0), Handler)
         cls.port = cls.httpd.server_address[1]
         cls.httpd_thread = threading.Thread(target=cls.httpd.serve_forever)
@@ -158,7 +162,7 @@ class NzElectoralApiTest(unittest.TestCase):
 
     def test_boundaryChangesResults(self):
         """Test boundaryChanges get results API call"""
-        requestId = "4479c81b-d21d-4f7d-8db8-85491473a274"
+        requestId = self.REQUEST_ID
         self._call('boundaryChangesResults', requestId, blocking=True)
         self.assertEqual(self.last_result['status_code'], 200)
 
@@ -187,7 +191,7 @@ class NzElectoralApiTest(unittest.TestCase):
 
     def test_boundaryChangesResults_async(self):
         """Test boundaryChanges get results API call in async mode"""
-        requestId = "4479c81b-d21d-4f7d-8db8-85491473a274"
+        requestId = self.REQUEST_ID
         self._call('boundaryChangesResults', requestId)
         self.assertEqual(self.last_result['status_code'], 200)
 
@@ -197,7 +201,7 @@ class NzElectoralApiTest(unittest.TestCase):
         nam = api.status()
         self.last_result = ''
         expected = {
-            "version": "1.1.5",
+            "version": self.API_VERSION,
             "gmsVersion": "LINZ_Output_20180108_2018_V1_00"
         }
         el = QEventLoop()
@@ -217,13 +221,24 @@ class NzElectoralApiTest(unittest.TestCase):
         result = api.status(blocking=True)
         self.last_result = ''
         expected = {
-            "version": "1.1.5",
+            "version": self.API_VERSION,
             "gmsVersion": "LINZ_Output_20180108_2018_V1_00"
         }
         self.assertEqual(result['content'], expected)
 
 
+class NzElectoralApiTestMock(NzElectoralApiTest):
+    """Test the NzElectoralApi from real data saved into files"""
+
+    API_VERSION = '1.6.0.2120'
+    DATA_DIR = 'nz_electoral_api_mock'
+    REQUEST_ID = "e60b8fb4-3eed-4e2e-8c0b-36b5be9f61dd"
+
+
+
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(NzElectoralApiTest)
+    suite.addTest(NzElectoralApiTestMock)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

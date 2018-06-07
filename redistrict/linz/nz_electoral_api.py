@@ -18,6 +18,8 @@ import json
 import os
 from redistrict.linz.networkaccessmanager import NetworkAccessManager, RequestsException
 from qgis.PyQt.QtCore import QObject, pyqtSignal
+from qgis.core import QgsMessageLog, QgsNetworkAccessManager
+
 
 # API Version
 GMS_VERSION = "LINZ_Output_20180108_2018_V1_00"
@@ -52,13 +54,13 @@ class BoundaryRequest():
 
         :param concordance: one or more ConcordanceItem
         :type concordance: array
-        :param area: name of the area
-        :type area: str
+        :param type: name of the area [M,GN,GS]
+        :type type: str
         :param gmsVersion: API version, defaults to GMS_VERSION
         :param gmsVersion: str, optional
         """
 
-        self.area = area
+        self.type = area
         self.gmsVersion = gmsVersion
         self.concordance = concordance
 
@@ -72,18 +74,32 @@ class NzElectoralApi(QObject):
     POST = 'post'
     GET = 'get'
 
-    def __init__(self, base_url, authcfg=None):
+    def __init__(self, base_url, authcfg=None, debug=False):
         """Construct the API with base URL
 
         :param base_url: base URL for the API endpoint
         :type base_url: str
         :param authcfg: authentication configuration id, defaults to None
         :param authcfg: str, optional
+        :param debug: log network calls and messages in the message logs, defaults to False
+        :param debug: bool
         """
         super().__init__()
         self.authcfg = authcfg
         self.base_url = base_url
+        self.debug = debug
         self.qs = ''
+        # Just in case case the user entered wrong credentials in previous attempt ...
+        QgsNetworkAccessManager.instance().clearAccessCache()
+
+    def check(self):
+        """Check connection and credentials"""
+        try:
+            result = self.status(blocking=True)
+            return result['status_code'] == 200
+        except Exception as e: # pylint: disable=W0703
+            QgsMessageLog.logMessage("%s" % e, "REDISTRICT")
+            return False
 
     def set_qs(self, qs):
         """Set the query string: mainly used for testing
@@ -107,7 +123,7 @@ class NzElectoralApi(QObject):
 
     @classmethod
     def parse_async(cls, nam):
-        """Transform the content component of the response to JSON
+        """Transform into JSON the content component of the response
 
         :param nam: network access manager wrapper instance
         :type nam: NetworkAccessManager
@@ -141,7 +157,7 @@ class NzElectoralApi(QObject):
             method = self.GET
 
         path = os.path.join(self.base_url, path)
-        nam = NetworkAccessManager(self.authcfg)
+        nam = NetworkAccessManager(self.authcfg, debug=self.debug)
 
         if payload is not None:
             payload = self.encode_payload(payload)
