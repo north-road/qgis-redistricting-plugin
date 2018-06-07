@@ -235,8 +235,6 @@ class NzElectoralApiTestMock(NzElectoralApiTest):
     REQUEST_ID = "e60b8fb4-3eed-4e2e-8c0b-36b5be9f61dd"
 
 
-
-
 if __name__ == "__main__":
     suite = unittest.makeSuite(NzElectoralApiTest)
     suite.addTest(NzElectoralApiTestMock)

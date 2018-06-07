@@ -53,7 +53,7 @@ from .gui.message_bar_progress import MessageBarProgressItem
 from .gui.gui_utils import (GuiUtils,
                             BlockingDialog,
                             ConfirmationDialog)
-from .gui.district_settings_dialog import DistrictSettingsDialog, SETTINGS_AUTH_CONFIG_KEY
+from .gui.district_settings_dialog import DistrictSettingsDialog, SETTINGS_AUTH_CONFIG_KEY  # pylint: disable=unused-import
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
@@ -69,6 +69,7 @@ from .linz.export_task import ExportTask
 
 
 API_BASE_URL = 'https://electoral-api-uat.stats.govt.nz/electoral-api-uat/v1/'
+
 
 class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
     """QGIS Plugin Implementation."""
@@ -447,7 +448,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Open the settings dialog
         """
         dlg = DistrictSettingsDialog()
-        result = dlg.exec_()
+        dlg.exec_()
 
     def save_edits(self):
         """Saves pending edits"""

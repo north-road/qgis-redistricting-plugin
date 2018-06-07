@@ -97,7 +97,7 @@ class NzElectoralApi(QObject):
         try:
             result = self.status(blocking=True)
             return result['status_code'] == 200
-        except Exception as e: # pylint: disable=W0703
+        except Exception as e:  # pylint: disable=W0703
             QgsMessageLog.logMessage("%s" % e, "REDISTRICT")
             return False
 

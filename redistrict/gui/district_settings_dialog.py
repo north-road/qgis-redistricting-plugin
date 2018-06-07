@@ -13,15 +13,10 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import Qt, QObject, QCoreApplication
 from qgis.PyQt.QtWidgets import (QDialog,
                                  QDialogButtonBox,
                                  QLabel,
-                                 QListWidget,
-                                 QListWidgetItem,
                                  QVBoxLayout)
-from qgis.gui import QgsFilterLineEdit
-from qgis.utils import iface
 
 from qgis.core import QgsSettings
 from qgis.gui import QgsAuthConfigSelect
@@ -46,7 +41,6 @@ class DistrictSettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-
         self.setWindowTitle(self.tr('Redistrict Plugin | Settings'))
         layout = QVBoxLayout()
         self.auth_label = QLabel(self.tr('Authentication configuration'))
@@ -64,7 +58,6 @@ class DistrictSettingsDialog(QDialog):
         button_box.accepted.connect(self.accept)
 
         self.setLayout(layout)
-
 
     def accept(self):  # pylint: disable=missing-docstring
         super().accept()
