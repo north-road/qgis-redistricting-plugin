@@ -118,6 +118,7 @@ class InteractiveRedistrictingTool(QgsMapTool):
         self.current_district = None
         self.click_point = None
         self.modified = set()
+        self.handler.redistrict_occured.connect(self.update_decorator)
 
     def get_district_boundary_matches(self, point):
         """
@@ -280,3 +281,10 @@ class InteractiveRedistrictingTool(QgsMapTool):
                 if self.decorator_factory is not None:
                     self.pop_decorator = self.decorator_factory.create_decorator(self.canvas())
                 self.canvas().update()
+
+    def update_decorator(self):
+        """
+        Triggers a redraw of the canvas decorator
+        """
+        if self.pop_decorator is not None:
+            self.pop_decorator.redraw()

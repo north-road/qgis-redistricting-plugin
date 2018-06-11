@@ -53,12 +53,23 @@ class CentroidDecorator(QgsMapCanvasItem):
         self.text_format.background().setSize(QSizeF(1, 0))
         self.text_format.background().setOffset(QPointF(0, -0.7))
         self.text_format.background().setRadii(QSizeF(1, 1))
+        self.image = None
+
+    def redraw(self):
+        """
+        Forces a redraw of the cached image
+        """
+        self.image = None
 
     def paint(self, painter, option, widget):  # pylint: disable=missing-docstring, unused-argument, too-many-locals
+        if self.image is not None:
+            painter.drawImage(0, 0, self.image)
+            return
+
         image_size = self.canvas.mapSettings().outputSize()
-        image = QImage(image_size.width(), image_size.height(), QImage.Format_ARGB32)
-        image.fill(0)
-        image_painter = QPainter(image)
+        self.image = QImage(image_size.width(), image_size.height(), QImage.Format_ARGB32)
+        self.image.fill(0)
+        image_painter = QPainter(self.image)
         render_context = QgsRenderContext.fromQPainter(image_painter)
 
         image_painter.setRenderHint(QPainter.Antialiasing, True)
@@ -83,7 +94,7 @@ class CentroidDecorator(QgsMapCanvasItem):
 
         image_painter.end()
 
-        painter.drawImage(0, 0, image)
+        painter.drawImage(0, 0, self.image)
 
 
 class CentroidDecoratorFactory(DecoratorFactory):
