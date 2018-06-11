@@ -141,6 +141,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.validation_task = None
         self.export_task = None
         self.progress_item = None
+        self.switch_menu = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -166,22 +167,25 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.begin_action.setCheckable(True)
         self.redistricting_menu.addAction(self.begin_action)
 
-        switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
-        switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
+        self.switch_menu = QMenu(self.tr('Switch Task'), parent=self.redistricting_menu)
+        self.switch_menu.setIcon(GuiUtils.get_icon('switch_task.svg'))
 
         switch_ni_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GN),
-                                                      parent=switch_menu)
+                                                      parent=self.switch_menu)
         switch_ni_general_electorate_action.triggered.connect(partial(self.set_task_and_show_progress, self.TASK_GN))
-        switch_menu.addAction(switch_ni_general_electorate_action)
+        switch_ni_general_electorate_action.setEnabled(False)
+        self.switch_menu.addAction(switch_ni_general_electorate_action)
         switch_si_general_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_GS),
-                                                      parent=switch_menu)
+                                                      parent=self.switch_menu)
         switch_si_general_electorate_action.triggered.connect(partial(self.set_task_and_show_progress, self.TASK_GS))
-        switch_menu.addAction(switch_si_general_electorate_action)
+        switch_si_general_electorate_action.setEnabled(False)
+        self.switch_menu.addAction(switch_si_general_electorate_action)
         switch_maori_electorate_action = QAction(LinzRedistrictingContext.get_name_for_task(self.TASK_M),
-                                                 parent=switch_menu)
+                                                 parent=self.switch_menu)
         switch_maori_electorate_action.triggered.connect(partial(self.set_task_and_show_progress, self.TASK_M))
-        switch_menu.addAction(switch_maori_electorate_action)
-        self.redistricting_menu.addMenu(switch_menu)
+        switch_maori_electorate_action.setEnabled(False)
+        self.switch_menu.addAction(switch_maori_electorate_action)
+        self.redistricting_menu.addMenu(self.switch_menu)
 
         self.redistricting_menu.addSeparator()
         self.open_settings_action = QAction(GuiUtils.get_icon(
@@ -350,6 +354,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         options_button.setPopupMode(QToolButton.InstantPopup)
         options_button.setMenu(options_menu)
         self.dock.dock_toolbar().addWidget(options_button)
+
+        for action in self.switch_menu.actions():
+            action.setEnabled(True)
 
         self.set_task(self.TASK_GN)
 
