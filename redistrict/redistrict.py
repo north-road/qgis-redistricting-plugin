@@ -355,9 +355,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         options_button.setMenu(options_menu)
         self.dock.dock_toolbar().addWidget(options_button)
 
-        for action in self.switch_menu.actions():
-            action.setEnabled(True)
-
         self.set_task(self.TASK_GN)
 
     def begin_redistricting(self):
@@ -479,11 +476,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.meshblock_layer.rollBack(deleteBuffer=False)
         self.meshblock_layer.triggerRepaint()
 
+    def enable_task_switches(self, enabled):
+        """
+        Enables or disables the task switching commands
+        """
+        for action in self.switch_menu.actions():
+            action.setEnabled(enabled)
+
     def set_task(self, task: str):
         """
         Sets the current task
         :param task: task, eg 'GN','GS' or 'M'
         """
+        self.enable_task_switches(False)
         self.meshblock_scenario_bridge.task = task
         progress_dialog = BlockingDialog(self.tr('Switch Task'), self.tr('Preparing switch...'))
         progress_dialog.force_show_and_paint()
@@ -537,6 +542,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.report_success(self.tr('Switched to “{}”').format(task_name))
 
         self.dock.update_dock_title(context=self.context)
+
+        self.enable_task_switches(True)
 
     def refresh_canvases(self):
         """
