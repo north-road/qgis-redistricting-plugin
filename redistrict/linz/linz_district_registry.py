@@ -13,6 +13,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from typing import Optional
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (NULL,
                        QgsFeatureRequest,
@@ -171,13 +172,15 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         return f[self.estimated_pop_field_index]
 
     @staticmethod
-    def get_variation_from_quota_percent(quota: int, population: int) -> int:
+    def get_variation_from_quota_percent(quota: int, population: int) -> Optional[int]:
         """
         Returns the % variation from the quota for an electorate's population
         :param quota: electorate quota
         :param population: actual population
         :return: percentage as int (e.g. 4, -3, etc)
         """
+        if population == NULL:
+            return None
         return round(100 * (population - quota) / quota)
 
     @staticmethod
@@ -187,6 +190,9 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         :param quota: electorate quota
         :param: population: actual population
         """
+        if population == NULL:
+            return False
+
         return abs((population - quota) / quota) >= 0.05
 
     def create_electorate(self, new_electorate_code, new_electorate_name: str) -> (bool, str):

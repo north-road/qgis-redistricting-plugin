@@ -247,6 +247,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
                          -2)
         self.assertEqual(LinzElectoralDistrictRegistry.get_variation_from_quota_percent(quota=50000, population=45000),
                          -10)
+        self.assertIsNone(LinzElectoralDistrictRegistry.get_variation_from_quota_percent(quota=50000, population=NULL))
 
     def testVariationExceedsTolerance(self):
         """
@@ -258,6 +259,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         self.assertTrue(LinzElectoralDistrictRegistry.variation_exceeds_allowance(quota=100000, population=95000))
         self.assertTrue(LinzElectoralDistrictRegistry.variation_exceeds_allowance(quota=50000, population=56000))
         self.assertTrue(LinzElectoralDistrictRegistry.variation_exceeds_allowance(quota=50000, population=44000))
+        self.assertFalse(LinzElectoralDistrictRegistry.variation_exceeds_allowance(quota=50000, population=NULL))
 
     def testVectorDistrictAtPoint(self):
         """
