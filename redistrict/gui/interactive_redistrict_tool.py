@@ -286,5 +286,5 @@ class InteractiveRedistrictingTool(QgsMapTool):
         """
         Triggers a redraw of the canvas decorator
         """
-        if self.pop_decorator is not None:
+        if self.pop_decorator is not None and hasattr(self.pop_decorator, 'redraw'):
             self.pop_decorator.redraw()
