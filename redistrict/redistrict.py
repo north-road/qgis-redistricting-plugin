@@ -20,6 +20,7 @@ from functools import partial
 from typing import Optional
 from qgis.PyQt.QtCore import (QObject,
                               Qt,
+                              QDir,
                               QFile,
                               QSettings,
                               QTranslator,
@@ -36,6 +37,7 @@ from qgis.core import (QgsApplication,
                        QgsMapThemeCollection,
                        QgsExpressionContextUtils,
                        Qgis,
+                       QgsSettings,
                        QgsTask)
 from qgis.gui import (QgisInterface,
                       QgsMapTool,
@@ -845,11 +847,16 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Import scenario from another database
         """
+        settings = QgsSettings()
+        last_path = settings.value('redistricting/last_import_path', QDir.homePath())
+
         source, _filter = QFileDialog.getOpenFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
-                                                      self.tr('Import Scenario from Database'), '',
+                                                      self.tr('Import Scenario from Database'), last_path,
                                                       filter='Database Files (*.gpkg)')
         if not source:
             return
+
+        settings.setValue('redistricting/last_import_path', source)
 
         foreign_scenario_layer = QgsVectorLayer('{}|layername=scenarios'.format(source), 'foreign_scenarios')
         if not foreign_scenario_layer.isValid():
@@ -918,14 +925,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Exports the current database using a background task
         """
+        settings = QgsSettings()
+        last_path = settings.value('redistricting/last_export_path', QDir.homePath())
+
         destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
-                                                           self.tr('Export Database'), '',
+                                                           self.tr('Export Database'), last_path,
                                                            filter='Database Files (*.gpkg)')
         if not destination:
             return
 
         if not destination.endswith('.gpkg'):
             destination += '.gpkg'
+
+        settings.setValue('redistricting/last_export_path', destination)
 
         QgsProject.instance().clear()
 
@@ -941,11 +953,16 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Imports a new master database, replacing the current database
         """
+        settings = QgsSettings()
+        last_path = settings.value('redistricting/last_import_path', QDir.homePath())
+
         source, _filter = QFileDialog.getOpenFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
-                                                      self.tr('Import Master Database'), '',
+                                                      self.tr('Import Master Database'), last_path,
                                                       filter='Database Files (*.gpkg)')
         if not source:
             return
+
+        settings.setValue('redistricting/last_import_path', source)
 
         dlg = ConfirmationDialog(self.tr('Import Master Database'),
                                  self.tr(
@@ -955,11 +972,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             return
 
         # force backup of existing database
+        last_backup_path = settings.value('redistricting/last_backup_path', QDir.homePath())
         destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
-                                                           self.tr('Backup Current Database'), '',
+                                                           self.tr('Backup Current Database'), last_backup_path,
                                                            filter='Database Files (*.gpkg)')
         if not destination:
             return
+
+        settings.setValue('redistricting/last_backup_path', destination)
 
         QgsProject.instance().clear()
 
@@ -1072,14 +1092,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Exports the final electorates to a database package
         """
+        settings = QgsSettings()
+        last_export_path = settings.value('redistricting/last_electorate_export_path', QDir.homePath())
+
         destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
-                                                           self.tr('Export Electorates'), '',
+                                                           self.tr('Export Electorates'), last_export_path,
                                                            filter='Database Files (*.gpkg)')
         if not destination:
             return
 
         if not destination.endswith('.gpkg'):
             destination += '.gpkg'
+
+        settings.setValue('redistricting/last_electorate_export_path', destination)
 
         electorate_registry = self.get_district_registry()
         task_name = self.tr('Exporting Electorates')
