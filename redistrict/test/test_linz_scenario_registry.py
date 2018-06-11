@@ -248,7 +248,7 @@ class ScenarioRegistryTest(unittest.TestCase):
 
         res, error = reg.branch_scenario(2, 'Scenario 6')
         self.assertFalse(error)
-        # self.assertEqual(res, 5) # TODO: requires core update
+        self.assertEqual(res, 5)
 
         f = [f for f in layer.getFeatures()][-1]
         self.assertEqual(f[0], res)
@@ -257,15 +257,14 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertEqual(f[3], QgsApplication.userFullName())
 
         f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
-        # TODO: requires core update
-        # self.assertEqual(f, [[3, 4, 0, 'c', 'z'],
-        #                     [4, 4, 1, 'd', 'zz'],
-        #                     [1, 5, 0, 'a', 'x'],
-        #                     [2, 5, 1, 'b', 'y'],
-        #                     [1, 2, 0, 'a', 'x'],
-        #                     [2, 2, 1, 'b', 'y'],
-        #                     [3, 1, 0, 'c', 'z'],
-        #                     [4, 1, 1, 'd', 'zz']])
+        self.assertEqual(f, [[3, 4, 0, 'c', 'z'],
+                             [4, 4, 1, 'd', 'zz'],
+                             [1, 5, 0, 'a', 'x'],
+                             [2, 5, 1, 'b', 'y'],
+                             [1, 2, 0, 'a', 'x'],
+                             [2, 2, 1, 'b', 'y'],
+                             [3, 1, 0, 'c', 'z'],
+                             [4, 1, 1, 'd', 'zz']])
 
     def testCopyScenarios(self):
         """
