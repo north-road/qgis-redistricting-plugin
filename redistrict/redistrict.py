@@ -1002,6 +1002,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         if not dlg.exec_():
             return
 
+        QMessageBox.warning(self.iface.mainWindow(), self.tr('Import Master Database'),
+                            self.tr(
+                                'Before importing a master database you must make a backup copy of the current database.\n\nClick OK, and then select a path for this backup.'))
+
         # force backup of existing database
         last_backup_path = settings.value('redistricting/last_backup_path', QDir.homePath())
         destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
