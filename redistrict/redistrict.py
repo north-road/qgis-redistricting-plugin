@@ -848,8 +848,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Import scenario from another database
         """
-        settings = QgsSettings()
-        last_path = settings.value('redistricting/last_import_path', QDir.homePath())
+        last_path = QgsSettings().value('redistricting/last_import_path', QDir.homePath())
 
         source, _filter = QFileDialog.getOpenFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
                                                       self.tr('Import Scenario from Database'), last_path,
@@ -857,7 +856,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         if not source:
             return
 
-        settings.setValue('redistricting/last_import_path', source)
+        QgsSettings().setValue('redistricting/last_import_path', source)
 
         foreign_scenario_layer = QgsVectorLayer('{}|layername=scenarios'.format(source), 'foreign_scenarios')
         if not foreign_scenario_layer.isValid():
