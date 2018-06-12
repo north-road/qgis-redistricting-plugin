@@ -63,7 +63,7 @@ class CopyFileTask(QgsTask):
                     return False
 
             if not QFile.copy(source, dest):
-                self.error = self.tr('Could not copy file')
+                self.error = self.tr('Could not copy file {} to {}'.format(source, dest))
                 return False
 
             current += 1

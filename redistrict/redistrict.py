@@ -964,9 +964,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         settings.setValue('redistricting/last_export_path', destination)
 
+        prev_source = self.db_source
         self.reset()
 
-        self.copy_task = CopyFileTask(self.tr('Exporting database'), {self.db_source: destination})
+        self.copy_task = CopyFileTask(self.tr('Exporting database'), {prev_source: destination})
         self.copy_task.taskCompleted.connect(
             partial(self.report_success, self.tr('Exported database to “{}”').format(destination)))
         self.copy_task.taskTerminated.connect(self.copy_task_failed)
@@ -1016,6 +1017,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         settings.setValue('redistricting/last_backup_path', destination)
 
+        prev_source = self.db_source
         self.reset()
 
         if QFile.exists(destination):
@@ -1023,14 +1025,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 self.report_failure(self.tr('Could not backup current database to “{}”').format(destination))
                 return
 
-        if not QFile.copy(self.db_source, destination):
+        if not QFile.copy(prev_source, destination):
             self.report_failure(self.tr('Could not backup current database to “{}”').format(destination))
             return
 
-        if not QFile.remove(self.db_source):
-            self.report_failure(self.tr('Could not remove current master database at “{}”').format(self.db_source))
+        if not QFile.remove(prev_source):
+            self.report_failure(self.tr('Could not remove current master database at “{}”').format(prev_source))
 
-        if not QFile.copy(source, self.db_source):
+        if not QFile.copy(source, prev_source):
             self.report_failure(self.tr('Critical error occurred while replacing master database'))
         else:
             self.report_success(self.tr('New master database imported successfully'))
