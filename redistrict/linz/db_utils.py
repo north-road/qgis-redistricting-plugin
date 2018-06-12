@@ -47,6 +47,7 @@ class CopyFileTask(QgsTask):
         """
         super().__init__(description)
         self.file_map = file_map
+        self.error = None
 
     def run(self):  # pylint: disable=missing-docstring
         current = 0
@@ -58,9 +59,11 @@ class CopyFileTask(QgsTask):
 
             if QFile.exists(dest):
                 if not QFile.remove(dest):
+                    self.error = self.tr('Could not remove existing file {}'.format(dest))
                     return False
 
             if not QFile.copy(source, dest):
+                self.error = self.tr('Could not copy file')
                 return False
 
             current += 1

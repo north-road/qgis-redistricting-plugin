@@ -138,6 +138,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.db_source = os.path.join(self.plugin_dir,
                                       'db', 'nz_db.gpkg')
         self.task = None
+        self.copy_task = None
         self.switch_task = None
         self.staged_task = None
         self.validation_task = None
@@ -941,13 +942,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         QgsProject.instance().clear()
 
-        self.task = CopyFileTask(self.tr('Exporting database'), {self.db_source: destination})
-        self.task.taskCompleted.connect(
+        self.copy_task = CopyFileTask(self.tr('Exporting database'), {self.db_source: destination})
+        self.copy_task.taskCompleted.connect(
             partial(self.report_success, self.tr('Exported database to “{}”').format(destination)))
-        self.task.taskTerminated.connect(
-            partial(self.report_failure, self.tr('Error while exporting database to “{}”').format(destination)))
+        self.copy_task.taskTerminated.connect(self.copy_task_failed)
 
-        QgsApplication.taskManager().addTask(self.task)
+        QgsApplication.taskManager().addTask(self.copy_task)
+
+    def copy_task_failed(self):
+        """
+        Triggered on an error while copying files
+        """
+        error = self.copy_task.error
+        self.report_failure(self.tr('Error while exporting database: {}').format(error))
 
     def import_master_database(self):
         """
