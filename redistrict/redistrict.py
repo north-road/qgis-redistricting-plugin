@@ -922,6 +922,30 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.iface.messageBar().pushMessage(
             message, level=Qgis.Critical)
 
+    def reset(self):
+        """
+        Resets the plugin, clearing the current project and stopping the redistrict operation
+        """
+        QgsProject.instance().clear()
+        self.is_redistricting = False
+        self.electorate_layer = None
+        self.meshblock_layer = None
+        self.quota_layer = None
+        self.scenario_layer = None
+        self.meshblock_electorate_layer = None
+        self.user_log_layer = None
+        self.begin_action.setChecked(False)
+        self.db_source = None
+        self.scenario_registry = None
+        self.context = None
+        self.meshblock_scenario_bridge = None
+
+        self.dock.deleteLater()
+        self.dock = None
+
+        self.redistricting_toolbar.deleteLater()
+        self.redistricting_toolbar = None
+
     def export_database(self):
         """
         Exports the current database using a background task
@@ -940,7 +964,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         settings.setValue('redistricting/last_export_path', destination)
 
-        QgsProject.instance().clear()
+        self.reset()
 
         self.copy_task = CopyFileTask(self.tr('Exporting database'), {self.db_source: destination})
         self.copy_task.taskCompleted.connect(
@@ -988,7 +1012,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         settings.setValue('redistricting/last_backup_path', destination)
 
-        QgsProject.instance().clear()
+        self.reset()
 
         if QFile.exists(destination):
             if not QFile.remove(destination):
