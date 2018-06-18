@@ -162,6 +162,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         if hasattr(QgsProject.instance(), 'cleared'):
             QgsProject.instance().cleared.connect(self.reset)
 
+        self.iface.mapCanvas().setPreviewJobsEnabled(False)
+
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
         """Get the translation for a string using Qt translation API.
@@ -1329,6 +1331,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             'https://github.com/north-road/qgis-redistricting-plugin/blob/master/documentation/ui_design/ui_design.md'))
 
     def about(self):
+        """
+        Shows the about dialog
+        """
         QMessageBox.about(self.iface.mainWindow(), self.tr('LINZ Redistricting Plugin'),
                           self.tr('Developed by North Road (http://north-road.com) for LINZ.') + '\n\n' + self.tr(
                               'Version: {}').format(VERSION))
