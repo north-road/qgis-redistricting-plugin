@@ -70,6 +70,8 @@ from .linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
 from .linz.validation_task import ValidationTask
 from .linz.export_task import ExportTask
 from .linz.nz_electoral_api import ConcordanceItem, BoundaryRequest, get_api_connector
+from .linz.api_request_queue import ApiRequestQueue
+
 
 class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
     """QGIS Plugin Implementation."""
@@ -143,6 +145,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.export_task = None
         self.progress_item = None
         self.switch_menu = None
+        self.api_request_queue = ApiRequestQueue()
+        self.api_request_queue.result_fetched.connect(self.api_request_finished)
+        self.api_request_queue.error.connect(self.report_failure)
 
         # reset the plugin when the project is unloaded
         QgsProject.instance().cleared.connect(self.reset)
@@ -1191,20 +1196,24 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                                              electorate_type=electorate_type,
                                                                              scenario_id=self.context.scenario)
 
-        # TODO: non blocking - track scenarios, reject responses on different scenarios
+        # TODO: track scenarios, reject responses on different scenarios
 
         concordance = [ConcordanceItem(str(m['meshblock_number']), str(electorate_id)) for m in electorate_meshblocks]
         request = BoundaryRequest(concordance, area=self.context.task)
-
         connector = get_api_connector()
-        request_id = connector.boundaryChanges(request, blocking=True)
+        self.api_request_queue.append_request(connector, request)
 
-        result = connector.boundaryChangesResults(request_id, True)
+    def api_request_finished(self, result: dict):
+        """
+        Triggered when an API request is finalized
+        """
         if result['status_code'] != 200:
             self.report_failure(self.tr('Statistics NZ API request failed'))
             return
 
+        district_registry = self.get_district_registry()
         for electorate_table in result['content']['populationTable']:
+            electorate_id = int(electorate_table['electorate'])
             district_registry.update_stats_nz_values(electorate_id, electorate_table)
 
         self.refresh_dock_stats()
@@ -1228,19 +1237,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.refresh_dock_stats()
 
-        # TODO: non blocking - track scenarios, reject responses on different scenarios
+        # TODO: track scenarios, reject responses on different scenarios
         request = BoundaryRequest(concordance, area=self.context.task)
 
         connector = get_api_connector()
-        request_id = connector.boundaryChanges(request, blocking=True)
-
-        result = connector.boundaryChangesResults(request_id, True)
-        if result['status_code'] != 200:
-            self.report_failure(self.tr('Statistics NZ API request failed'))
-            return
-
-        for electorate_table in result['content']['populationTable']:
-            electorate_id = int(electorate_table['electorate'])
-            district_registry.update_stats_nz_values(electorate_id, electorate_table)
-
-        self.refresh_dock_stats()
+        self.api_request_queue.append_request(connector, request)

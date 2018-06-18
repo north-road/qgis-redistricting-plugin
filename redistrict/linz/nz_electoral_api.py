@@ -131,7 +131,7 @@ class NzElectoralApi(QObject):
         return json.dumps(payload.__dict__, default=lambda x: x.__dict__).encode('utf-8')
 
     @classmethod
-    def parse_async(cls, nam) -> dict:
+    def parse_async(cls, nam: NetworkAccessManager) -> dict:
         """Transform into JSON the content component of the response
 
         :param nam: network access manager wrapper instance
@@ -227,7 +227,7 @@ class NzElectoralApi(QObject):
         path = "boundaryChanges"
         return self._base_call(path, payload=boundaryRequest, blocking=blocking)
 
-    def boundaryChangesResults(self, boundaryRequestId, blocking=False) -> Union[dict, NetworkAccessManager]:
+    def boundaryChangesResults(self, boundaryRequestId: str, blocking=False) -> Union[dict, NetworkAccessManager]:
         """Call the boundaryChange method of the API with a  boundaryRequestId and retrieves the updated results.
 
         Response codes
