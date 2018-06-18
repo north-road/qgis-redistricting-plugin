@@ -16,7 +16,7 @@ __revision__ = '$Format:%H$'
 
 import json
 import os
-from typing import Union, Optional
+from typing import Union, Optional, List
 import http.server
 import threading
 import time
@@ -36,7 +36,7 @@ class ConcordanceItem():
     """ConcordanceItem struct
     """
 
-    def __init__(self, censusStandardMeshblock, electorate):
+    def __init__(self, censusStandardMeshblock: str, electorate:str):
         """Initialise a ConcordanceItem
 
         Example:
@@ -57,7 +57,7 @@ class BoundaryRequest():
     """BoundaryRequest struct
     """
 
-    def __init__(self, concordance, area, gmsVersion=GMS_VERSION):
+    def __init__(self, concordance: List[ConcordanceItem], area, gmsVersion: str=GMS_VERSION):
         """Initialise a BoundaryRequest
 
         :param concordance: one or more ConcordanceItem
@@ -212,7 +212,7 @@ class NzElectoralApi(QObject):
         path = "status"
         return self._base_call(path, blocking=blocking)
 
-    def boundaryChanges(self, boundaryRequest, blocking=False) -> Union[str, NetworkAccessManager]:
+    def boundaryChanges(self, boundaryRequest: BoundaryRequest, blocking=False) -> Union[str, NetworkAccessManager]:
         """Call the boundaryChange method of the API,
         sends changed data and gets a requestId in return.
         The requestId can be used to retrieve the results
