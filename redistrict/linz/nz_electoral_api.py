@@ -37,7 +37,7 @@ class ConcordanceItem():
     """ConcordanceItem struct
     """
 
-    def __init__(self, censusStandardMeshblock: str, electorate:str):
+    def __init__(self, censusStandardMeshblock: str, electorate: str):
         """Initialise a ConcordanceItem
 
         Example:
@@ -58,7 +58,7 @@ class BoundaryRequest():
     """BoundaryRequest struct
     """
 
-    def __init__(self, concordance: List[ConcordanceItem], area, gmsVersion: str=GMS_VERSION):
+    def __init__(self, concordance: List[ConcordanceItem], area, gmsVersion: str = GMS_VERSION):
         """Initialise a BoundaryRequest
 
         :param concordance: one or more ConcordanceItem
@@ -377,7 +377,8 @@ def get_api_connector(use_mock: Optional[bool] = None, authcfg: Optional[str] = 
     if mock:
         return MockStatsApi()
 
-    auth_key = authcfg if authcfg is not None else QgsSettings().value('redistrict/auth_config_id', None, str, QgsSettings.Plugins)
+    auth_key = authcfg if authcfg is not None else QgsSettings().value('redistrict/auth_config_id', None, str,
+                                                                       QgsSettings.Plugins)
     base_url = QgsSettings().value('redistrict/base_url', '', str, QgsSettings.Plugins)
 
     return NzElectoralApi(base_url=base_url, authcfg=auth_key)
