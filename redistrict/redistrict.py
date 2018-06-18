@@ -82,7 +82,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
     MESHBLOCK_NUMBER_FIELD = 'MB2018_V1_00'
 
-    def __init__(self, iface: QgisInterface):
+    def __init__(self, iface: QgisInterface):  # pylint: disable=too-many-statements
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -518,6 +518,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.switch_task.taskCompleted.connect(
             partial(self.task_set, task))
+        self.switch_task.taskCompleted.connect(self.refresh_canvases)
         self.switch_task.taskTerminated.connect(
             partial(self.report_failure, self.tr('Error while switching to “{}”').format(task_name)))
 
@@ -793,7 +794,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                        meshblock_layer=self.meshblock_layer,
                                                        meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
                                                        scenario_registry=self.scenario_registry,
-                                                       scenario=self.context.scenario,
+                                                       scenario=scenario,
                                                        task=self.context.task)
         self.staged_task.addSubTask(self.switch_task, subTaskDependency=QgsTask.ParentDependsOnSubTask)
 
@@ -807,6 +808,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.progress_item = MessageBarProgressItem(self.tr('Switching to {}').format(scenario_name), iface=self.iface)
         self.staged_task.progressChanged.connect(self.progress_item.set_progress)
         self.staged_task.taskCompleted.connect(self.progress_item.close)
+        self.staged_task.taskCompleted.connect(self.refresh_canvases)
         self.staged_task.taskTerminated.connect(self.progress_item.close)
 
         QgsApplication.taskManager().addTask(self.staged_task)
