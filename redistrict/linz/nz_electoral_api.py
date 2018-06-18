@@ -361,7 +361,8 @@ class MockStatsApi(NzElectoralApi):
         }
 
 
-def get_api_connector(use_mock: Optional[bool] = None, authcfg: Optional[str] = None) -> NzElectoralApi:
+def get_api_connector(use_mock: Optional[bool] = None, authcfg: Optional[str] = None,
+                      base_url: Optional[str] = None) -> NzElectoralApi:
     """
     Creates a new API connector (either real or mock, depending on user's settings
 
@@ -371,6 +372,9 @@ def get_api_connector(use_mock: Optional[bool] = None, authcfg: Optional[str] = 
 
     :param authcfg: if specified, overrides the stored authcfg key with the
     manually specified one
+
+    :param base_url: if specified, overrides the stored base url with the
+    manually specified one
     """
     mock = QgsSettings().value('redistrict/use_mock_api', False, bool,
                                QgsSettings.Plugins) if use_mock is None else use_mock
@@ -379,6 +383,6 @@ def get_api_connector(use_mock: Optional[bool] = None, authcfg: Optional[str] = 
 
     auth_key = authcfg if authcfg is not None else QgsSettings().value('redistrict/auth_config_id', None, str,
                                                                        QgsSettings.Plugins)
-    base_url = QgsSettings().value('redistrict/base_url', '', str, QgsSettings.Plugins)
+    base_url = base_url if base_url is not None else QgsSettings().value('redistrict/base_url', '', str, QgsSettings.Plugins)
 
     return NzElectoralApi(base_url=base_url, authcfg=auth_key)

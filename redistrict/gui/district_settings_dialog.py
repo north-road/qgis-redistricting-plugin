@@ -108,7 +108,8 @@ class DistrictSettingsDialog(QDialog):
         Tests the API connection (real or mock!)
         """
         connector = get_api_connector(use_mock=self.use_mock_checkbox.isChecked(),
-                                      authcfg=self.auth_value.configId())
+                                      authcfg=self.auth_value.configId(),
+                                      base_url=self.base_url_edit.text())
         if connector.check():
             QMessageBox.information(self, self.tr('Test API Connection'),
                                     self.tr('API responded OK!'), QMessageBox.Ok)
