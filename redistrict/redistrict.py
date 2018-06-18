@@ -471,7 +471,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         dlg = DistrictSettingsDialog()
         dlg.exec_()
 
-        self.api_request_queue.set_frequency(QgsSettings().value('redistrict/check_every', '30', int, QgsSettings.Plugins))
+        self.api_request_queue.set_frequency(
+            QgsSettings().value('redistrict/check_every', '30', int, QgsSettings.Plugins))
 
     def save_edits(self):
         """Saves pending edits"""
@@ -987,9 +988,17 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         prev_source = self.db_source
         self.reset(clear_project=True)
 
+        def give_hint():
+            """
+            Shows a hint to users on what action to take after exporting the database
+            """
+            QMessageBox.information(self.iface.mainWindow(), self.tr('Export Database'), self.tr(
+                'Please reopen the redistricting project file to continue redistricting.'))
+
         self.copy_task = CopyFileTask(self.tr('Exporting database'), {prev_source: destination})
         self.copy_task.taskCompleted.connect(
             partial(self.report_success, self.tr('Exported database to “{}”').format(destination)))
+        self.copy_task.taskCompleted.connect(give_hint)
         self.copy_task.taskTerminated.connect(self.copy_task_failed)
 
         QgsApplication.taskManager().addTask(self.copy_task)
@@ -1056,6 +1065,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.report_failure(self.tr('Critical error occurred while replacing master database'))
         else:
             self.report_success(self.tr('New master database imported successfully'))
+            QMessageBox.information(self.iface.mainWindow(), self.tr('Import Database'), self.tr(
+                'Please reopen the redistricting project file to use the newly imported database.'))
 
     def create_new_electorate(self):
         """
