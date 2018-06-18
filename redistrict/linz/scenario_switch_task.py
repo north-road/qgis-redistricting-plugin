@@ -13,7 +13,8 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.core import QgsVectorLayer
+from qgis.core import (QgsVectorLayer,
+                       NULL)
 from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.scenario_base_task import ScenarioBaseTask
 
@@ -42,6 +43,17 @@ class ScenarioSwitchTask(ScenarioBaseTask):
                          meshblock_number_field_name=meshblock_number_field_name, scenario_registry=scenario_registry,
                          scenario=scenario, task=None)
 
+        self.stats_nz_pop_field = 'stats_nz_pop'
+        self.stats_nz_var_20_field = 'stats_nz_var_20'
+        self.stats_nz_var_23_field = 'stats_nz_var_23'
+
+        self.stats_nz_pop_field_index = self.electorate_layer.fields().lookupField(self.stats_nz_pop_field)
+        assert self.stats_nz_pop_field_index >= 0
+        self.stats_nz_var_20_field_index = self.electorate_layer.fields().lookupField(self.stats_nz_var_20_field)
+        assert self.stats_nz_var_20_field_index >= 0
+        self.stats_nz_var_23_field_index = self.electorate_layer.fields().lookupField(self.stats_nz_var_23_field)
+        assert self.stats_nz_var_23_field_index >= 0
+
     def run(self):  # pylint: disable=missing-docstring
         electorate_geometries, electorate_attributes = self.calculate_new_electorates()
 
@@ -55,7 +67,10 @@ class ScenarioSwitchTask(ScenarioBaseTask):
                                                                electorate_attributes[electorate_feature_id][
                                                                    self.ESTIMATED_POP],
                                                            self.invalid_idx: 0,
-                                                           self.invalid_reason_idx: None}
+                                                           self.invalid_reason_idx: None,
+                                                           self.stats_nz_pop_field_index: NULL,
+                                                           self.stats_nz_var_20_field_index: NULL,
+                                                           self.stats_nz_var_23_field_index: NULL}
 
             electorate_geometry = electorate_geometries[electorate_feature_id]
             geometry_change_map[electorate_feature_id] = electorate_geometry
