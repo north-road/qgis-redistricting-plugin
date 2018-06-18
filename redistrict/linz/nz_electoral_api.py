@@ -20,6 +20,7 @@ from typing import Union, Optional, List
 import http.server
 import threading
 import time
+import uuid
 from io import BytesIO
 
 from redistrict.linz.networkaccessmanager import NetworkAccessManager, RequestsException
@@ -317,6 +318,8 @@ class MockStatsApi(NzElectoralApi):
 
     DATA_DIR = 'mock_electoral_api'
 
+    boundary_changes_requests = {}
+
     def __init__(self):
         """Construct a mock API
         """
@@ -328,6 +331,34 @@ class MockStatsApi(NzElectoralApi):
         self.httpd_thread.setDaemon(True)
         self.httpd_thread.start()
         super().__init__(base_url='http://localhost:%s' % self.port, authcfg=None, debug=True)
+
+    def boundaryChanges(self, boundaryRequest: BoundaryRequest, blocking=False) -> Union[str, NetworkAccessManager]:
+        meshblocks_to_electorate = {}
+        for c in boundaryRequest.concordance:
+            if c.electorate not in meshblocks_to_electorate:
+                meshblocks_to_electorate[c.electorate] = {
+                    "varianceYear2": 0,
+                    "electorate": str(c.electorate),
+                    "currentPopulation": 0,
+                    "varianceYear1": 0
+                }
+
+            meshblocks_to_electorate[c.electorate]['currentPopulation'] += 100  # 100 people per meshblock in mock api
+            meshblocks_to_electorate[c.electorate]['varianceYear1'] += 0.001  # .001% variance per year
+            meshblocks_to_electorate[c.electorate]['varianceYear2'] -= 0.001  # -0.001% variance per year
+
+        request_id = str(uuid.uuid1())
+        MockStatsApi.boundary_changes_requests[request_id] = {
+            "populationTable": list(meshblocks_to_electorate.values()),
+            "gmsVersion": GMS_VERSION
+        }
+        return request_id
+
+    def boundaryChangesResults(self, boundaryRequestId, blocking=False) -> Union[dict, NetworkAccessManager]:
+        return {
+            'status_code': 200,
+            'content': MockStatsApi.boundary_changes_requests[boundaryRequestId]
+        }
 
 
 def get_api_connector(use_mock: Optional[bool] = None, authcfg: Optional[str] = None) -> NzElectoralApi:
