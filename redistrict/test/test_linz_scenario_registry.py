@@ -510,14 +510,14 @@ class ScenarioRegistryTest(unittest.TestCase):
                                   meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=1)
         self.assertTrue(task.run())
         self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()],
-                         [[1, 'test1', 'GN', 11, 1, 0, None, NULL, NULL, NULL, NULL],
-                          [2, 'test2', 'GN', 25, 1, 0, None, NULL, NULL, NULL, NULL],
-                          [3, 'test3', 'GN', 0, 1, 0, None, NULL, NULL, NULL, NULL],
-                          [4, 'test4', 'GS', 20, 1, 0, None, NULL, NULL, NULL, NULL],
-                          [5, 'test5', 'GS', 70, 1, 0, None, NULL, NULL, NULL, NULL],
-                          [6, 'test6', 'GS', 0, 1, 0, None, NULL, NULL, NULL, NULL],
-                          [7, 'test7', 'M', 18, 1, 0, None, NULL, NULL, NULL, NULL],
-                          [8, 'test8', 'M', 27, 1, 0, None, NULL, NULL, NULL, NULL]])
+                         [[1, 'test1', 'GN', 11, 1, NULL, None, NULL, NULL, NULL, NULL],
+                          [2, 'test2', 'GN', 25, 1, NULL, None, NULL, NULL, NULL, NULL],
+                          [3, 'test3', 'GN', 0, 1, NULL, None, NULL, NULL, NULL, NULL],
+                          [4, 'test4', 'GS', 20, 1, NULL, None, NULL, NULL, NULL, NULL],
+                          [5, 'test5', 'GS', 70, 1, NULL, None, NULL, NULL, NULL, NULL],
+                          [6, 'test6', 'GS', 0, 1, NULL, None, NULL, NULL, NULL, NULL],
+                          [7, 'test7', 'M', 18, 1, NULL, None, NULL, NULL, NULL, NULL],
+                          [8, 'test8', 'M', 27, 1, NULL, None, NULL, NULL, NULL, NULL]])
         self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['Point (1 2)',
                                                                                           'MultiPoint ((2 3),(4 5))',
                                                                                           'GeometryCollection ()',
@@ -541,14 +541,14 @@ class ScenarioRegistryTest(unittest.TestCase):
                                   meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=2)
         self.assertTrue(task.run())
         self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()],
-                         [[1, 'test1', 'GN', 0, 2, 0, None, NULL, NULL, NULL, NULL],
-                          [2, 'test2', 'GN', 23, 2, 0, None, NULL, NULL, NULL, NULL],
-                          [3, 'test3', 'GN', 13, 2, 0, None, NULL, NULL, NULL, NULL],
-                          [4, 'test4', 'GS', 70, 2, 0, None, NULL, NULL, NULL, NULL],
-                          [5, 'test5', 'GS', 20, 2, 0, None, NULL, NULL, NULL, NULL],
-                          [6, 'test6', 'GS', 0, 2, 0, None, NULL, NULL, NULL, NULL],
-                          [7, 'test7', 'M', 21, 2, 0, None, NULL, NULL, NULL, NULL],
-                          [8, 'test8', 'M', 24, 2, 0, None, NULL, NULL, NULL, NULL]])
+                         [[1, 'test1', 'GN', 0, 2, NULL, None, NULL, NULL, NULL, NULL],
+                          [2, 'test2', 'GN', 23, 2, NULL, None, NULL, NULL, NULL, NULL],
+                          [3, 'test3', 'GN', 13, 2, NULL, None, NULL, NULL, NULL, NULL],
+                          [4, 'test4', 'GS', 70, 2, NULL, None, NULL, NULL, NULL, NULL],
+                          [5, 'test5', 'GS', 20, 2, NULL, None, NULL, NULL, NULL, NULL],
+                          [6, 'test6', 'GS', 0, 2, NULL, None, NULL, NULL, NULL, NULL],
+                          [7, 'test7', 'M', 21, 2, NULL, None, NULL, NULL, NULL, NULL],
+                          [8, 'test8', 'M', 24, 2, NULL, None, NULL, NULL, NULL, NULL]])
         self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['GeometryCollection ()',
                                                                                           'MultiPoint ((1 2),(2 3))',
                                                                                           'Point (4 5)',

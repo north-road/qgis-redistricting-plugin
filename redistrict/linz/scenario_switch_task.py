@@ -66,7 +66,7 @@ class ScenarioSwitchTask(ScenarioBaseTask):
                                                            self.estimated_pop_idx:
                                                                electorate_attributes[electorate_feature_id][
                                                                    self.ESTIMATED_POP],
-                                                           self.invalid_idx: 0,
+                                                           self.invalid_idx: NULL,
                                                            self.invalid_reason_idx: None,
                                                            self.stats_nz_pop_field_index: NULL,
                                                            self.stats_nz_var_20_field_index: NULL,
