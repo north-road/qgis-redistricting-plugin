@@ -17,7 +17,8 @@ from qgis.PyQt.QtCore import (QSizeF,
                               QPointF)
 from qgis.PyQt.QtGui import (QImage,
                              QPainter)
-from qgis.core import (QgsFeatureRequest,
+from qgis.core import (QgsSettings,
+                       QgsFeatureRequest,
                        QgsExpression,
                        QgsTextFormat,
                        QgsRenderContext,
@@ -115,4 +116,7 @@ class CentroidDecoratorFactory(DecoratorFactory):
         :return: QgsMapCanvasItem to display on map if decorations
         are desired
         """
-        return CentroidDecorator(canvas, electorate_layer=self.electorate_layer, meshblock_layer=self.meshblock_layer, task=self.task)
+        if QgsSettings().value('redistrict/show_overlays', False, bool, QgsSettings.Plugins):
+            return CentroidDecorator(canvas, electorate_layer=self.electorate_layer, meshblock_layer=self.meshblock_layer, task=self.task)
+
+        return None

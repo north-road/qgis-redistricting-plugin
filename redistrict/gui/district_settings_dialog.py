@@ -88,6 +88,10 @@ class DistrictSettingsDialog(QDialog):
         self.test_button.clicked.connect(self.test_api)
         layout.addWidget(self.test_button)
 
+        self.use_overlays_checkbox = QCheckBox(self.tr('Show updated populations during interactive redistricting'))
+        self.use_overlays_checkbox.setChecked(QgsSettings().value('redistrict/show_overlays', False, bool, QgsSettings.Plugins))
+        layout.addWidget(self.use_overlays_checkbox)
+
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         layout.addWidget(button_box)
@@ -102,6 +106,7 @@ class DistrictSettingsDialog(QDialog):
         QgsSettings().setValue('redistrict/use_mock_api', self.use_mock_checkbox.isChecked(), QgsSettings.Plugins)
         QgsSettings().setValue('redistrict/base_url', self.base_url_edit.text(), QgsSettings.Plugins)
         QgsSettings().setValue('redistrict/check_every', self.check_every_spin.value(), QgsSettings.Plugins)
+        QgsSettings().setValue('redistrict/show_overlays', self.use_overlays_checkbox.isChecked(), QgsSettings.Plugins)
 
     def test_api(self):
         """
