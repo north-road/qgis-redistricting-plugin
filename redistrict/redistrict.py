@@ -150,7 +150,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.api_request_queue.error.connect(self.report_failure)
 
         # reset the plugin when the project is unloaded
-        QgsProject.instance().cleared.connect(self.reset)
+        if hasattr(QgsProject.instance(), 'cleared'):
+            QgsProject.instance().cleared.connect(self.reset)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
