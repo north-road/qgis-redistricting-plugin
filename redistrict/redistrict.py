@@ -470,6 +470,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         dlg = DistrictSettingsDialog()
         dlg.exec_()
 
+        self.api_request_queue.set_frequency(QgsSettings().value('redistrict/check_every', '30', int, QgsSettings.Plugins))
+
     def save_edits(self):
         """Saves pending edits"""
         tools = self.iface.vectorLayerTools()

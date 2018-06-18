@@ -17,10 +17,12 @@ from qgis.PyQt.QtWidgets import (QDialog,
                                  QDialogButtonBox,
                                  QLabel,
                                  QVBoxLayout,
+                                 QHBoxLayout,
                                  QCheckBox,
                                  QPushButton,
                                  QMessageBox,
-                                 QLineEdit)
+                                 QLineEdit,
+                                 QSpinBox)
 
 from qgis.core import QgsSettings
 from qgis.gui import QgsAuthConfigSelect
@@ -67,6 +69,17 @@ class DistrictSettingsDialog(QDialog):
         self.base_url_edit.setText(QgsSettings().value('redistrict/base_url', '', str, QgsSettings.Plugins))
         layout.addWidget(self.base_url_edit)
 
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(QLabel(self.tr('Check for completed requests every')))
+        self.check_every_spin = QSpinBox()
+        self.check_every_spin.setMinimum(10)
+        self.check_every_spin.setMaximum(600)
+        self.check_every_spin.setSuffix(' ' + self.tr('s'))
+        self.check_every_spin.setValue(QgsSettings().value('redistrict/check_every', '30', int, QgsSettings.Plugins))
+
+        h_layout.addWidget(self.check_every_spin)
+        layout.addLayout(h_layout)
+
         self.use_mock_checkbox = QCheckBox(self.tr('Use mock Statistics NZ API'))
         self.use_mock_checkbox.setChecked(get_use_mock_api())
         layout.addWidget(self.use_mock_checkbox)
@@ -88,6 +101,7 @@ class DistrictSettingsDialog(QDialog):
         QgsSettings().setValue('redistrict/auth_config_id', self.auth_value.configId(), QgsSettings.Plugins)
         QgsSettings().setValue('redistrict/use_mock_api', self.use_mock_checkbox.isChecked(), QgsSettings.Plugins)
         QgsSettings().setValue('redistrict/base_url', self.base_url_edit.text(), QgsSettings.Plugins)
+        QgsSettings().setValue('redistrict/check_every', self.check_every_spin.value(), QgsSettings.Plugins)
 
     def test_api(self):
         """

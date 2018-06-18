@@ -15,6 +15,7 @@ __revision__ = '$Format:%H$'
 
 from functools import partial
 from typing import Union
+from qgis.core import QgsSettings
 from qgis.PyQt.QtCore import QObject, pyqtSignal, QTimer
 from redistrict.linz.networkaccessmanager import NetworkAccessManager
 from redistrict.linz.nz_electoral_api import NzElectoralApi, BoundaryRequest
@@ -35,7 +36,15 @@ class ApiRequestQueue(QObject):
         self.boundary_change_queue = []
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.process_queue)
-        self.timer.start(PROCESS_QUEUE_FREQUENCY_SECONDS * 1000)
+        self.set_frequency(QgsSettings().value('redistrict/check_every', '30', int, QgsSettings.Plugins))
+
+    def set_frequency(self, frequency: int):
+        """
+        Sets the frequency to check for completed results
+        :param frequency: seconds between checks
+        """
+        self.timer.stop()
+        self.timer.start(frequency * 1000)
 
     def append_request(self, connector: NzElectoralApi, request: BoundaryRequest):
         """
