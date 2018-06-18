@@ -507,21 +507,24 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Enables or disables the task switching commands
         """
-        for action in self.switch_menu.actions():
-            action.setEnabled(enabled)
-        for action in self.scenarios_menu.actions():
-            action.setEnabled(enabled)
-        for action in self.electorate_menu.actions():
-            action.setEnabled(enabled)
-        for action in self.database_menu.actions():
-            action.setEnabled(enabled)
-        self.redistrict_selected_action.setEnabled(enabled)
-        self.interactive_redistrict_action.setEnabled(enabled)
-        self.start_editing_action.setEnabled(enabled)
-        self.save_edits_action.setEnabled(enabled)
-        self.rollback_edits_action.setEnabled(enabled)
-        self.validate_action.setEnabled(enabled)
-        self.export_action.setEnabled(enabled)
+        try:
+            for action in self.switch_menu.actions():
+                action.setEnabled(enabled)
+            for action in self.scenarios_menu.actions():
+                action.setEnabled(enabled)
+            for action in self.electorate_menu.actions():
+                action.setEnabled(enabled)
+            for action in self.database_menu.actions():
+                action.setEnabled(enabled)
+            self.redistrict_selected_action.setEnabled(enabled)
+            self.interactive_redistrict_action.setEnabled(enabled)
+            self.start_editing_action.setEnabled(enabled)
+            self.save_edits_action.setEnabled(enabled)
+            self.rollback_edits_action.setEnabled(enabled)
+            self.validate_action.setEnabled(enabled)
+            self.export_action.setEnabled(enabled)
+        except AttributeError:
+            pass
 
     def set_task(self, task: str):
         """
@@ -1177,6 +1180,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         progress_dialog.deleteLater()
 
         self.validation_task.taskCompleted.connect(self.validation_complete)
+        self.validation_task.taskCompleted.connect(self.refresh_canvases)
         self.validation_task.taskTerminated.connect(
             partial(self.report_failure, self.tr('Validation failed')))
 
