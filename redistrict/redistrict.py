@@ -55,7 +55,8 @@ from .gui.message_bar_progress import MessageBarProgressItem
 from .gui.gui_utils import (GuiUtils,
                             BlockingDialog,
                             ConfirmationDialog)
-from .gui.district_settings_dialog import DistrictSettingsDialog, SETTINGS_AUTH_CONFIG_KEY  # pylint: disable=unused-import
+from .gui.district_settings_dialog import (DistrictSettingsDialog,  # pylint: disable=unused-import
+                                           SETTINGS_AUTH_CONFIG_KEY)
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
@@ -142,6 +143,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.export_task = None
         self.progress_item = None
         self.switch_menu = None
+
+        # reset the plugin when the project is unloaded
+        QgsProject.instance().cleared.connect(self.reset)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):  # pylint: disable=no-self-use
@@ -919,11 +923,15 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.iface.messageBar().pushMessage(
             message, level=Qgis.Critical)
 
-    def reset(self):
+    def reset(self, clear_project=False):
         """
         Resets the plugin, clearing the current project and stopping the redistrict operation
         """
-        QgsProject.instance().clear()
+        if not self.is_redistricting:
+            return
+
+        if clear_project:
+            QgsProject.instance().clear()
         self.is_redistricting = False
         self.electorate_layer = None
         self.meshblock_layer = None
@@ -963,7 +971,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         settings.setValue('redistricting/last_export_path', destination)
 
         prev_source = self.db_source
-        self.reset()
+        self.reset(clear_project=True)
 
         self.copy_task = CopyFileTask(self.tr('Exporting database'), {prev_source: destination})
         self.copy_task.taskCompleted.connect(
@@ -1016,7 +1024,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         settings.setValue('redistricting/last_backup_path', destination)
 
         prev_source = self.db_source
-        self.reset()
+        self.reset(clear_project=True)
 
         if QFile.exists(destination):
             if not QFile.remove(destination):
