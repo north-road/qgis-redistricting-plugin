@@ -30,7 +30,7 @@ QGIS_APP, CANVAS, IFACE, PARENT = get_qgis_app()
 class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
     """Test LINZ RedistrictGuiHandler."""
 
-    def testShowStats(self):
+    def testShowStats(self):  # pylint: disable=too-many-statements
         """Test show stats for district"""
         layer = QgsVectorLayer(
             "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int",
@@ -59,19 +59,82 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
         handler.show_stats_for_district('test4')
         self.assertIn('Statistics for xtest1', dock.frame.toPlainText())
         self.assertIn('General North Island', dock.frame.toPlainText())
+        self.assertNotIn('updating', dock.frame.toPlainText())
         self.assertIn('59000', dock.frame.toPlainText())
         self.assertIn('1000*', dock.frame.toPlainText())
         self.assertIn('-98%', dock.frame.toPlainText())
         self.assertIn('color:#ff0000', dock.frame.toHtml())
         self.assertIn('estimated population available', dock.frame.toPlainText())
+
         handler.show_stats_for_district('test3')
         self.assertIn('Statistics for xtest3', dock.frame.toPlainText())
         self.assertIn('Māori', dock.frame.toPlainText())
+        self.assertNotIn('updating', dock.frame.toPlainText())
         self.assertIn('61000', dock.frame.toPlainText())
         self.assertIn('63000*', dock.frame.toPlainText())
         self.assertIn('+3%', dock.frame.toPlainText())
         self.assertNotIn('color:#ff0000', dock.frame.toHtml())
         self.assertIn('estimated population available', dock.frame.toPlainText())
+
+        registry.flag_stats_nz_updating('test4')
+        handler.show_stats_for_district('test4')
+        self.assertIn('Statistics for xtest1', dock.frame.toPlainText())
+        self.assertIn('General North Island', dock.frame.toPlainText())
+        self.assertIn('updating', dock.frame.toPlainText())
+        self.assertNotIn('1000*', dock.frame.toPlainText())
+        self.assertNotIn('-98%', dock.frame.toPlainText())
+        self.assertNotIn('color:#ff0000', dock.frame.toHtml())
+        self.assertNotIn('estimated population available', dock.frame.toPlainText())
+
+        registry.update_stats_nz_values('test3', {'currentPopulation': 1111,
+                                                  'varianceYear1': 1.5,
+                                                  'varianceYear2': -1.1})
+        handler.show_stats_for_district('test3')
+        self.assertIn('Statistics for xtest3', dock.frame.toPlainText())
+        self.assertIn('Māori', dock.frame.toPlainText())
+        self.assertNotIn('updating', dock.frame.toPlainText())
+        self.assertIn('61000', dock.frame.toPlainText())
+        self.assertIn('1111', dock.frame.toPlainText())
+        self.assertIn('1.5', dock.frame.toPlainText())
+        self.assertIn('-1.1', dock.frame.toPlainText())
+        self.assertIn('-98%', dock.frame.toPlainText())
+        self.assertIn('color:#ff0000', dock.frame.toHtml())
+        self.assertNotIn('estimated population available', dock.frame.toPlainText())
+
+    def testClickHandler(self):
+        """
+        Tests the request population callback
+        """
+        layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes(["test4", "xtest1", 'GN', 1000])
+        layer.dataProvider().addFeatures([f])
+        quota_layer = make_quota_layer()
+        registry = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='',
+            source_field='fld1',
+            title_field='fld2')
+
+        dock = RedistrictingDockWidget(IFACE)
+        handler = LinzRedistrictGuiHandler(redistrict_dock=dock, district_registry=registry)
+        handler.request_population_callback = None
+        handler.show_stats_for_district('test4')
+        handler.request_population()
+
+        def callback(electorate):
+            """
+            Dummy callback
+            """
+            callback.electorate = electorate
+
+        callback.electorate = None
+        handler.request_population_callback = callback
+        handler.request_population()
+        self.assertEqual(callback.electorate, 'test4')
 
 
 if __name__ == "__main__":
