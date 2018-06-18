@@ -66,22 +66,22 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         district_layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:string&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int",
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=invalid:int&field=invalid_reason:string",
             "source", "memory")
         d = QgsFeature()
-        d.setAttributes(["test1", NULL, 11111, 12, 13])
+        d.setAttributes(["test1", NULL, 11111, 12, 13, 1, 'x'])
         d.setGeometry(f4.geometry())
         d2 = QgsFeature()
-        d2.setAttributes(["test2", NULL, 11112, 22, 23])
+        d2.setAttributes(["test2", NULL, 11112, 22, 23, 0, 'y'])
         d2.setGeometry(QgsGeometry.unaryUnion([f2.geometry(), f5.geometry()]))
         d3 = QgsFeature()
-        d3.setAttributes(["test3", NULL, 11113, 32, 33])
+        d3.setAttributes(["test3", NULL, 11113, 32, 33, 1, 'z'])
         d3.setGeometry(f3.geometry())
         d4 = QgsFeature()
-        d4.setAttributes(["test4", NULL, 11114, 42, 43])
+        d4.setAttributes(["test4", NULL, 11114, 42, 43, 0, 'xx'])
         d4.setGeometry(f.geometry())
         d5 = QgsFeature()
-        d5.setAttributes(["aaa", NULL, 11115, 52, 53])
+        d5.setAttributes(["aaa", NULL, 11115, 52, 53, 1, 'yy'])
         success, [d, d2, d3, d4, d5] = district_layer.dataProvider().addFeatures([d, d2, d3, d4, d5])
         self.assertTrue(success)
 
@@ -139,11 +139,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, 0 15, 10 15, 10 10, 5 10, 5 5))')
-        self.assertEqual([f.attributes()[-3:] for f in district_layer.getFeatures()], [[11111, 12, 13],
-                                                                                       [NULL, NULL, NULL],
-                                                                                       [NULL, NULL, NULL],
-                                                                                       [NULL, NULL, NULL],
-                                                                                       [NULL, NULL, NULL]])
+        self.assertEqual([f.attributes()[-5:] for f in district_layer.getFeatures()], [[11111, 12, 13, 1, 'x'],
+                                                                                       [NULL, NULL, NULL, NULL, NULL],
+                                                                                       [NULL, NULL, NULL, NULL, NULL],
+                                                                                       [NULL, NULL, NULL, NULL, NULL],
+                                                                                       [NULL, NULL, NULL, NULL, NULL]])
 
         handler.begin_edit_group('test2')
         self.assertTrue(handler.assign_district([f2.id()], 'aaa'))
@@ -169,11 +169,11 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, 0 15, 10 15, 10 10, 5 10, 5 5))')
-        self.assertEqual([f.attributes()[-3:] for f in district_layer.getFeatures()], [[11111, 12, 13],
-                                                                                       [NULL, NULL, NULL],
-                                                                                       [NULL, NULL, NULL],
-                                                                                       [NULL, NULL, NULL],
-                                                                                       [NULL, NULL, NULL]])
+        self.assertEqual([f.attributes()[-5:] for f in district_layer.getFeatures()], [[11111, 12, 13, 1, 'x'],
+                                                                                       [NULL, NULL, NULL, NULL, NULL],
+                                                                                       [NULL, NULL, NULL, NULL, NULL],
+                                                                                       [NULL, NULL, NULL, NULL, NULL],
+                                                                                       [NULL, NULL, NULL, NULL, NULL]])
 
         self.assertEqual([f.attributes()[4:] for f in user_log_layer.getFeatures()],
                          [[1, 'test4', 'GN', 'test4', 'aaa'],
@@ -209,7 +209,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         district_layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:int&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int",
+            "Polygon?crs=EPSG:4326&field=fld1:int&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=invalid:int&field=invalid_reason:string",
             "source", "memory")
         d = QgsFeature()
         d.setAttributes([1])

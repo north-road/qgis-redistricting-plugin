@@ -90,6 +90,11 @@ class LinzRedistrictHandler(RedistrictHandler):
         self.stats_nz_var_23_field_index = self.electorate_layer.fields().lookupField(self.stats_nz_var_23_field)
         assert self.stats_nz_var_23_field_index >= 0
 
+        self.invalid_field_index = self.electorate_layer.fields().lookupField('invalid')
+        assert self.invalid_field_index >= 0
+        self.invalid_reason_field_index = self.electorate_layer.fields().lookupField('invalid_reason')
+        assert self.invalid_reason_field_index >= 0
+
     def create_affected_district_filter(self):
         """
         Returns a QgsExpression filter corresponding to all pending affected
@@ -211,7 +216,9 @@ class LinzRedistrictHandler(RedistrictHandler):
             new_attributes[electorate_features[district].id()] = {self.estimated_pop_idx: estimated_pop,
                                                                   self.stats_nz_pop_field_index: NULL,
                                                                   self.stats_nz_var_20_field_index: NULL,
-                                                                  self.stats_nz_var_23_field_index: NULL}
+                                                                  self.stats_nz_var_23_field_index: NULL,
+                                                                  self.invalid_field_index: NULL,
+                                                                  self.invalid_reason_field_index: NULL}
 
         self.electorate_layer.dataProvider().changeGeometryValues(new_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(new_attributes)
