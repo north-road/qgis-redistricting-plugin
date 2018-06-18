@@ -941,7 +941,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             return
 
         if clear_project:
+            if hasattr(QgsProject.instance(), 'cleared'):
+                QgsProject.instance().cleared.disconnect(self.reset)
             QgsProject.instance().clear()
+            if hasattr(QgsProject.instance(), 'cleared'):
+                QgsProject.instance().cleared.connect(self.reset)
         self.is_redistricting = False
         self.electorate_layer = None
         self.meshblock_layer = None
