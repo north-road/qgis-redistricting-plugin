@@ -74,6 +74,8 @@ from .linz.export_task import ExportTask
 from .linz.nz_electoral_api import ConcordanceItem, BoundaryRequest, get_api_connector
 from .linz.api_request_queue import ApiRequestQueue
 
+VERSION = '0.1'
+
 
 class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
     """QGIS Plugin Implementation."""
@@ -212,10 +214,16 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.redistricting_menu.addAction(
             self.open_settings_action)
 
+        self.redistricting_menu.addSeparator()
+
         self.help_action = QAction(GuiUtils.get_icon('help.svg'), self.tr('Help'))
         self.help_action.triggered.connect(self.show_help)
 
         self.redistricting_menu.addAction(self.help_action)
+
+        about_action = QAction(self.tr('About...'), parent=self.redistricting_menu)
+        about_action.triggered.connect(self.about)
+        self.redistricting_menu.addAction(about_action)
 
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
 
@@ -1319,3 +1327,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         QDesktopServices.openUrl(QUrl(
             'https://github.com/north-road/qgis-redistricting-plugin/blob/master/documentation/ui_design/ui_design.md'))
+
+    def about(self):
+        QMessageBox.about(self.iface.mainWindow(), self.tr('LINZ Redistricting Plugin'),
+                          self.tr('Developed by North Road (http://north-road.com) for LINZ.') + '\n\n' + self.tr(
+                              'Version: {}').format(VERSION))
