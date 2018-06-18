@@ -20,11 +20,13 @@ from functools import partial
 from typing import Optional
 from qgis.PyQt.QtCore import (QObject,
                               Qt,
+                              QUrl,
                               QDir,
                               QFile,
                               QSettings,
                               QTranslator,
                               QCoreApplication)
+from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import (QToolBar,
                                  QAction,
                                  QMessageBox,
@@ -125,6 +127,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.scenarios_tool_button = None
         self.context = None
         self.current_dock_electorate = None
+        self.help_action = None
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -204,6 +207,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.open_settings)
         self.redistricting_menu.addAction(
             self.open_settings_action)
+
+        self.help_action = QAction(GuiUtils.get_icon('help.svg'), self.tr('Help'))
+        self.help_action.triggered.connect(self.show_help)
+
+        self.redistricting_menu.addAction(self.help_action)
 
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
 
@@ -364,6 +372,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         options_button.setPopupMode(QToolButton.InstantPopup)
         options_button.setMenu(options_menu)
         self.dock.dock_toolbar().addWidget(options_button)
+
+        self.dock.dock_toolbar().addAction(self.help_action)
 
         self.set_task(self.TASK_GN)
 
@@ -1262,3 +1272,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         connector = get_api_connector()
         self.api_request_queue.append_request(connector, request)
+
+    def show_help(self):
+        """
+        Shows the plugin help
+        """
+        QDesktopServices.openUrl(QUrl('https://github.com/north-road/qgis-redistricting-plugin/blob/master/documentation/ui_design/ui_design.md'))
