@@ -164,7 +164,7 @@ class NzElectoralApi(QObject):
         else:
             method = self.GET
 
-        path = os.path.join(self.base_url, path)
+        path = self.base_url + '/' + path
         nam = NetworkAccessManager(self.authcfg, debug=self.debug)
 
         if payload is not None:
@@ -243,7 +243,7 @@ class NzElectoralApi(QObject):
         :rtype: dict if in blocking mode, NetworkAccessManager if not
 
         """
-        path = os.path.join("boundaryChanges", boundaryRequestId)
+        path = "boundaryChanges" + '/' + boundaryRequestId
         return self._base_call(path, blocking=blocking)
 
 
@@ -268,6 +268,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         """Patch the path"""
         if len(self.path.split('/')) > 2:
             self.path = '_'.join(self.path.rsplit('/', 1))
+        if self.path.startswith('/'):
+            self.path = self.path[1:]
         self.path = './' + self.path
         try:
             self.qs = {k.split('=')[0]: k.split('=')[1]
