@@ -128,6 +128,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.context = None
         self.current_dock_electorate = None
         self.help_action = None
+        self.scenarios_menu = None
+        self.electorate_menu = None
+        self.database_menu = None
+        self.export_action = None
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -306,26 +310,26 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.scenarios_tool_button.setIcon(GuiUtils.get_icon(icon='scenarios.svg'))
         self.scenarios_tool_button.setPopupMode(QToolButton.InstantPopup)
 
-        scenarios_menu = QMenu(parent=self.scenarios_tool_button)
-        switch_scenario_action = QAction(self.tr('Switch to Existing Scenario...'), parent=scenarios_menu)
+        self.scenarios_menu = QMenu(parent=self.scenarios_tool_button)
+        switch_scenario_action = QAction(self.tr('Switch to Existing Scenario...'), parent=self.scenarios_menu)
         switch_scenario_action.triggered.connect(self.select_current_scenario)
-        scenarios_menu.addAction(switch_scenario_action)
+        self.scenarios_menu.addAction(switch_scenario_action)
 
-        scenarios_menu.addSeparator()
-        update_scenario_action = QAction(self.tr('Update Statistics for Scenario...'), parent=scenarios_menu)
+        self.scenarios_menu.addSeparator()
+        update_scenario_action = QAction(self.tr('Update Statistics for Scenario...'), parent=self.scenarios_menu)
         update_scenario_action.triggered.connect(self.update_stats_for_scenario)
-        scenarios_menu.addAction(update_scenario_action)
+        self.scenarios_menu.addAction(update_scenario_action)
 
-        scenarios_menu.addSeparator()
+        self.scenarios_menu.addSeparator()
 
-        branch_scenario_action = QAction(self.tr('Branch to New Scenario...'), parent=scenarios_menu)
+        branch_scenario_action = QAction(self.tr('Branch to New Scenario...'), parent=self.scenarios_menu)
         branch_scenario_action.triggered.connect(self.branch_scenario)
-        scenarios_menu.addAction(branch_scenario_action)
-        import_scenario_action = QAction(self.tr('Import Scenario from Database...'), parent=scenarios_menu)
+        self.scenarios_menu.addAction(branch_scenario_action)
+        import_scenario_action = QAction(self.tr('Import Scenario from Database...'), parent=self.scenarios_menu)
         import_scenario_action.triggered.connect(self.import_scenario)
-        scenarios_menu.addAction(import_scenario_action)
+        self.scenarios_menu.addAction(import_scenario_action)
 
-        self.scenarios_tool_button.setMenu(scenarios_menu)
+        self.scenarios_tool_button.setMenu(self.scenarios_menu)
         self.dock.dock_toolbar().addWidget(self.scenarios_tool_button)
 
         self.validate_action = QAction(GuiUtils.get_icon('validate.svg'), self.tr('Validate Electorates'))
@@ -334,31 +338,31 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         options_menu = QMenu(parent=self.dock.dock_toolbar())
 
-        electorate_menu = QMenu(self.tr('Manage Electorates'), parent=options_menu)
+        self.electorate_menu = QMenu(self.tr('Manage Electorates'), parent=options_menu)
 
-        new_electorate_action = QAction(self.tr('Create New Electorate...'), parent=electorate_menu)
+        new_electorate_action = QAction(self.tr('Create New Electorate...'), parent=self.electorate_menu)
         new_electorate_action.triggered.connect(self.create_new_electorate)
-        electorate_menu.addAction(new_electorate_action)
+        self.electorate_menu.addAction(new_electorate_action)
 
-        deprecate_electorate_action = QAction(self.tr('Deprecate Electorate...'), parent=electorate_menu)
+        deprecate_electorate_action = QAction(self.tr('Deprecate Electorate...'), parent=self.electorate_menu)
         deprecate_electorate_action.triggered.connect(self.deprecate_electorate)
-        electorate_menu.addAction(deprecate_electorate_action)
+        self.electorate_menu.addAction(deprecate_electorate_action)
 
-        options_menu.addMenu(electorate_menu)
+        options_menu.addMenu(self.electorate_menu)
 
-        master_db_menu = QMenu(self.tr('Database'), parent=options_menu)
-        export_master_action = QAction(self.tr('Export Database...'), parent=master_db_menu)
+        self.database_menu = QMenu(self.tr('Database'), parent=options_menu)
+        export_master_action = QAction(self.tr('Export Database...'), parent=self.database_menu)
         export_master_action.triggered.connect(self.export_database)
-        master_db_menu.addAction(export_master_action)
-        import_master_action = QAction(self.tr('Import Master Database...'), parent=master_db_menu)
+        self.database_menu.addAction(export_master_action)
+        import_master_action = QAction(self.tr('Import Master Database...'), parent=self.database_menu)
         import_master_action.triggered.connect(self.import_master_database)
-        master_db_menu.addAction(import_master_action)
+        self.database_menu.addAction(import_master_action)
 
-        options_menu.addMenu(master_db_menu)
+        options_menu.addMenu(self.database_menu)
 
-        export_action = QAction(self.tr('Export Electorates...'), parent=options_menu)
-        export_action.triggered.connect(self.export_electorates)
-        options_menu.addAction(export_action)
+        self.export_action = QAction(self.tr('Export Electorates...'), parent=options_menu)
+        self.export_action.triggered.connect(self.export_electorates)
+        options_menu.addAction(self.export_action)
 
         options_menu.addSeparator()
         log_action = QAction(self.tr('View Log...'), parent=options_menu)
@@ -505,6 +509,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         for action in self.switch_menu.actions():
             action.setEnabled(enabled)
+        for action in self.scenarios_menu.actions():
+            action.setEnabled(enabled)
+        for action in self.electorate_menu.actions():
+            action.setEnabled(enabled)
+        for action in self.database_menu.actions():
+            action.setEnabled(enabled)
+        self.redistrict_selected_action.setEnabled(enabled)
+        self.interactive_redistrict_action.setEnabled(enabled)
+        self.start_editing_action.setEnabled(enabled)
+        self.save_edits_action.setEnabled(enabled)
+        self.rollback_edits_action.setEnabled(enabled)
+        self.validate_action.setEnabled(enabled)
+        self.export_action.setEnabled(enabled)
 
     def set_task(self, task: str):
         """
@@ -788,6 +805,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Switches the current scenario to a new scenario
         :param scenario: new scenario ID
         """
+        self.enable_task_switches(False)
         electorate_registry = self.get_district_registry()
         scenario_name = self.scenario_registry.get_scenario_name(scenario)
         task_name = self.tr('Switching to {}').format(scenario_name)
@@ -811,10 +829,18 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         progress_dialog.deleteLater()
 
+        def reenable_actions():
+            """
+            Reenables the disabled menu actions
+            """
+            self.enable_task_switches(True)
+
         self.staged_task.taskCompleted.connect(
             partial(self.report_success, self.tr('Successfully switched to “{}”').format(scenario_name)))
+        self.staged_task.taskCompleted.connect(reenable_actions)
         self.staged_task.taskTerminated.connect(
             partial(self.report_failure, self.tr('Error while switching to “{}”').format(scenario_name)))
+        self.staged_task.taskTerminated.connect(reenable_actions)
 
         self.progress_item = MessageBarProgressItem(self.tr('Switching to {}').format(scenario_name), iface=self.iface)
         self.staged_task.progressChanged.connect(self.progress_item.set_progress)
@@ -969,6 +995,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.scenario_registry = None
         self.context = None
         self.meshblock_scenario_bridge = None
+        self.scenarios_menu = None
+        self.electorate_menu = None
+        self.database_menu = None
+        self.export_action = None
 
         self.dock.deleteLater()
         self.dock = None
@@ -1277,4 +1307,5 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Shows the plugin help
         """
-        QDesktopServices.openUrl(QUrl('https://github.com/north-road/qgis-redistricting-plugin/blob/master/documentation/ui_design/ui_design.md'))
+        QDesktopServices.openUrl(QUrl(
+            'https://github.com/north-road/qgis-redistricting-plugin/blob/master/documentation/ui_design/ui_design.md'))
