@@ -332,6 +332,9 @@ class MockStatsApi(NzElectoralApi):
         self.httpd_thread.start()
         super().__init__(base_url='http://localhost:%s' % self.port, authcfg=None, debug=True)
 
+    def check(self) -> bool:
+        return True
+
     def boundaryChanges(self, boundaryRequest: BoundaryRequest, blocking=False) -> Union[str, NetworkAccessManager]:
         meshblocks_to_electorate = {}
         for c in boundaryRequest.concordance:
@@ -383,6 +386,7 @@ def get_api_connector(use_mock: Optional[bool] = None, authcfg: Optional[str] = 
 
     auth_key = authcfg if authcfg is not None else QgsSettings().value('redistrict/auth_config_id', None, str,
                                                                        QgsSettings.Plugins)
-    base_url = base_url if base_url is not None else QgsSettings().value('redistrict/base_url', '', str, QgsSettings.Plugins)
+    base_url = base_url if base_url is not None else QgsSettings().value('redistrict/base_url', '', str,
+                                                                         QgsSettings.Plugins)
 
     return NzElectoralApi(base_url=base_url, authcfg=auth_key)
