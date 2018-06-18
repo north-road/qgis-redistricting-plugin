@@ -181,6 +181,23 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         f = next(self.source_layer.getFeatures(request))
         return f[self.estimated_pop_field_index]
 
+    def get_stats_nz_calculations(self, electorate_id) -> dict:
+        """
+        Returns a dictionary of Stats NZ calculations for the district
+        :param electorate_id: electorate code/id
+        """
+        # lookup matching feature
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate_id))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes(
+            [self.stats_nz_var_23_field_index, self.stats_nz_var_20_field_index, self.stats_nz_pop_field_index])
+        request.setLimit(1)
+        f = next(self.source_layer.getFeatures(request))
+        return {'currentPopulation': f[self.stats_nz_pop_field_index],
+                'varianceYear1': f[self.stats_nz_var_20_field_index],
+                'varianceYear2': f[self.stats_nz_var_23_field_index]}
+
     @staticmethod
     def get_variation_from_quota_percent(quota: int, population: int) -> Optional[int]:
         """

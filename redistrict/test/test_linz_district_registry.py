@@ -421,6 +421,37 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         self.assertEqual([f.attributes()[-3:] for f in layer.getFeatures()],
                          [[-1, NULL, NULL], [1112, 1.6, -1.2], [1113, 1.7, -1.3]])
 
+    def testGetStatsNzValues(self):
+        """
+        Test retrieving cached stats nz values
+        """
+        layer = QgsVectorLayer(
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int",
+            "source", "memory")
+        f = QgsFeature()
+        f.setAttributes([1, "code4", "test4", 'GN', 1000, True])
+        f2 = QgsFeature()
+        f2.setAttributes([2, "code2", "test2", 'GN', 2000, False])
+        f3 = QgsFeature()
+        f3.setAttributes([3, "code3", "test3", 'GN', 3000, True])
+        layer.dataProvider().addFeatures([f, f2, f3])
+        quota_layer = make_quota_layer()
+
+        reg = LinzElectoralDistrictRegistry(
+            source_layer=layer,
+            quota_layer=quota_layer,
+            electorate_type='GN',
+            source_field='electorate_id',
+            title_field='fld1')
+
+        reg.update_stats_nz_values(1, {'currentPopulation': 1111,
+                                       'varianceYear1': 1.5,
+                                       'varianceYear2': -1.1})
+
+        self.assertEqual(reg.get_stats_nz_calculations(1), {'currentPopulation': 1111, 'varianceYear1': 1.5, 'varianceYear2': -1.1})
+        self.assertEqual(reg.get_stats_nz_calculations(2),
+                         {'currentPopulation': NULL, 'varianceYear1': NULL, 'varianceYear2': NULL})
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(LinzElectoralDistrictRegistry)
