@@ -1003,10 +1003,16 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.database_menu = None
         self.export_action = None
 
-        self.dock.deleteLater()
+        try:
+            self.dock.deleteLater()
+        except RuntimeError:
+            pass
         self.dock = None
 
-        self.redistricting_toolbar.deleteLater()
+        try:
+            self.redistricting_toolbar.deleteLater()
+        except RuntimeError:
+            pass
         self.redistricting_toolbar = None
         self.enable_task_switches(False)
 
