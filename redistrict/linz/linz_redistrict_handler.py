@@ -57,6 +57,9 @@ class LinzRedistrictHandler(RedistrictHandler):
         self.task = task
         self.user_log_layer = user_log_layer
         self.scenario = scenario
+        self.stats_nz_pop_field = 'stats_nz_pop'
+        self.stats_nz_var_20_field = 'stats_nz_var_20'
+        self.stats_nz_var_23_field = 'stats_nz_var_23'
 
         self.estimated_pop_idx = self.electorate_layer.fields().lookupField('estimated_pop')
         assert self.estimated_pop_idx >= 0
@@ -79,6 +82,13 @@ class LinzRedistrictHandler(RedistrictHandler):
         assert self.user_log_from_idx >= 0
         self.user_log_to_idx = self.user_log_layer.fields().lookupField('to_electorate_id')
         assert self.user_log_to_idx >= 0
+
+        self.stats_nz_pop_field_index = self.electorate_layer.fields().lookupField(self.stats_nz_pop_field)
+        assert self.stats_nz_pop_field_index >= 0
+        self.stats_nz_var_20_field_index = self.electorate_layer.fields().lookupField(self.stats_nz_var_20_field)
+        assert self.stats_nz_var_20_field_index >= 0
+        self.stats_nz_var_23_field_index = self.electorate_layer.fields().lookupField(self.stats_nz_var_23_field)
+        assert self.stats_nz_var_23_field_index >= 0
 
     def create_affected_district_filter(self):
         """
@@ -198,7 +208,10 @@ class LinzRedistrictHandler(RedistrictHandler):
             estimated_pop, ok = calc.calculate(QgsAggregateCalculator.Sum,  # pylint: disable=unused-variable
                                                self.offline_pop_field)
 
-            new_attributes[electorate_features[district].id()] = {self.estimated_pop_idx: estimated_pop}
+            new_attributes[electorate_features[district].id()] = {self.estimated_pop_idx: estimated_pop,
+                                                                  self.stats_nz_pop_field_index: NULL,
+                                                                  self.stats_nz_var_20_field_index: NULL,
+                                                                  self.stats_nz_var_23_field_index: NULL}
 
         self.electorate_layer.dataProvider().changeGeometryValues(new_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(new_attributes)
