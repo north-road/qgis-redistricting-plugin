@@ -85,7 +85,7 @@ class LinzRedistrictGuiHandler(RedistrictGuiHandler):
             contents['VARIATION'] = self._district_registry.get_variation_from_quota_percent(quota=contents['QUOTA'],
                                                                                              population=contents[
                                                                                                  'POPULATION'])
-            if contents['VARIATION'] > 0:
+            if contents['VARIATION'] is not None and contents['VARIATION'] > 0:
                 contents['VARIATION'] = '+{}'.format(contents['VARIATION'])
 
             contents['VARIATION_COLOR'] = 'red' if self._district_registry.variation_exceeds_allowance(
