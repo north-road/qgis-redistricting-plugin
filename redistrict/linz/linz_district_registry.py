@@ -25,7 +25,7 @@ from redistrict.core.district_registry import VectorLayerDistrictRegistry
 
 class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
     """
-    A LINZ specific registry for NZ electora; districts based off field
+    A LINZ specific registry for NZ electoral districts based off field
     values from a vector layer
     """
 
@@ -59,6 +59,9 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         self.type_field = 'type'
         self.estimated_population_field = 'estimated_pop'
         self.deprecated_field = 'deprecated'
+        self.stats_nz_pop_field = 'stats_nz_pop'
+        self.stats_nz_var_20_field = 'stats_nz_var_20'
+        self.stats_nz_var_23_field = 'stats_nz_var_23'
 
         self.source_field_index = self.source_layer.fields().lookupField(self.source_field)
         assert self.source_field_index >= 0
@@ -68,6 +71,13 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         assert self.estimated_pop_field_index >= 0
         self.deprecated_field_index = self.source_layer.fields().lookupField(self.deprecated_field)
         assert self.deprecated_field_index >= 0
+
+        self.stats_nz_pop_field_index = self.source_layer.fields().lookupField(self.stats_nz_pop_field)
+        assert self.stats_nz_pop_field_index >= 0
+        self.stats_nz_var_20_field_index = self.source_layer.fields().lookupField(self.stats_nz_var_20_field)
+        assert self.stats_nz_var_20_field_index >= 0
+        self.stats_nz_var_23_field_index = self.source_layer.fields().lookupField(self.stats_nz_var_23_field)
+        assert self.stats_nz_var_23_field_index >= 0
 
         self.quota_layer = quota_layer
 
@@ -237,3 +247,41 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
 
         new_status = 0 if is_deprecated else 1
         self.source_layer.dataProvider().changeAttributeValues({f.id(): {self.deprecated_field_index: new_status}})
+
+    def update_stats_nz_values(self, electorate_id, results: dict):
+        """
+        Updates an electorate's stored Statistics NZ api calculations
+        :param electorate_id: electorate to update
+        :param results: results dictionary from stats API
+        """
+
+        # get feature ID
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate_id))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([])
+        request.setLimit(1)
+        f = next(self.source_layer.getFeatures(request))
+
+        self.source_layer.dataProvider().changeAttributeValues(
+            {f.id(): {self.stats_nz_pop_field_index: results['currentPopulation'],
+                      self.stats_nz_var_20_field_index: results['varianceYear1'],
+                      self.stats_nz_var_23_field_index: results['varianceYear2']}})
+
+    def flag_stats_nz_updating(self, electorate_id):
+        """
+        Flags an electorate's Statistics NZ api calculations as being currently updated
+        :param electorate_id: electorate to update
+        """
+
+        # get feature ID
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(self.source_field, electorate_id))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes([])
+        request.setLimit(1)
+        f = next(self.source_layer.getFeatures(request))
+
+        self.source_layer.dataProvider().changeAttributeValues({f.id(): {self.stats_nz_pop_field_index: -1,
+                                                                         self.stats_nz_var_20_field_index: NULL,
+                                                                         self.stats_nz_var_23_field_index: NULL}})

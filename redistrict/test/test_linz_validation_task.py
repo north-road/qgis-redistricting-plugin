@@ -59,7 +59,7 @@ class ValidationTaskTest(unittest.TestCase):
             meshblock_electorate_layer=mb_electorate_layer
         )
         electorate_layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=deprecated:int&field=invalid:int&field=invalid_reason:string&field=name:string",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=deprecated:int&field=invalid:int&field=invalid_reason:string&field=name:string&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "test1", 'GN', 1, 0, 0, 1, 'old invalid'])
@@ -120,14 +120,15 @@ class ValidationTaskTest(unittest.TestCase):
         self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 3)
         self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test3')
         self.assertEqual(task.results[1][ValidationTask.ERROR], 'Outside quota tolerance')
-        self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()], [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL, NULL],
-                                                                                    [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
-                                                                                    [3, 'test3', 'GN', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
-                                                                                    [4, 'test4', 'GS', 1, 0, 0, 1, 'old invalid 4', NULL],
-                                                                                    [5, 'test5', 'GS', 1, 0, 0, 1, 'old invalid 5', NULL],
-                                                                                    [6, 'test6', 'GS', 1, 0, 0, 1, 'old invalid 6', NULL],
-                                                                                    [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
-                                                                                    [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
+        self.assertEqual([f.attributes()[:9] for f in electorate_layer.getFeatures()],
+                         [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL, NULL],
+                          [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
+                          [3, 'test3', 'GN', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
+                          [4, 'test4', 'GS', 1, 0, 0, 1, 'old invalid 4', NULL],
+                          [5, 'test5', 'GS', 1, 0, 0, 1, 'old invalid 5', NULL],
+                          [6, 'test6', 'GS', 1, 0, 0, 1, 'old invalid 6', NULL],
+                          [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
+                          [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
 
 
 if __name__ == "__main__":
