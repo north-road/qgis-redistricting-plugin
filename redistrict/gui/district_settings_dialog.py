@@ -16,7 +16,8 @@ __revision__ = '$Format:%H$'
 from qgis.PyQt.QtWidgets import (QDialog,
                                  QDialogButtonBox,
                                  QLabel,
-                                 QVBoxLayout)
+                                 QVBoxLayout,
+                                 QCheckBox)
 
 from qgis.core import QgsSettings
 from qgis.gui import QgsAuthConfigSelect
@@ -24,13 +25,18 @@ from qgis.gui import QgsAuthConfigSelect
 SETTINGS_AUTH_CONFIG_KEY = 'redistrict/auth_config_id'
 
 
-def get_auth_config_id():
+def get_auth_config_id() -> str:
     """Return the authentication configuration id from the settings, an empty string if not found.
 
     :return: authentication configuration id
-    :rtype: str
     """
     return QgsSettings().value('redistrict/auth_config_id', None, str, QgsSettings.Plugins)
+
+
+def get_use_mock_api() -> bool:
+    """Returns True if the mock Stats NZ API should be used
+    """
+    return QgsSettings().value('redistrict/use_mock_api', False, bool, QgsSettings.Plugins)
 
 
 class DistrictSettingsDialog(QDialog):
@@ -51,6 +57,10 @@ class DistrictSettingsDialog(QDialog):
         if auth_id:
             self.auth_value.setConfigId(auth_id)
 
+        self.use_mock_checkbox = QCheckBox(self.tr('Use mock Statistics NZ API'))
+        self.use_mock_checkbox.setChecked(get_use_mock_api())
+        layout.addWidget(self.use_mock_checkbox)
+
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         layout.addWidget(button_box)
@@ -62,3 +72,4 @@ class DistrictSettingsDialog(QDialog):
     def accept(self):  # pylint: disable=missing-docstring
         super().accept()
         QgsSettings().setValue('redistrict/auth_config_id', self.auth_value.configId(), QgsSettings.Plugins)
+        QgsSettings().setValue('redistrict/use_mock_api', self.use_mock_checkbox.isChecked(), QgsSettings.Plugins)
