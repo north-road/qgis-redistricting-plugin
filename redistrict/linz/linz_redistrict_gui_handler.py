@@ -13,6 +13,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QCoreApplication
 from redistrict.gui.redistrict_gui_handler import RedistrictGuiHandler
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
@@ -66,8 +67,15 @@ class LinzRedistrictGuiHandler(RedistrictGuiHandler):
         <p>Population: <span style="font-weight:bold;">{POPULATION}{ESTIMATED_POP_*}</span> <span style="color: {VARIATION_COLOR}; font-weight: bold">({VARIATION}%)</span>{ESTIMATED_POP_STRING}</p>
         <p>Quota Variation 2020: <span style="font-weight:bold">unknown</span><br>
         Quota Variation 2023: <span style="font-weight:bold">unknown</span></p>
-        <p><a href="xxx">Request population from Statistics NZ</a></p>""").format(
+        <p><a href="request">Request population from Statistics NZ</a></p>""").format(
             **contents)
         self.redistrict_dock().show_message(message)
+        self.redistrict_dock().request_population_callback = self.request_population
 
         self.current_district_changed.emit(district)
+
+    def request_population(self):
+        """
+        Triggered on a population update request
+        """
+        QgsApplication.messageLog().logMessage('xxxxxxxxxxxx')

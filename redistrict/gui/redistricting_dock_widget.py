@@ -13,6 +13,7 @@ __copyright__ = 'Copyright 2018, The QGIS Project'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtWidgets import (QWidget,
                                  QGridLayout,
                                  QToolBar,
@@ -46,6 +47,8 @@ class RedistrictingDockWidget(QgsDockWidget):
         self._dock_toolbar.setIconSize(self.iface.iconSize(True))
 
         self.frame = QTextBrowser()
+        self.frame.setOpenLinks(False)
+        self.frame.anchorClicked.connect(self.anchor_clicked)
         grid.addWidget(self.frame, 1, 0, 1, 1)
 
         self.setWidget(dock_contents)
@@ -63,3 +66,10 @@ class RedistrictingDockWidget(QgsDockWidget):
         :param html: HTML to show
         """
         self.frame.setHtml(html)
+
+    def anchor_clicked(self, link: QUrl):
+        """
+        Called on clicking an anchor link in the dock frame
+        :param link: link clicked
+        """
+        pass

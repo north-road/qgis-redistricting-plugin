@@ -39,6 +39,7 @@ class LinzRedistrictingDockWidget(RedistrictingDockWidget):
         super().__init__(iface)
         self.update_dock_title(context=context)
         self.table = None
+        self.request_population_callback = None
 
     def update_dock_title(self, context: LinzRedistrictingContext):
         """
@@ -93,7 +94,8 @@ class LinzRedistrictingDockWidget(RedistrictingDockWidget):
 
         self.table.setRowCount(0)
 
-        def add_electorate(electorate_id, name: str, error: str, extent: QgsRectangle):  # pylint: disable=unused-argument
+        def add_electorate(electorate_id, name: str, error: str,  # pylint: disable=unused-argument
+                           extent: QgsRectangle):
             """
             Adds an electorate to the results table
             :param electorate_id: electorate ID
@@ -122,3 +124,7 @@ class LinzRedistrictingDockWidget(RedistrictingDockWidget):
 
         self.table.setColumnWidth(0, 30)
         self.widget().layout().addWidget(self.table, 1, 0, 1, 1)
+
+    def anchor_clicked(self, link):
+        if self.request_population_callback is not None:
+            self.request_population_callback()  # pylint: disable=not-callable
