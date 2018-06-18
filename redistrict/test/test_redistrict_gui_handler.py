@@ -10,7 +10,7 @@
 
 __author__ = '(C) 2018 by Nyall Dawson'
 __date__ = '1/05/2018'
-__copyright__ = 'Copyright 2018, The QGIS Project'
+__copyright__ = 'Copyright 2018, LINZ'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
