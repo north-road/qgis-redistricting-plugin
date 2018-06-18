@@ -68,7 +68,7 @@ from .linz.staged_electorate_update_task import UpdateStagedElectoratesTask
 from .linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
 from .linz.validation_task import ValidationTask
 from .linz.export_task import ExportTask
-
+from .linz.nz_electoral_api import ConcordanceItem, BoundaryRequest, get_api_connector
 
 class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
     """QGIS Plugin Implementation."""
@@ -584,7 +584,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Returns the current redistricting GUI handler
         """
         handler = LinzRedistrictGuiHandler(redistrict_dock=self.dock,
-                                           district_registry=self.get_district_registry())
+                                           district_registry=self.get_district_registry(),
+                                           request_population_callback=self.request_population_update)
         handler.current_district_changed.connect(self.current_dock_electorate_changed)
         return handler
 
@@ -1164,3 +1165,38 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Triggered on export failure
         """
         self.report_failure(self.tr('Export failed: {}').format(self.export_task.message))
+
+    def request_population_update(self, electorate_id):
+        """
+
+        :param electorate_id:
+        :return:
+        """
+        # step 1: find meshblocks for electorate
+        district_registry = self.get_district_registry()
+
+        district_registry.flag_stats_nz_updating(electorate_id)
+        self.refresh_dock_stats()
+
+        electorate_type = district_registry.get_district_type(electorate_id)
+        electorate_meshblocks = self.scenario_registry.electorate_meshblocks(electorate_id=electorate_id,
+                                                                             electorate_type=electorate_type,
+                                                                             scenario_id=self.context.scenario)
+
+        # TODO: non blocking - track scenarios, reject reponses on different scenarios
+
+        concordance = [ConcordanceItem(str(m['meshblock_number']), str(electorate_id)) for m in electorate_meshblocks]
+        request = BoundaryRequest(concordance, area=self.context.task)
+
+        connector = get_api_connector()
+        request_id = connector.boundaryChanges(request, blocking=True)
+
+        result = connector.boundaryChangesResults(request_id, True)
+        if result['status_code'] != 200:
+            self.report_failure(self.tr('Statistics NZ API request failed'))
+            return
+
+        for electorate_table in result['content']['populationTable']:
+            district_registry.update_stats_nz_values(electorate_id, electorate_table)
+
+        self.refresh_dock_stats()
