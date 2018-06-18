@@ -15,77 +15,20 @@ __copyright__ = 'Copyright 2018, North Road'
 __revision__ = '$Format:%H$'
 
 import http.server
-import time
 import json
 import os
 import threading
 import unittest
-from io import BytesIO
 from functools import partial
 
 from qgis.PyQt.QtCore import QEventLoop
 
-from redistrict.linz.nz_electoral_api import (BoundaryRequest, ConcordanceItem,
-                                              NzElectoralApi)
+from redistrict.linz.nz_electoral_api import (BoundaryRequest,
+                                              ConcordanceItem,
+                                              NzElectoralApi,
+                                              Handler)
 
 # pylint: disable=broad-except,attribute-defined-outside-init
-
-
-class Handler(http.server.SimpleHTTPRequestHandler):
-    """HTTP test handler
-
-    POST: add X-Echo header with POST'ed data
-
-    Query string args:
-
-    - delay=<int> seconds for delay
-    - error_code=<int> send this error code
-
-    """
-
-    def _patch_path(self):
-        """Patch the path"""
-        if len(self.path.split('/')) > 2:
-            self.path = '_'.join(self.path.rsplit('/', 1))
-        self.path = './' + self.path
-        try:
-            self.qs = {k.split('=')[0]: k.split('=')[1]
-                       for k in self.path.split('?')[1].split('&')}
-            self.path = self.path.split('?')[0]
-        except Exception:
-            self.qs = {}
-        self.path += '.json'
-        if 'delay' in self.qs:
-            time.sleep(int(self.qs['delay']))
-
-    def _code(self):
-        """Return the error code from query string"""
-        return int(self.qs.get('error_code', 200))
-
-    def do_GET(self):
-        """GET handler
-        """
-        self._patch_path()
-        self.send_response(self._code())
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        response = BytesIO()
-        with open(self.path, 'rb') as f:
-            response.write(f.read())
-        self.wfile.write(response.getvalue())
-
-    def do_POST(self):
-        """POST handler: Echoes payload in the header"""
-        self._patch_path()
-        data_string = self.rfile.read(int(self.headers['Content-Length']))
-        self.send_response(self._code())
-        self.send_header("X-Echo", data_string.decode('utf-8'))
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        response = BytesIO()
-        with open(self.path, 'rb') as f:
-            response.write(f.read())
-        self.wfile.write(response.getvalue())
 
 
 class NzElectoralApiTest(unittest.TestCase):

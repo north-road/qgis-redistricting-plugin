@@ -16,10 +16,17 @@ __revision__ = '$Format:%H$'
 
 import json
 import os
+from typing import Union, Optional
+import http.server
+import threading
+import time
+from io import BytesIO
+
 from redistrict.linz.networkaccessmanager import NetworkAccessManager, RequestsException
 from qgis.PyQt.QtCore import QObject, pyqtSignal
-from qgis.core import QgsMessageLog, QgsNetworkAccessManager
-
+from qgis.core import (QgsMessageLog,
+                       QgsNetworkAccessManager,
+                       QgsSettings)
 
 # API Version
 GMS_VERSION = "LINZ_Output_20180108_2018_V1_00"
@@ -49,6 +56,7 @@ class ConcordanceItem():
 class BoundaryRequest():
     """BoundaryRequest struct
     """
+
     def __init__(self, concordance, area, gmsVersion=GMS_VERSION):
         """Initialise a BoundaryRequest
 
@@ -74,7 +82,7 @@ class NzElectoralApi(QObject):
     POST = 'post'
     GET = 'get'
 
-    def __init__(self, base_url, authcfg=None, debug=False):
+    def __init__(self, base_url: str, authcfg: str = None, debug=False):
         """Construct the API with base URL
 
         :param base_url: base URL for the API endpoint
@@ -92,7 +100,7 @@ class NzElectoralApi(QObject):
         # Just in case case the user entered wrong credentials in previous attempt ...
         QgsNetworkAccessManager.instance().clearAccessCache()
 
-    def check(self):
+    def check(self) -> bool:
         """Check connection and credentials"""
         try:
             result = self.status(blocking=True)
@@ -101,7 +109,7 @@ class NzElectoralApi(QObject):
             QgsMessageLog.logMessage("%s" % e, "REDISTRICT")
             return False
 
-    def set_qs(self, qs):
+    def set_qs(self, qs: str):
         """Set the query string: mainly used for testing
 
         :param qs: the query string
@@ -110,7 +118,7 @@ class NzElectoralApi(QObject):
         self.qs = qs
 
     @classmethod
-    def encode_payload(cls, payload):
+    def encode_payload(cls, payload) -> str:
         """Transform the payload to JSON
 
         :param payload: the payload object
@@ -122,7 +130,7 @@ class NzElectoralApi(QObject):
         return json.dumps(payload.__dict__, default=lambda x: x.__dict__).encode('utf-8')
 
     @classmethod
-    def parse_async(cls, nam):
+    def parse_async(cls, nam) -> dict:
         """Transform into JSON the content component of the response
 
         :param nam: network access manager wrapper instance
@@ -137,7 +145,7 @@ class NzElectoralApi(QObject):
             result['content'] = {}
         return result
 
-    def _base_call(self, path, payload=None, blocking=False):
+    def _base_call(self, path, payload=None, blocking=False) -> Union[dict, NetworkAccessManager]:
         """Base call
 
         This call can work in blocking (sync) or non-blocking mode (async)
@@ -189,12 +197,11 @@ class NzElectoralApi(QObject):
                     headers={
                         b'Content-Type': b'application/json'
                     },
-                    blocking=False
-                   )
+                    blocking=False)
 
         return nam
 
-    def status(self, blocking=False):
+    def status(self, blocking=False) -> Union[dict, NetworkAccessManager]:
         """Call the status method of the API
 
         :param blocking: if the call needs to be synchronous, defaults to False
@@ -205,7 +212,7 @@ class NzElectoralApi(QObject):
         path = "status"
         return self._base_call(path, blocking=blocking)
 
-    def boundaryChanges(self, boundaryRequest, blocking=False):
+    def boundaryChanges(self, boundaryRequest, blocking=False) -> Union[str, NetworkAccessManager]:
         """Call the boundaryChange method of the API,
         sends changed data and gets a requestId in return.
         The requestId can be used to retrieve the results
@@ -219,7 +226,7 @@ class NzElectoralApi(QObject):
         path = "boundaryChanges"
         return self._base_call(path, payload=boundaryRequest, blocking=blocking)
 
-    def boundaryChangesResults(self, boundaryRequestId, blocking=False):
+    def boundaryChangesResults(self, boundaryRequestId, blocking=False) -> Union[dict, NetworkAccessManager]:
         """Call the boundaryChange method of the API with a  boundaryRequestId and retrieves the updated results.
 
         Response codes
@@ -238,3 +245,102 @@ class NzElectoralApi(QObject):
         """
         path = os.path.join("boundaryChanges", boundaryRequestId)
         return self._base_call(path, blocking=blocking)
+
+
+class Handler(http.server.SimpleHTTPRequestHandler):
+    """HTTP test handler
+
+    POST: add X-Echo header with POST'ed data
+
+    Query string args:
+
+    - delay=<int> seconds for delay
+    - error_code=<int> send this error code
+
+    """
+
+    def __init__(self, request, client_address, server):
+        super().__init__(request, client_address, server)
+        self.path = None
+        self.qs = None
+
+    def _patch_path(self):
+        """Patch the path"""
+        if len(self.path.split('/')) > 2:
+            self.path = '_'.join(self.path.rsplit('/', 1))
+        self.path = './' + self.path
+        try:
+            self.qs = {k.split('=')[0]: k.split('=')[1]
+                       for k in self.path.split('?')[1].split('&')}
+            self.path = self.path.split('?')[0]
+        except Exception:  # pylint: disable=broad-except
+            self.qs = {}
+        self.path += '.json'
+        if 'delay' in self.qs:
+            time.sleep(int(self.qs['delay']))
+
+    def _code(self):
+        """Return the error code from query string"""
+        return int(self.qs.get('error_code', 200))
+
+    def do_GET(self):
+        """GET handler
+        """
+        self._patch_path()
+        self.send_response(self._code())
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        response = BytesIO()
+        with open(self.path, 'rb') as f:
+            response.write(f.read())
+        self.wfile.write(response.getvalue())
+
+    def do_POST(self):
+        """POST handler: Echoes payload in the header"""
+        self._patch_path()
+        data_string = self.rfile.read(int(self.headers['Content-Length']))
+        self.send_response(self._code())
+        self.send_header("X-Echo", data_string.decode('utf-8'))
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        response = BytesIO()
+        with open(self.path, 'rb') as f:
+            response.write(f.read())
+        self.wfile.write(response.getvalue())
+
+
+class MockStatsApi(NzElectoralApi):
+    """Mock Statistics NZ API
+    """
+
+    DATA_DIR = 'mock_electoral_api'
+
+    def __init__(self):
+        """Construct a mock API
+        """
+        os.chdir(os.path.join(os.path.dirname(
+            __file__), 'data', self.DATA_DIR))
+        self.httpd = http.server.HTTPServer(('localhost', 0), Handler)
+        self.port = self.httpd.server_address[1]
+        self.httpd_thread = threading.Thread(target=self.httpd.serve_forever)
+        self.httpd_thread.setDaemon(True)
+        self.httpd_thread.start()
+        super().__init__(base_url='http://localhost:%s' % self.port, authcfg=None, debug=True)
+
+
+def get_api_connector(use_mock: Optional[bool] = None) -> NzElectoralApi:
+    """
+    Creates a new API connector (either real or mock, depending on user's settings
+
+    :param use_mock: if True, always returns a mock connection. If False, always
+    returns a real connection. If None, returns the connector matching the user's
+    settings preference
+    """
+    mock = QgsSettings().value('redistrict/use_mock_api', False, bool,
+                               QgsSettings.Plugins) if use_mock is None else use_mock
+    if mock:
+        return MockStatsApi()
+
+    # TODO - correctly populate base url!
+    return NzElectoralApi(base_url='https://electoral-api-uat.stats.govt.nz/electoral-api-uat/v1/',
+                          authcfg=QgsSettings().value('redistrict/auth_config_id', None, str, QgsSettings.Plugins))
