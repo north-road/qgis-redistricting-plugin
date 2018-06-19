@@ -1326,6 +1326,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             district_registry.update_stats_nz_values(electorate_id, electorate_table)
 
         self.refresh_dock_stats()
+        self.refresh_canvases()
 
     def update_stats_for_scenario(self):
         """
