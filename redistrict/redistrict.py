@@ -33,7 +33,8 @@ from qgis.PyQt.QtWidgets import (QToolBar,
                                  QToolButton,
                                  QMenu,
                                  QFileDialog)
-from qgis.core import (QgsApplication,
+from qgis.core import (NULL,
+                       QgsApplication,
                        QgsProject,
                        QgsVectorLayer,
                        QgsMapThemeCollection,
@@ -156,7 +157,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.switch_menu = None
         self.api_request_queue = ApiRequestQueue()
         self.api_request_queue.result_fetched.connect(self.api_request_finished)
-        self.api_request_queue.error.connect(self.report_failure)
+        self.api_request_queue.error.connect(self.stats_api_error)
 
         # reset the plugin when the project is unloaded
         if hasattr(QgsProject.instance(), 'cleared'):
@@ -546,7 +547,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.rollback_edits_action.setEnabled(enabled)
             self.validate_action.setEnabled(enabled)
             self.export_action.setEnabled(enabled)
-        except AttributeError:
+        except (AttributeError, RuntimeError):
             pass
 
     def set_task(self, task: str) -> bool:
@@ -1352,6 +1353,31 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         connector = get_api_connector()
         self.api_request_queue.append_request(connector, request)
+
+    def stats_api_error(self, boundary_request: BoundaryRequest, error: str):
+        """
+        Triggered on a boundary request failure
+        :param boundary_request: original boundary request
+        :param error: reported error message
+        """
+        self.report_failure(error)
+
+        district_registry = self.get_district_registry()
+
+        electorates = set()
+        for concordance_item in boundary_request.concordance:
+            electorate_id = int(concordance_item.electorate)
+            electorates.add(electorate_id)
+
+        for electorate_id in electorates:
+            district_registry.update_stats_nz_values(electorate_id,
+                                                     {
+                                                         'currentPopulation': NULL,
+                                                         'varianceYear1': NULL,
+                                                         'varianceYear2': NULL
+                                                     })
+        self.refresh_dock_stats()
+        self.refresh_canvases()
 
     def show_help(self):
         """

@@ -29,7 +29,7 @@ class ApiRequestQueue(QObject):
     """
 
     result_fetched = pyqtSignal(dict)
-    error = pyqtSignal(str)
+    error = pyqtSignal(BoundaryRequest, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -55,12 +55,12 @@ class ApiRequestQueue(QObject):
         result = connector.boundaryChanges(request)
         if isinstance(result, str):
             # no need to wait - we already have a result (i.e. blocking request)
-            self.boundary_change_queue.append((connector, result))
+            self.boundary_change_queue.append((connector, request, result))
             self.process_queue()
         else:
-            result.reply.finished.connect(partial(self.finished_boundary_request, connector, result))
+            result.reply.finished.connect(partial(self.finished_boundary_request, connector, result, request))
 
-    def finished_boundary_request(self, connector: NzElectoralApi, request: NetworkAccessManager):
+    def finished_boundary_request(self, connector: NzElectoralApi, request: NetworkAccessManager, boundary_request: BoundaryRequest):
         """
         Triggered when a non-blocking boundary request is finished
         :param connector: API connector
@@ -68,17 +68,17 @@ class ApiRequestQueue(QObject):
         """
         response = connector.parse_async(request)
         if response['status'] != 200:
-            self.error.emit(response['reason'])
+            self.error.emit(boundary_request, response['reason'])
             return
         request_id = response['content']
-        self.boundary_change_queue.append((connector, request_id))
+        self.boundary_change_queue.append((connector, boundary_request, request_id))
 
     def process_queue(self):
         """
         Processes the outstanding queue, checking if any requests have finished calculation
         """
-        for (connector, request_id) in self.boundary_change_queue:
-            self.check_for_result(connector, request_id)
+        for (connector, boundary_request, request_id) in self.boundary_change_queue:
+            self.check_for_result(connector, boundary_request, request_id)
 
     def remove_from_queue(self, request_id):
         """
@@ -87,10 +87,11 @@ class ApiRequestQueue(QObject):
         """
         self.boundary_change_queue = [c for c in self.boundary_change_queue if c[1] != request_id]
 
-    def check_for_result(self, connector: NzElectoralApi, request_id: str):
+    def check_for_result(self, connector: NzElectoralApi, boundary_request: BoundaryRequest, request_id: str):
         """
         Checks if a boundary request has finished calculating
         :param connector: API connector
+        :param boundary_request: original boundary request
         :param request_id: ID of request
         """
         request = connector.boundaryChangesResults(request_id)
@@ -99,20 +100,23 @@ class ApiRequestQueue(QObject):
             self.check_boundary_result_reply(request_id, request)
         else:
             request.reply.finished.connect(
-                partial(self.finished_boundary_result_request, connector, request_id, request))
+                partial(self.finished_boundary_result_request, connector, boundary_request, request_id, request))
 
-    def finished_boundary_result_request(self, connector: NzElectoralApi, request_id: str,
+    def finished_boundary_result_request(self, connector: NzElectoralApi,
+                                         boundary_request: BoundaryRequest,
+                                         request_id: str,
                                          request: NetworkAccessManager):
         """
         Triggered when a boundary change result network request has finished
         :param connector: API connector
+        :param boundary_request: original boundary request
         :param request_id: ID of request
         :param request: completed request
         """
         results = connector.parse_async(request)['content']
         if results['status'] != 200:
-            self.error.emit(results['reason'])
             self.remove_from_queue(request_id)
+            self.error.emit(boundary_request, results['reason'])
             return
         self.check_boundary_result_reply(request_id, results)
 

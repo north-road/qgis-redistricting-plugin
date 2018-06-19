@@ -37,6 +37,7 @@ class LinzRedistrictingDockWidget(RedistrictingDockWidget):
         :param iface: QGIS interface
         """
         super().__init__(iface)
+        self.setObjectName('LinzRedistrictingDock')
         self.update_dock_title(context=context)
         self.table = None
         self.request_population_callback = None
