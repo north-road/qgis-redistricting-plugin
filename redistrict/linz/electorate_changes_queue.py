@@ -13,6 +13,8 @@ __copyright__ = 'Copyright 2018, LINZ'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from qgis.core import QgsVectorLayer
+
 
 class ElectorateEditQueue:
     """
@@ -35,7 +37,12 @@ class ElectorateEditQueue:
             self.attribute_edits = attribute_edits
             self.geometry_edits = geometry_edits
 
-    def __init__(self):
+    def __init__(self, electorate_layer: QgsVectorLayer):
+        """
+        Constructor
+        :param electorate_layer: target electorate layer
+        """
+        self.electorate_layer = electorate_layer
         self.queue = []
 
     def push(self, attribute_edits: dict, geometry_edits: dict):
@@ -44,7 +51,13 @@ class ElectorateEditQueue:
         :param attribute_edits: dictionary of attribute edits
         :param geometry_edits: dictionary of geometry edits
         """
+
+        # TODO - queue should record previous values, not new ones
         self.queue.append(ElectorateEditQueue.QueueItem(attribute_edits, geometry_edits))
+
+        self.electorate_layer.dataProvider().changeGeometryValues(geometry_edits)
+        self.electorate_layer.dataProvider().changeAttributeValues(attribute_edits)
+        self.electorate_layer.triggerRepaint()
 
     def pop(self) -> (dict, dict):
         """

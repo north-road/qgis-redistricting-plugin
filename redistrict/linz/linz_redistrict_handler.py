@@ -223,10 +223,7 @@ class LinzRedistrictHandler(RedistrictHandler):
                                                                   self.stats_nz_var_23_field_index: NULL,
                                                                   self.invalid_field_index: NULL,
                                                                   self.invalid_reason_field_index: NULL}
-
-        self.electorate_layer.dataProvider().changeGeometryValues(new_geometries)
-        self.electorate_layer.dataProvider().changeAttributeValues(new_attributes)
-        self.electorate_layer.triggerRepaint()
+        self.electorate_changes_queue.push(new_attributes, new_geometries)
 
         self.user_log_layer.dataProvider().addFeatures(self.pending_log_entries)
 

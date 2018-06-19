@@ -463,7 +463,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.switch_task.taskCompleted.connect(self.progress_item.close)
         self.switch_task.taskCompleted.connect(partial(self.start_editing_action.setEnabled, True))
         self.switch_task.taskTerminated.connect(self.progress_item.close)
-        self.electorate_edit_queue = ElectorateEditQueue()
+        self.electorate_edit_queue = ElectorateEditQueue(electorate_layer=self.electorate_layer)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
