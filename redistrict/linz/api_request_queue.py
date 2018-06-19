@@ -60,6 +60,12 @@ class ApiRequestQueue(QObject):
         else:
             result.reply.finished.connect(partial(self.finished_boundary_request, connector, result, request))
 
+    def clear(self):
+        """
+        Clears all requests from the queue
+        """
+        self.boundary_change_queue = []
+
     def finished_boundary_request(self, connector: NzElectoralApi, request: NetworkAccessManager, boundary_request: BoundaryRequest):
         """
         Triggered when a non-blocking boundary request is finished

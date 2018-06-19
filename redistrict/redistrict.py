@@ -185,7 +185,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.redistricting_menu = QMenu(self.tr('Redistricting'))
 
         self.begin_action = QAction(self.tr('Begin Redistricting'))
-        self.begin_action.triggered.connect(self.begin_redistricting)
+        self.begin_action.toggled.connect(self.begin_redistricting)
         self.begin_action.setCheckable(True)
         self.redistricting_menu.addAction(self.begin_action)
 
@@ -392,10 +392,17 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.set_task(self.TASK_GN)
 
-    def begin_redistricting(self):
+    def begin_redistricting(self, checked):
         """
         Starts the redistricting operation, opening toolbars and docks as needed
         """
+        if not checked:
+            if not self.is_redistricting:
+                return
+
+            self.reset(False)
+            return
+
         if self.is_redistricting:
             return
 
@@ -1020,6 +1027,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         if not self.is_redistricting:
             return
 
+        self.api_request_queue.clear()
         if clear_project:
             if hasattr(QgsProject.instance(), 'cleared'):
                 QgsProject.instance().cleared.disconnect(self.reset)
