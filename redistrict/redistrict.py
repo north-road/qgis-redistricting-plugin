@@ -417,6 +417,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.begin_action.setChecked(False)
             return
 
+        if self.is_editing():
+            QMessageBox.warning(self.iface.mainWindow(), self.tr('Begin Redistricting'),
+                                self.tr(
+                                    'Meshblock layer has a previous edit session open. Please save or discard changes to the meshblock layer and cancel editing on this layer.'))
+            self.begin_action.setChecked(False)
+            return
+
         self.is_redistricting = True
         self.begin_action.setChecked(True)
 
@@ -513,6 +520,12 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.meshblock_layer.rollBack(deleteBuffer=False)
         self.meshblock_layer.triggerRepaint()
 
+    def is_editing(self):
+        """
+        Returns true if user is currently editing meshblocks
+        """
+        return self.meshblock_layer.isEditable()
+
     def enable_task_switches(self, enabled):
         """
         Enables or disables the task switching commands
@@ -536,11 +549,18 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         except AttributeError:
             pass
 
-    def set_task(self, task: str):
+    def set_task(self, task: str) -> bool:
         """
         Sets the current task
         :param task: task, eg 'GN','GS' or 'M'
+        :returns True if task switch was begun
         """
+        if self.is_editing():
+            QMessageBox.warning(self.iface.mainWindow(), self.tr('Switch Task'),
+                                self.tr(
+                                    'Cannot switch task while editing meshblocks. Save or cancel the current edits and try again.'))
+            return False
+
         self.enable_task_switches(False)
         self.meshblock_scenario_bridge.task = task
         progress_dialog = BlockingDialog(self.tr('Switch Task'), self.tr('Preparing switch...'))
@@ -564,12 +584,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             partial(self.report_failure, self.tr('Error while switching to “{}”').format(task_name)))
 
         QgsApplication.taskManager().addTask(self.switch_task)
+        return True
 
     def set_task_and_show_progress(self, task):
         """
         Sets the current task, showing a progress bar to report status
         """
-        self.set_task(task)
+        if not self.set_task(task):
+            return
         self.progress_item = MessageBarProgressItem(
             self.tr('Switching to {}').format(self.context.get_name_for_task(task)), iface=self.iface)
         self.switch_task.progressChanged.connect(self.progress_item.set_progress)
@@ -818,6 +840,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Switches the current scenario to a new scenario
         :param scenario: new scenario ID
         """
+
+        if self.is_editing():
+            QMessageBox.warning(self.iface.mainWindow(), self.tr('Switch Scenario'),
+                                self.tr(
+                                    'Cannot switch scenario while editing meshblocks. Save or cancel the current edits and try again.'))
+            return
+
         self.enable_task_switches(False)
         electorate_registry = self.get_district_registry()
         scenario_name = self.scenario_registry.get_scenario_name(scenario)
