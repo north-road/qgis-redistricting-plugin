@@ -18,6 +18,7 @@ import unittest
 from redistrict.linz.linz_redistrict_handler import (
     LinzRedistrictHandler
 )
+from redistrict.linz.electorate_changes_queue import ElectorateEditQueue
 from qgis.core import (QgsVectorLayer,
                        QgsFeature,
                        QgsGeometry,
@@ -86,9 +87,10 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         user_log_layer = make_user_log_layer()
+        queue = ElectorateEditQueue()
 
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, meshblock_number_field_name='fld1',
-                                        target_field='fld1',
+                                        target_field='fld1', electorate_changes_queue=queue,
                                         electorate_layer=district_layer, electorate_layer_field='fld1', task='GN',
                                         user_log_layer=user_log_layer, scenario=1)
         self.assertTrue(meshblock_layer.startEditing())
@@ -229,9 +231,10 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         user_log_layer = make_user_log_layer()
+        queue = ElectorateEditQueue()
 
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, meshblock_number_field_name='fld1',
-                                        target_field='fld1',
+                                        target_field='fld1', electorate_changes_queue=queue,
                                         electorate_layer=district_layer, electorate_layer_field='fld1', task='GN',
                                         user_log_layer=user_log_layer, scenario=1)
         self.assertTrue(meshblock_layer.startEditing())

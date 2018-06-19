@@ -74,6 +74,7 @@ from .linz.validation_task import ValidationTask
 from .linz.export_task import ExportTask
 from .linz.nz_electoral_api import ConcordanceItem, BoundaryRequest, get_api_connector
 from .linz.api_request_queue import ApiRequestQueue
+from .linz.electorate_changes_queue import ElectorateEditQueue
 
 VERSION = '0.1'
 
@@ -147,6 +148,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.meshblock_scenario_bridge = None
         self.db_source = os.path.join(self.plugin_dir,
                                       'db', 'nz_db.gpkg')
+        self.electorate_edit_queue = None
         self.task = None
         self.copy_task = None
         self.switch_task = None
@@ -461,6 +463,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.switch_task.taskCompleted.connect(self.progress_item.close)
         self.switch_task.taskCompleted.connect(partial(self.start_editing_action.setEnabled, True))
         self.switch_task.taskTerminated.connect(self.progress_item.close)
+        self.electorate_edit_queue = ElectorateEditQueue()
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -655,6 +658,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         handler = LinzRedistrictHandler(meshblock_layer=self.meshblock_layer,
                                         meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
                                         target_field='staged_electorate',
+                                        electorate_changes_queue=self.electorate_edit_queue,
                                         electorate_layer=self.electorate_layer,
                                         electorate_layer_field='electorate_id',
                                         task=self.context.task,
@@ -1050,6 +1054,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.electorate_menu = None
         self.database_menu = None
         self.export_action = None
+
+        # TODO - block reset when changes in queue, edits enabled!!
+        self.electorate_edit_queue = None
 
         try:
             self.dock.deleteLater()

@@ -25,6 +25,7 @@ from qgis.core import (QgsApplication,
                        QgsExpression,
                        NULL)
 from redistrict.core.redistrict_handler import RedistrictHandler
+from redistrict.linz.electorate_changes_queue import ElectorateEditQueue
 
 
 class LinzRedistrictHandler(RedistrictHandler):
@@ -36,6 +37,7 @@ class LinzRedistrictHandler(RedistrictHandler):
     """
 
     def __init__(self, meshblock_layer: QgsVectorLayer, meshblock_number_field_name: str, target_field: str,
+                 electorate_changes_queue: ElectorateEditQueue,
                  electorate_layer: QgsVectorLayer,
                  electorate_layer_field: str, task: str, user_log_layer: QgsVectorLayer, scenario):
         """
@@ -43,6 +45,7 @@ class LinzRedistrictHandler(RedistrictHandler):
         :param meshblock_layer: meshblock layer
         :param meshblock_number_field_name: field name for "meshblock number" field
         :param target_field: target field for districts
+        :param electorate_changes_queue: queue for staged electorate changes
         :param electorate_layer: electoral district layer
         :param electorate_layer_field: matching field from electorate layer
         :param task: current task
@@ -50,6 +53,7 @@ class LinzRedistrictHandler(RedistrictHandler):
         :param scenario: current scenario
         """
         super().__init__(target_layer=meshblock_layer, target_field=target_field)
+        self.electorate_changes_queue = electorate_changes_queue
         self.electorate_layer = electorate_layer
         self.electorate_layer_field = electorate_layer_field
         self.pending_affected_districts = {}
