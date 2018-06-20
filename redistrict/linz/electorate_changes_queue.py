@@ -15,45 +15,73 @@ __revision__ = '$Format:%H$'
 
 from qgis.core import (QgsVectorLayer,
                        QgsFeatureRequest)
+from qgis.PyQt.QtWidgets import (QUndoCommand,
+                                 QUndoStack)
 
 
-class ElectorateEditQueue:
+class QueueItem(QUndoCommand):
+    """
+    Item within an ElectorateEditQueue
+    """
+
+    def __init__(self, electorate_layer: QgsVectorLayer,
+                 previous_attributes: dict, previous_geometries: dict,
+                 new_attributes: dict, new_geometries: dict):
+        """
+        Constructor
+        :param electorate_layer: associated electorate layer
+        :param previous_attributes: dictionary of previous attributes
+        :param previous_geometries: dictionary of previous geometries
+        :param new_attributes: dictionary of attribute edits
+        :param new_geometries: dictionary of geometry edits
+        """
+        super().__init__()
+        self.electorate_layer = electorate_layer
+        self.previous_attributes = previous_attributes
+        self.previous_geometries = previous_geometries
+        self.new_attributes = new_attributes
+        self.new_geometries = new_geometries
+
+    def redo(self):  # pylint: disable=missing-docstring
+        self.electorate_layer.dataProvider().changeGeometryValues(self.new_geometries)
+        self.electorate_layer.dataProvider().changeAttributeValues(self.new_attributes)
+        self.electorate_layer.triggerRepaint()
+
+    def undo(self):  # pylint: disable=missing-docstring
+        self.electorate_layer.dataProvider().changeGeometryValues(self.previous_geometries)
+        self.electorate_layer.dataProvider().changeAttributeValues(self.previous_attributes)
+        self.electorate_layer.triggerRepaint()
+
+    def id(self):  # pylint: disable=missing-docstring
+        return -1
+
+    def mergeWith(self, other: 'QUndoCommand'):  # pylint: disable=missing-docstring, unused-argument
+        return False
+
+
+class ElectorateEditQueue(QUndoStack):
     """
     Queue for staged electorate edits, used when
     redistricting changes are created or rolled back
     to restore electorate layer to a matching state
     """
 
-    class QueueItem:
-        """
-        Item within an ElectorateEditQueue
-        """
-
-        def __init__(self, attribute_edits: dict, geometry_edits: dict):
-            """
-            Constructor
-            :param attribute_edits: dictionary of attribute edits
-            :param geometry_edits: dictionary of geometry edits
-            """
-            self.attribute_edits = attribute_edits
-            self.geometry_edits = geometry_edits
-
     def __init__(self, electorate_layer: QgsVectorLayer):
         """
         Constructor
         :param electorate_layer: target electorate layer
         """
+        super().__init__()
         self.electorate_layer = electorate_layer
-        self.queue = []
 
-    def push(self, attribute_edits: dict, geometry_edits: dict):
+    def push_changes(self, attribute_edits: dict, geometry_edits: dict):
         """
         Pushes a new set of electorate layer changes to the end of the queue
         :param attribute_edits: dictionary of attribute edits
         :param geometry_edits: dictionary of geometry edits
         """
 
-        # queue should record previous values, not new ones
+        # record previous values
         attribute_feature_ids = list(attribute_edits.keys())
         request = QgsFeatureRequest().setFilterFids(attribute_feature_ids).setFlags(QgsFeatureRequest.NoGeometry)
         attributes = {f.id(): f.attributes() for f in self.electorate_layer.getFeatures(request)}
@@ -66,26 +94,26 @@ class ElectorateEditQueue:
         geometries = {f.id(): f.geometry() for f in self.electorate_layer.getFeatures(request)}
         prev_geometries = {feature_id: geometries[feature_id] for feature_id, v in geometry_edits.items()}
 
-        self.queue.append(ElectorateEditQueue.QueueItem(prev_attributes, prev_geometries))
+        self.push(QueueItem(self.electorate_layer, prev_attributes, prev_geometries, attribute_edits, geometry_edits))
 
-        self.electorate_layer.dataProvider().changeGeometryValues(geometry_edits)
-        self.electorate_layer.dataProvider().changeAttributeValues(attribute_edits)
-        self.electorate_layer.triggerRepaint()
-
-    def pop(self) -> bool:
+    def back(self) -> bool:
         """
-        Removes the last item from the queue.
-        :return: True if a change was popped
+        Steps back one change in the queue
+        :return: True if a step back was successful
         """
-        if not self.queue:
+        if self.index() == 0:
             return False
 
-        item = self.queue[-1]
-        del self.queue[-1]
+        self.setIndex(self.index() - 1)
+        return True
 
-        # undo changes in layer
-        self.electorate_layer.dataProvider().changeGeometryValues(item.geometry_edits)
-        self.electorate_layer.dataProvider().changeAttributeValues(item.attribute_edits)
-        self.electorate_layer.triggerRepaint()
+    def forward(self) -> bool:
+        """
+        Steps forward one change in the queue
+        :return: True if a step forward was successful
+        """
+        if self.index() == self.count():
+            return False
 
+        self.setIndex(self.index() + 1)
         return True
