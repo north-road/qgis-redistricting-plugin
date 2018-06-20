@@ -56,9 +56,35 @@ class LINZElectorateQueueTest(unittest.TestCase):
         queue = ElectorateEditQueue(electorate_layer=district_layer)
 
         queue.push({d.id(): {0: 'xtest1', 2: 21111}}, {d.id(): QgsGeometry.fromRect(QgsRectangle(115, 0, 110, 5))})
-        self.assertEqual(district_layer.getFeature(d.id()).attributes(), ['xtest1', NULL, 21111, 12, 13, 1, 'x'])
-        self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(),
-                         'Polygon ((110 0, 115 0, 115 5, 110 5, 110 0))')
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
+                          ['test2', NULL, 11112, 22, 23, 0, 'y'],
+                          ['test3', NULL, 11113, 32, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((110 0, 115 0, 115 5, 110 5, 110 0))',
+                          'Polygon ((10 10, 10 5, 5 5, 5 10, 0 10, 0 15, 10 15, 10 10))',
+                          'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
+
+        queue.push({d2.id(): {0: 'xtest2', 2: 31111},
+                    d3.id(): {0: 'xtest3', 3: 42222}},
+                   {d2.id(): QgsGeometry.fromRect(QgsRectangle(215, 0, 210, 25)),
+                    d3.id(): QgsGeometry.fromRect(QgsRectangle(110, 1, 150, 4))})
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
+                          ['xtest2', NULL, 31111, 22, 23, 0, 'y'],
+                          ['xtest3', NULL, 11113, 42222, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((110 0, 115 0, 115 5, 110 5, 110 0))',
+                          'Polygon ((210 0, 215 0, 215 25, 210 25, 210 0))',
+                          'Polygon ((110 1, 150 1, 150 4, 110 4, 110 1))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
 
 
 if __name__ == "__main__":
