@@ -13,7 +13,8 @@ __copyright__ = 'Copyright 2018, LINZ'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.core import QgsVectorLayer
+from qgis.core import (QgsVectorLayer,
+                       QgsFeatureRequest)
 
 
 class ElectorateEditQueue:
@@ -52,19 +53,39 @@ class ElectorateEditQueue:
         :param geometry_edits: dictionary of geometry edits
         """
 
-        # TODO - queue should record previous values, not new ones
-        self.queue.append(ElectorateEditQueue.QueueItem(attribute_edits, geometry_edits))
+        # queue should record previous values, not new ones
+        attribute_feature_ids = list(attribute_edits.keys())
+        request = QgsFeatureRequest().setFilterFids(attribute_feature_ids).setFlags(QgsFeatureRequest.NoGeometry)
+        attributes = {f.id(): f.attributes() for f in self.electorate_layer.getFeatures(request)}
+        prev_attributes = {
+            feature_id: {attribute_index: attributes[feature_id][attribute_index] for attribute_index in v.keys()} for
+            feature_id, v in attribute_edits.items()}
+
+        geometry_feature_ids = list(geometry_edits.keys())
+        request = QgsFeatureRequest().setFilterFids(geometry_feature_ids).setSubsetOfAttributes([])
+        geometries = {f.id(): f.geometry() for f in self.electorate_layer.getFeatures(request)}
+        prev_geometries = {feature_id: geometries[feature_id] for feature_id, v in geometry_edits.items()}
+
+        self.queue.append(ElectorateEditQueue.QueueItem(prev_attributes, prev_geometries))
 
         self.electorate_layer.dataProvider().changeGeometryValues(geometry_edits)
         self.electorate_layer.dataProvider().changeAttributeValues(attribute_edits)
         self.electorate_layer.triggerRepaint()
 
-    def pop(self) -> (dict, dict):
+    def pop(self) -> bool:
         """
         Removes the last item from the queue.
-        :return: dictionary of attribute edits, dictionary of geometry edits
+        :return: True if a change was popped
         """
-        assert self.queue
+        if not self.queue:
+            return False
+
         item = self.queue[-1]
         del self.queue[-1]
-        return item.attribute_edits, item.geometry_edits
+
+        # undo changes in layer
+        self.electorate_layer.dataProvider().changeGeometryValues(item.geometry_edits)
+        self.electorate_layer.dataProvider().changeAttributeValues(item.attribute_edits)
+        self.electorate_layer.triggerRepaint()
+
+        return True

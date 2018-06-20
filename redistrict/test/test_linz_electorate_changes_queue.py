@@ -53,7 +53,21 @@ class LINZElectorateQueueTest(unittest.TestCase):
         success, [d, d2, d3, d4, d5] = district_layer.dataProvider().addFeatures([d, d2, d3, d4, d5])
         self.assertTrue(success)
 
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['test1', NULL, 11111, 12, 13, 1, 'x'],
+                          ['test2', NULL, 11112, 22, 23, 0, 'y'],
+                          ['test3', NULL, 11113, 32, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))',
+                          'Polygon ((10 10, 10 5, 5 5, 5 10, 0 10, 0 15, 10 15, 10 10))',
+                          'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
+
         queue = ElectorateEditQueue(electorate_layer=district_layer)
+        self.assertFalse(queue.pop())
 
         queue.push({d.id(): {0: 'xtest1', 2: 21111}}, {d.id(): QgsGeometry.fromRect(QgsRectangle(115, 0, 110, 5))})
         self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
@@ -83,6 +97,50 @@ class LINZElectorateQueueTest(unittest.TestCase):
                          ['Polygon ((110 0, 115 0, 115 5, 110 5, 110 0))',
                           'Polygon ((210 0, 215 0, 215 25, 210 25, 210 0))',
                           'Polygon ((110 1, 150 1, 150 4, 110 4, 110 1))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
+
+        self.assertTrue(queue.pop())
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
+                          ['test2', NULL, 11112, 22, 23, 0, 'y'],
+                          ['test3', NULL, 11113, 32, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((110 0, 115 0, 115 5, 110 5, 110 0))',
+                          'Polygon ((10 10, 10 5, 5 5, 5 10, 0 10, 0 15, 10 15, 10 10))',
+                          'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
+
+        self.assertTrue(queue.pop())
+
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['test1', NULL, 11111, 12, 13, 1, 'x'],
+                          ['test2', NULL, 11112, 22, 23, 0, 'y'],
+                          ['test3', NULL, 11113, 32, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))',
+                          'Polygon ((10 10, 10 5, 5 5, 5 10, 0 10, 0 15, 10 15, 10 10))',
+                          'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
+
+        self.assertFalse(queue.pop())
+
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['test1', NULL, 11111, 12, 13, 1, 'x'],
+                          ['test2', NULL, 11112, 22, 23, 0, 'y'],
+                          ['test3', NULL, 11113, 32, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))',
+                          'Polygon ((10 10, 10 5, 5 5, 5 10, 0 10, 0 15, 10 15, 10 10))',
+                          'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
 
