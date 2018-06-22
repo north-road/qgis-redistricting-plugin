@@ -32,9 +32,11 @@ class ScenarioBaseTask(QgsTask):
     ELECTORATE_CODE = 'ELECTORATE_CODE'
     ELECTORATE_NAME = 'ELECTORATE_NAME'
     MESHBLOCKS = 'MESHBLOCKS'
+    OFFSHORE_MESHBLOCKS = 'OFFSHORE_MESHBLOCKS'
+    NON_OFFSHORE_MESHBLOCKS = 'NON_OFFSHORE_MESHBLOCKS'
     ESTIMATED_POP = 'ESTIMATED_POP'
 
-    def __init__(self, task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,  # pylint: disable=too-many-locals
+    def __init__(self, task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,  # pylint: disable=too-many-locals, too-many-statements
                  meshblock_number_field_name: str, scenario_registry: ScenarioRegistry, scenario,
                  task: Optional[str] = None):
         """
@@ -67,6 +69,8 @@ class ScenarioBaseTask(QgsTask):
         assert self.mb_off_pop_ni_idx >= 0
         self.mb_off_pop_si_idx = meshblock_layer.fields().lookupField('offline_pop_gs')
         assert self.mb_off_pop_si_idx >= 0
+        self.mb_offshore_idx = meshblock_layer.fields().lookupField('offshore')
+        assert self.mb_offshore_idx >= 0
 
         self.invalid_reason_idx = self.electorate_layer.fields().lookupField('invalid_reason')
         assert self.invalid_reason_idx >= 0
@@ -107,12 +111,16 @@ class ScenarioBaseTask(QgsTask):
                                                                             scenario_id=scenario)
             assigned_meshblock_numbers = [m[self.mb_number_idx] for m in electorate_meshblocks]
             matching_meshblocks = [meshblocks[m] for m in assigned_meshblock_numbers]
+            offshore_meshblocks = [m for m in matching_meshblocks if m[self.mb_offshore_idx]]
+            non_offshore_meshblocks = [m for m in matching_meshblocks if not m[self.mb_offshore_idx]]
 
             self.electorates_to_process[electorate_id] = {self.ELECTORATE_FEATURE_ID: electorate.id(),
                                                           self.ELECTORATE_TYPE: electorate_type,
                                                           self.ELECTORATE_CODE: electorate_code,
                                                           self.ELECTORATE_NAME: electorate_name,
-                                                          self.MESHBLOCKS: matching_meshblocks}
+                                                          self.MESHBLOCKS: matching_meshblocks,
+                                                          self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
+                                                          self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}
 
         self.setDependentLayers([electorate_layer])
 
@@ -129,6 +137,8 @@ class ScenarioBaseTask(QgsTask):
             electorate_feature_id = params[self.ELECTORATE_FEATURE_ID]
             electorate_type = params[self.ELECTORATE_TYPE]
             matching_meshblocks = params[self.MESHBLOCKS]
+            offshore_meshblocks = params[self.OFFSHORE_MESHBLOCKS]
+            non_offshore_meshblocks = params[self.NON_OFFSHORE_MESHBLOCKS]
 
             if electorate_type == 'M':
                 estimated_pop = sum(
@@ -145,7 +155,9 @@ class ScenarioBaseTask(QgsTask):
                                                             self.ELECTORATE_TYPE: electorate_type,
                                                             self.ELECTORATE_NAME: params[self.ELECTORATE_NAME],
                                                             self.ELECTORATE_CODE: params[self.ELECTORATE_CODE],
-                                                            self.MESHBLOCKS: matching_meshblocks}
+                                                            self.MESHBLOCKS: matching_meshblocks,
+                                                            self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
+                                                            self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
             electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)

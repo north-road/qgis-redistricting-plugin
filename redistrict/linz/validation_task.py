@@ -14,7 +14,8 @@ __copyright__ = 'Copyright 2018, LINZ'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsVectorLayer,
+from qgis.core import (QgsGeometry,
+                       QgsVectorLayer,
                        NULL)
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.scenario_registry import ScenarioRegistry
@@ -59,6 +60,9 @@ class ValidationTask(ScenarioBaseTask):
             pop = attributes[self.ESTIMATED_POP]
             electorate_type = attributes[self.ELECTORATE_TYPE]
 
+            electorate_non_offshore_meshblocks = attributes[self.NON_OFFSHORE_MESHBLOCKS]
+            electorate_offshore_meshblocks = attributes[self.OFFSHORE_MESHBLOCKS]
+
             quota = self.electorate_registry.get_quota_for_district_type(electorate_type)
             name = self.electorate_registry.get_district_title(electorate_id)
             geometry = electorate_geometries[electorate_feature_id]
@@ -77,6 +81,11 @@ class ValidationTask(ScenarioBaseTask):
                                      self.ERROR: error})
                 attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
                                                                self.invalid_reason_idx: error}
+
+            if electorate_offshore_meshblocks:
+                # electorate has some offshore meshblocks - we do the geometry validation on the
+                # non-offshore ones alone
+                geometry = QgsGeometry.unaryUnion([f.geometry() for f in electorate_non_offshore_meshblocks])
 
             # contiguity check
             if geometry.isMultipart() and geometry.constGet().numGeometries() > 1:

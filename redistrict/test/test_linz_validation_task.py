@@ -80,25 +80,25 @@ class ValidationTaskTest(unittest.TestCase):
         electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6, f7, f8])
 
         meshblock_layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=MeshblockNumber:string&field=offline_pop_m:int&field=offline_pop_gn:int&field=offline_pop_gs:int&field=staged_electorate:int",
+            "Point?crs=EPSG:4326&field=MeshblockNumber:string&field=offline_pop_m:int&field=offline_pop_gn:int&field=offline_pop_gs:int&field=staged_electorate:int&field=offshore:int",
             "source", "memory")
         f = QgsFeature()
-        f.setAttributes(["11", 5, 58900, 0])
+        f.setAttributes(["11", 5, 58900, 0, NULL, 0])
         f.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1, 2)))
         f2 = QgsFeature()
-        f2.setAttributes(["12", 6, 57000, 0])
+        f2.setAttributes(["12", 6, 57000, 0, NULL, 0])
         f2.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(2, 3)))
         f3 = QgsFeature()
-        f3.setAttributes(["13", 7, 2000, 0])
+        f3.setAttributes(["13", 7, 2000, 0, NULL, 0])
         f3.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(4, 5)))
         f4 = QgsFeature()
-        f4.setAttributes(["14", 8, 0, 20])
+        f4.setAttributes(["14", 8, 0, 20, NULL, 0])
         f4.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(6, 7)))
         f5 = QgsFeature()
-        f5.setAttributes(["15", 9, 0, 30])
+        f5.setAttributes(["15", 9, 0, 30, NULL, 0])
         f5.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(8, 9)))
         f6 = QgsFeature()
-        f6.setAttributes(["16", 10, 0, 40])
+        f6.setAttributes(["16", 10, 0, 40, NULL, 1])
         f6.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(10, 11)))
         meshblock_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
 
@@ -127,6 +127,35 @@ class ValidationTaskTest(unittest.TestCase):
                           [4, 'test4', 'GS', 1, 0, 0, 1, 'old invalid 4', NULL],
                           [5, 'test5', 'GS', 1, 0, 0, 1, 'old invalid 5', NULL],
                           [6, 'test6', 'GS', 1, 0, 0, 1, 'old invalid 6', NULL],
+                          [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
+                          [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
+
+        electorate_registry = LinzElectoralDistrictRegistry(source_layer=electorate_layer, source_field='electorate_id',
+                                                            title_field='code', electorate_type='GN',
+                                                            quota_layer=quota_layer)
+
+        task = ValidationTask(task_name='', electorate_registry=electorate_registry, meshblock_layer=meshblock_layer,
+                              meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=1,
+                              task='GS')
+
+        self.assertTrue(task.run())
+        self.assertEqual(len(task.results), 3)
+        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_ID], 4)
+        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_NAME], 'test4')
+        self.assertEqual(task.results[0][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 5)
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test5')
+        self.assertEqual(task.results[1][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_ID], 6)
+        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_NAME], 'test6')
+        self.assertEqual(task.results[2][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual([f.attributes()[:9] for f in electorate_layer.getFeatures()],
+                         [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL, NULL],
+                          [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
+                          [3, 'test3', 'GN', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
+                          [4, 'test4', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
+                          [5, 'test5', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
+                          [6, 'test6', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
                           [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
                           [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
 
