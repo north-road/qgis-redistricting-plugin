@@ -51,7 +51,7 @@ class ValidationTask(ScenarioBaseTask):
                          scenario=scenario, task=task)
         self.results = []
 
-    def run(self):  # pylint: disable=missing-docstring
+    def run(self):  # pylint: disable=missing-docstring, too-many-locals
         electorate_geometries, electorate_attributes = self.calculate_new_electorates()
 
         attribute_change_map = {}
