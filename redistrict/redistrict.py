@@ -121,6 +121,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.start_editing_action = None
         self.save_edits_action = None
         self.rollback_edits_action = None
+        self.undo_action = None
+        self.redo_action = None
         self.begin_action = None
         self.stats_tool_action = None
         self.validate_action = None
@@ -260,6 +262,16 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.redistricting_toolbar.addAction(
             self.rollback_edits_action)
         self.rollback_edits_action.setEnabled(False)
+
+        self.undo_action = QAction(GuiUtils.get_icon('undo.svg'), self.tr('Undo'))
+        self.undo_action.triggered.connect(self.meshblock_layer.undoStack().undo)
+        self.redistricting_toolbar.addAction(self.undo_action)
+        self.undo_action.setEnabled(False)
+
+        self.redo_action = QAction(GuiUtils.get_icon('redo.svg'), self.tr('Redo'))
+        self.redo_action.triggered.connect(self.meshblock_layer.undoStack().redo)
+        self.redistricting_toolbar.addAction(self.redo_action)
+        self.redo_action.setEnabled(False)
 
         self.redistricting_toolbar.addSeparator()
 
@@ -561,6 +573,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.start_editing_action.setEnabled(enabled)
             self.save_edits_action.setEnabled(enabled)
             self.rollback_edits_action.setEnabled(enabled)
+            self.undo_action.setEnabled(enabled)
+            self.redo_action.setEnabled(enabled)
             self.validate_action.setEnabled(enabled)
             self.export_action.setEnabled(enabled)
         except (AttributeError, RuntimeError):
