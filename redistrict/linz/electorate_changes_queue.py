@@ -13,7 +13,7 @@ __copyright__ = 'Copyright 2018, LINZ'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.core import (QgsMessageLog, QgsVectorLayer,
+from qgis.core import (QgsVectorLayer,
                        QgsFeatureRequest)
 from qgis.PyQt.QtWidgets import (QUndoCommand,
                                  QUndoStack)
@@ -46,13 +46,11 @@ class QueueItem(QUndoCommand):
         self.electorate_layer.dataProvider().changeGeometryValues(self.new_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(self.new_attributes)
         self.electorate_layer.triggerRepaint()
-        QgsMessageLog.logMessage('redoing')
 
     def undo(self):  # pylint: disable=missing-docstring
         self.electorate_layer.dataProvider().changeGeometryValues(self.previous_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(self.previous_attributes)
         self.electorate_layer.triggerRepaint()
-        QgsMessageLog.logMessage('undoing')
 
     def id(self):  # pylint: disable=missing-docstring
         return -1

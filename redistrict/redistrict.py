@@ -62,6 +62,7 @@ from .gui.district_settings_dialog import (DistrictSettingsDialog,  # pylint: di
                                            SETTINGS_AUTH_CONFIG_KEY)
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
 from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
+from .linz.linz_validation_results_dock_widget import LinzValidationResultsDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
 from .linz.scenario_selection_dialog import ScenarioSelectionDialog
 from .linz.db_utils import CopyFileTask
@@ -130,6 +131,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.new_themed_view_menu = None
         self.tool = None
         self.dock = None
+        self.validation_results_dock = None
         self.scenarios_tool_button = None
         self.context = None
         self.current_dock_electorate = None
@@ -327,6 +329,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.dock = LinzRedistrictingDockWidget(context=self.context)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock)
 
+        self.validation_results_dock = LinzValidationResultsDockWidget(self.iface)
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.validation_results_dock)
+        self.iface.mainWindow().tabifyDockWidget(self.dock, self.validation_results_dock)
+        self.dock.setUserVisible(True)
+
         self.context.scenario_changed.connect(self.scenario_changed)
 
         self.scenarios_tool_button = QToolButton()
@@ -491,6 +498,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.redistricting_toolbar.deleteLater()
         if self.dock is not None:
             self.dock.deleteLater()
+        if self.validation_results_dock is not None:
+            self.validation_results_dock.deleteLater()
         self.redistricting_menu.deleteLater()
         if self.tool is not None:
             self.tool.deleteLater()
@@ -1097,6 +1106,12 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.dock = None
 
         try:
+            self.validation_results_dock.deleteLater()
+        except RuntimeError:
+            pass
+        self.validation_results_dock = None
+
+        try:
             self.redistricting_toolbar.deleteLater()
         except RuntimeError:
             pass
@@ -1278,6 +1293,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             partial(self.report_failure, self.tr('Validation failed')))
 
         QgsApplication.taskManager().addTask(self.validation_task)
+        self.validation_results_dock.setUserVisible(True)
 
     def validation_complete(self):
         """
@@ -1285,7 +1301,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         self.report_success(self.tr('Validation complete'))
         results = self.validation_task.results
-        self.dock.show_validation_results(results=results)
+        self.validation_results_dock.show_validation_results(results=results)
+
+        self.validation_results_dock.setUserVisible(True)
 
     def view_log(self):
         """

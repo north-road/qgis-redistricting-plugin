@@ -66,6 +66,7 @@ class RedistrictingDockWidget(QgsDockWidget):
         :param html: HTML to show
         """
         self.frame.setHtml(html)
+        self.setUserVisible(True)
 
     def anchor_clicked(self, link: QUrl):
         """
