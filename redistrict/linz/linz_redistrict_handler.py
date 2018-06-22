@@ -197,8 +197,8 @@ class LinzRedistrictHandler(RedistrictHandler):
         CoreUtils.enable_labels_for_layer(self.electorate_layer, True)
 
     def end_edit_group(self):
-        super().end_edit_group()
         if not self.pending_affected_districts:
+            super().end_edit_group()
             return
 
         # step 1: get all electorate features corresponding to affected electorates
@@ -235,12 +235,18 @@ class LinzRedistrictHandler(RedistrictHandler):
 
         self.user_log_layer.dataProvider().addFeatures(self.pending_log_entries)
 
+        self.electorate_changes_queue.blocked = True
+        super().end_edit_group()
+        self.electorate_changes_queue.blocked = False
+
         self.pending_affected_districts = {}
         self.pending_log_entries = []
         self.redistrict_occured.emit()
 
     def discard_edit_group(self):
+        self.electorate_changes_queue.blocked = True
         super().discard_edit_group()
+        self.electorate_changes_queue.blocked = False
         self.pending_affected_districts = {}
         self.pending_log_entries = []
 

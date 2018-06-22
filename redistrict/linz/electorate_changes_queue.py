@@ -13,7 +13,7 @@ __copyright__ = 'Copyright 2018, LINZ'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.core import (QgsVectorLayer,
+from qgis.core import (QgsMessageLog, QgsVectorLayer,
                        QgsFeatureRequest)
 from qgis.PyQt.QtWidgets import (QUndoCommand,
                                  QUndoStack)
@@ -46,11 +46,13 @@ class QueueItem(QUndoCommand):
         self.electorate_layer.dataProvider().changeGeometryValues(self.new_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(self.new_attributes)
         self.electorate_layer.triggerRepaint()
+        QgsMessageLog.logMessage('redoing')
 
     def undo(self):  # pylint: disable=missing-docstring
         self.electorate_layer.dataProvider().changeGeometryValues(self.previous_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(self.previous_attributes)
         self.electorate_layer.triggerRepaint()
+        QgsMessageLog.logMessage('undoing')
 
     def id(self):  # pylint: disable=missing-docstring
         return -1
@@ -73,6 +75,32 @@ class ElectorateEditQueue(QUndoStack):
         """
         super().__init__()
         self.electorate_layer = electorate_layer
+        self.meshblock_undo_index = 0
+        self.blocked = False
+
+    def sync_to_meshblock_undostack_index(self, index: int):
+        """
+        Rollbacks the buffer (or rolls forward) to sync its state
+        with the meshblock layer's undo buffer
+        """
+        if self.blocked:
+            return
+
+        is_back = index < self.meshblock_undo_index
+        while self.meshblock_undo_index != index:
+            if is_back:
+                self.back()
+                self.meshblock_undo_index -= 1
+            else:
+                self.forward()
+                self.meshblock_undo_index += 1
+
+    def rollback(self):
+        """
+        Rolls back the buffer to the start of the meshblock changes
+        """
+        self.sync_to_meshblock_undostack_index(0)
+        self.clear()
 
     def push_changes(self, attribute_edits: dict, geometry_edits: dict):
         """
@@ -80,6 +108,8 @@ class ElectorateEditQueue(QUndoStack):
         :param attribute_edits: dictionary of attribute edits
         :param geometry_edits: dictionary of geometry edits
         """
+
+        self.meshblock_undo_index += 1
 
         # record previous values
         attribute_feature_ids = list(attribute_edits.keys())
