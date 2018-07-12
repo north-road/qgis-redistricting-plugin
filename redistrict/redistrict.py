@@ -279,7 +279,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.interactive_redistrict_action = QAction(GuiUtils.get_icon(
             'interactive_redistrict.svg'), self.tr('Interactive Redistrict'))
-        self.interactive_redistrict_action.triggered.connect(
+        self.interactive_redistrict_action.setCheckable(True)
+        self.interactive_redistrict_action.toggled.connect(
             self.interactive_redistrict)
         self.redistricting_toolbar.addAction(
             self.interactive_redistrict_action)
@@ -789,18 +790,28 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         self.tool = None
 
-    def interactive_redistrict(self):
+    def interactive_redistrict(self, active: bool):
         """
         Interactively redistrict the currently selected meshblocks
+        :param active: True if tool was activated
         """
-
-        tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
-                                            district_registry=self.get_district_registry(),
-                                            decorator_factory=CentroidDecoratorFactory(
-                                                electorate_layer=self.electorate_layer,
-                                                meshblock_layer=self.meshblock_layer,
-                                                task=self.context.task))
-        self.set_current_tool(tool=tool)
+        if active:
+            tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
+                                                district_registry=self.get_district_registry(),
+                                                decorator_factory=CentroidDecoratorFactory(
+                                                    electorate_layer=self.electorate_layer,
+                                                    meshblock_layer=self.meshblock_layer,
+                                                    task=self.context.task))
+            self.set_current_tool(tool=tool)
+            tool.setAction(self.interactive_redistrict_action)
+        else:
+            if self.tool is not None:
+                # Disconnect from old tool
+                self.tool.deactivated.disconnect(self.tool_deactivated)
+                self.tool.deleteLater()
+                self.tool = None
+            # switch to 'pan' tool
+            self.iface.actionPan().trigger()
 
     def trigger_stats_tool(self):
         """
