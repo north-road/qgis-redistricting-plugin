@@ -1297,8 +1297,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                               scenario_registry=self.scenario_registry,
                                               scenario=self.context.scenario,
                                               task=self.context.task)
-
         progress_dialog.deleteLater()
+        # refresh views, in case any are showing invalid electorates view
+        self.refresh_canvases()
 
         self.validation_task.taskCompleted.connect(self.validation_complete)
         self.validation_task.taskCompleted.connect(self.refresh_canvases)

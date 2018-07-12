@@ -51,6 +51,15 @@ class ValidationTask(ScenarioBaseTask):
                          scenario=scenario, task=task)
         self.results = []
 
+        # immediately clear existing validation results
+        attribute_change_map = {}
+        for e in self.electorates_to_process.values():
+            attribute_change_map[e[self.ELECTORATE_FEATURE_ID]] = {
+                self.invalid_idx: NULL,
+                self.invalid_reason_idx: NULL
+            }
+        self.electorate_layer.dataProvider().changeAttributeValues(attribute_change_map)
+
     def run(self):  # pylint: disable=missing-docstring, too-many-locals
         electorate_geometries, electorate_attributes = self.calculate_new_electorates()
 

@@ -111,6 +111,15 @@ class ValidationTaskTest(unittest.TestCase):
         task = ValidationTask(task_name='', electorate_registry=electorate_registry, meshblock_layer=meshblock_layer,
                               meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=1,
                               task='GN')
+        self.assertEqual([f.attributes()[:9] for f in electorate_layer.getFeatures()],
+                         [[1, 'test1', 'GN', 1, 0, 0, NULL, NULL, NULL],
+                          [2, 'test2', 'GN', 1, 0, 0, NULL, NULL, NULL],
+                          [3, 'test3', 'GN', 1, 0, 0, NULL, NULL, NULL],
+                          [4, 'test4', 'GS', 1, 0, 0, 1, 'old invalid 4', NULL],
+                          [5, 'test5', 'GS', 1, 0, 0, 1, 'old invalid 5', NULL],
+                          [6, 'test6', 'GS', 1, 0, 0, 1, 'old invalid 6', NULL],
+                          [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
+                          [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
 
         self.assertTrue(task.run())
         self.assertEqual(len(task.results), 2)
