@@ -62,13 +62,20 @@ class LinzValidationResultsDockWidget(QgsDockWidget):
         """
         self.iface.mapCanvas().zoomToFeatureExtent(extent)
 
+    def clear(self):
+        """
+        Clears existing validation results from the dock
+        """
+        if self.table is not None:
+            self.table.deleteLater()
+            self.table = None
+
     def show_validation_results(self, results):
         """
         Shows the results of a validation run
         :param results: validation results
         """
-        if self.table is not None:
-            self.table.deleteLater()
+        self.clear()
 
         self.table = QTableWidget()
         self.table.setColumnCount(3)

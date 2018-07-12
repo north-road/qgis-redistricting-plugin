@@ -1285,6 +1285,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         electorate_registry = self.get_district_registry()
         task_name = self.tr('Validating Electorates')
 
+        self.validation_results_dock.clear()
+
         progress_dialog = BlockingDialog(self.tr('Validating Electorates'), self.tr('Preparing validation...'))
         progress_dialog.force_show_and_paint()
 
