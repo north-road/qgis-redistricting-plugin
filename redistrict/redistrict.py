@@ -58,6 +58,7 @@ from .gui.message_bar_progress import MessageBarProgressItem
 from .gui.gui_utils import (GuiUtils,
                             BlockingDialog,
                             ConfirmationDialog)
+from .gui.audio_utils import AudioUtils
 from .gui.district_settings_dialog import (DistrictSettingsDialog,  # pylint: disable=unused-import
                                            SETTINGS_AUTH_CONFIG_KEY)
 from .linz.interactive_redistrict_decorator import CentroidDecoratorFactory
@@ -561,6 +562,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.api_request_queue.set_frequency(
             QgsSettings().value('redistrict/check_every', '30', int, QgsSettings.Plugins))
+        AudioUtils.update_settings()
 
     def save_edits(self):
         """Saves pending edits"""

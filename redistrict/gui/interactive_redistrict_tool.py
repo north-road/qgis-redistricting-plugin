@@ -23,6 +23,7 @@ from qgis.core import (Qgis,
 from qgis.gui import (QgsMapTool,
                       QgsSnapIndicator)
 from qgis.utils import iface
+from redistrict.gui.audio_utils import AudioUtils
 
 
 class UniqueFeatureEdgeMatchCollectingFilter(QgsPointLocator.MatchFilter):
@@ -212,6 +213,7 @@ class InteractiveRedistrictingTool(QgsMapTool):
 
                     self.modified.add(target.id())
                     self.handler.assign_district([target.id()], self.current_district)
+                    AudioUtils.play_redistrict_sound()
 
     def report_success(self):
         """

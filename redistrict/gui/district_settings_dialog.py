@@ -22,12 +22,16 @@ from qgis.PyQt.QtWidgets import (QDialog,
                                  QPushButton,
                                  QMessageBox,
                                  QLineEdit,
-                                 QSpinBox)
+                                 QSpinBox,
+                                 QGroupBox,
+                                 QGridLayout)
 
 from qgis.core import QgsSettings
-from qgis.gui import QgsAuthConfigSelect
+from qgis.gui import (QgsAuthConfigSelect,
+                      QgsFileWidget)
 
 from redistrict.linz.nz_electoral_api import get_api_connector
+from redistrict.gui.playsound import playsound
 
 SETTINGS_AUTH_CONFIG_KEY = 'redistrict/auth_config_id'
 
@@ -51,7 +55,7 @@ class DistrictSettingsDialog(QDialog):
     A dialog used for plugin settings
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None):  # pylint: disable=too-many-statements
         super().__init__(parent)
 
         self.setWindowTitle(self.tr('Redistrict Plugin | Settings'))
@@ -89,8 +93,30 @@ class DistrictSettingsDialog(QDialog):
         layout.addWidget(self.test_button)
 
         self.use_overlays_checkbox = QCheckBox(self.tr('Show updated populations during interactive redistricting'))
-        self.use_overlays_checkbox.setChecked(QgsSettings().value('redistrict/show_overlays', False, bool, QgsSettings.Plugins))
+        self.use_overlays_checkbox.setChecked(
+            QgsSettings().value('redistrict/show_overlays', False, bool, QgsSettings.Plugins))
         layout.addWidget(self.use_overlays_checkbox)
+
+        self.use_sound_group_box = QGroupBox(self.tr('Use audio feedback'))
+        self.use_sound_group_box.setCheckable(True)
+        self.use_sound_group_box.setChecked(
+            QgsSettings().value('redistrict/use_audio_feedback', False, bool, QgsSettings.Plugins))
+
+        sound_layout = QGridLayout()
+        sound_layout.addWidget(QLabel(self.tr('When meshblock redistricted')), 0, 0)
+        self.on_redistrict_file_widget = QgsFileWidget()
+        self.on_redistrict_file_widget.setDialogTitle(self.tr('Select Audio File'))
+        self.on_redistrict_file_widget.setStorageMode(QgsFileWidget.GetFile)
+        self.on_redistrict_file_widget.setFilePath(
+            QgsSettings().value('redistrict/on_redistrict', '', str, QgsSettings.Plugins))
+        self.on_redistrict_file_widget.setFilter(self.tr('Wave files (*.wav *.WAV)'))
+        sound_layout.addWidget(self.on_redistrict_file_widget, 0, 1)
+        self.play_on_redistrict_sound_button = QPushButton(self.tr('Test'))
+        self.play_on_redistrict_sound_button.clicked.connect(self.play_on_redistrict_sound)
+        sound_layout.addWidget(self.play_on_redistrict_sound_button, 0, 2)
+
+        self.use_sound_group_box.setLayout(sound_layout)
+        layout.addWidget(self.use_sound_group_box)
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -107,6 +133,10 @@ class DistrictSettingsDialog(QDialog):
         QgsSettings().setValue('redistrict/base_url', self.base_url_edit.text(), QgsSettings.Plugins)
         QgsSettings().setValue('redistrict/check_every', self.check_every_spin.value(), QgsSettings.Plugins)
         QgsSettings().setValue('redistrict/show_overlays', self.use_overlays_checkbox.isChecked(), QgsSettings.Plugins)
+        QgsSettings().setValue('redistrict/use_audio_feedback', self.use_sound_group_box.isChecked(),
+                               QgsSettings.Plugins)
+        QgsSettings().setValue('redistrict/on_redistrict', self.on_redistrict_file_widget.filePath(),
+                               QgsSettings.Plugins)
 
     def test_api(self):
         """
@@ -121,3 +151,12 @@ class DistrictSettingsDialog(QDialog):
         else:
             QMessageBox.critical(self, self.tr('Test API Connection'),
                                  self.tr('Could not connect to API!'), QMessageBox.Ok)
+
+    def play_on_redistrict_sound(self):
+        """
+        Plays the 'on redistrict' sound
+        """
+        try:
+            playsound(self.on_redistrict_file_widget.filePath(), block=False)
+        except FileNotFoundError:
+            pass
