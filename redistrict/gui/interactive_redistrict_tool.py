@@ -154,7 +154,7 @@ class InteractiveRedistrictingTool(QgsMapTool):
         :return: list of district values
         """
         features = self.get_target_features_from_matches(matches)
-        return set([f[self.handler.target_field] for f in features])
+        return {f[self.handler.target_field] for f in features}
 
     def get_target_features_from_matches(self, matches):
         """
