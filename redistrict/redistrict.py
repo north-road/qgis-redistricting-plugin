@@ -422,6 +422,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             if not self.is_redistricting:
                 return
 
+            if self.meshblock_layer.editBuffer() is not None and self.meshblock_layer.editBuffer().isModified():
+                self.report_failure(self.tr('Cannot stop redistricting while unsaved changes are present'))
+                self.begin_action.setChecked(True)
+                return
+
             self.reset(False)
             return
 
