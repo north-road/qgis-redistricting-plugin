@@ -483,6 +483,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.create_redistricting_ui()
 
+        self.iface.setActiveLayer(self.meshblock_layer)
+
         self.progress_item = MessageBarProgressItem(self.tr('Preparing redistricting'), iface=self.iface)
         self.switch_task.progressChanged.connect(self.progress_item.set_progress)
         self.switch_task.taskCompleted.connect(self.progress_item.close)
@@ -545,6 +547,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         tools = self.iface.vectorLayerTools()
         if active:
             tools.startEditing(self.meshblock_layer)
+            self.iface.setActiveLayer(self.meshblock_layer)
         else:
             tools.stopEditing(self.meshblock_layer, allowCancel=False)
         self.set_current_tool(tool=None)
