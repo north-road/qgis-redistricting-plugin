@@ -1177,6 +1177,12 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         error = self.copy_task.error
         self.report_failure(self.tr('Error while exporting database: {}').format(error))
 
+    def current_db_path(self) -> str:
+        """
+        Returns the currently open database path
+        """
+        return self.meshblock_layer.source().split('|')[0]
+
     def import_master_database(self):
         """
         Imports a new master database, replacing the current database
@@ -1188,6 +1194,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                       self.tr('Import Master Database'), last_path,
                                                       filter='Database Files (*.gpkg)')
         if not source:
+            return
+
+        if source == self.current_db_path():
+            self.report_failure(self.tr('Cannot re-import the active database!'))
             return
 
         settings.setValue('redistricting/last_import_path', source)
