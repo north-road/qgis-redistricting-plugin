@@ -73,8 +73,8 @@ class ApiRequestQueue(QObject):
         :param request: completed request
         """
         response = connector.parse_async(request)
-        if response['status'] != 200:
-            self.error.emit(boundary_request, response['reason'])
+        if response['status'] not in (200, 202):
+            self.error.emit(boundary_request, str(response['status']) + ':' + response['content'])
             return
         request_id = response['content']
         self.boundary_change_queue.append((connector, boundary_request, request_id))
@@ -119,12 +119,12 @@ class ApiRequestQueue(QObject):
         :param request_id: ID of request
         :param request: completed request
         """
-        results = connector.parse_async(request)['content']
-        if results['status'] != 200:
+        results = connector.parse_async(request)
+        if results['status'] not in (200, 202):
             self.remove_from_queue(request_id)
-            self.error.emit(boundary_request, results['reason'])
+            self.error.emit(boundary_request, str(results['status']) + ":" + str(results['content']))
             return
-        self.check_boundary_result_reply(request_id, results)
+        self.check_boundary_result_reply(request_id, results['content'])
 
     def check_boundary_result_reply(self, request_id: str, reply: Union[dict, str]):
         """

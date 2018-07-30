@@ -143,7 +143,7 @@ class NzElectoralApi(QObject):
         try:
             result['content'] = json.loads(result['content'].decode('utf-8'))
         except json.decoder.JSONDecodeError:
-            result['content'] = {}
+            result['content'] = result['content'].decode('utf-8')
         return result
 
     def _base_call(self, path, payload=None, blocking=False) -> Union[dict, NetworkAccessManager]:
@@ -170,6 +170,7 @@ class NzElectoralApi(QObject):
 
         if payload is not None:
             payload = self.encode_payload(payload)
+            QgsMessageLog.logMessage('Payload ' + payload.decode('utf-8'), "REDISTRICT")
 
         if self.qs:
             path += '?' + self.qs
