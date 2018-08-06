@@ -68,10 +68,11 @@ class BoundaryRequest():
         :param gmsVersion: API version, defaults to GMS_VERSION
         :param gmsVersion: str, optional
         """
-
         self.type = area
         self.gmsVersion = gmsVersion
         self.concordance = concordance
+        # exclude full meshblock listing from results
+        self.meshblocks = False
 
 
 class NzElectoralApi(QObject):
