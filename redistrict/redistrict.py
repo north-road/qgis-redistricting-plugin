@@ -1407,7 +1407,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         # TODO: track scenarios, reject responses on different scenarios
 
-        concordance = [ConcordanceItem(str(m['meshblock_number']), str(electorate_id)) for m in electorate_meshblocks]
+        concordance = [ConcordanceItem(str(m['meshblock_number']), str(electorate_id), self.context.task) for m in electorate_meshblocks]
         request = BoundaryRequest(concordance, area=self.context.task)
         connector = get_api_connector()
         self.api_request_queue.append_request(connector, request)
@@ -1443,7 +1443,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                                                  electorate_type=self.context.task,
                                                                                  scenario_id=self.context.scenario)
             concordance.extend(
-                [ConcordanceItem(str(m['meshblock_number']), str(electorate_id)) for m in electorate_meshblocks])
+                [ConcordanceItem(str(m['meshblock_number']), str(electorate_id), self.context.task) for m in electorate_meshblocks])
 
         self.refresh_dock_stats()
 
@@ -1465,7 +1465,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         electorates = set()
         for concordance_item in boundary_request.concordance:
-            electorate_id = int(concordance_item.electorate)
+            electorate_id = int(concordance_item.unformatted_electorate)
             electorates.add(electorate_id)
 
         for electorate_id in electorates:

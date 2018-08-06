@@ -37,7 +37,7 @@ class ConcordanceItem():
     """ConcordanceItem struct
     """
 
-    def __init__(self, censusStandardMeshblock: str, electorate: str):
+    def __init__(self, censusStandardMeshblock: str, electorate: str, task: str):
         """Initialise a ConcordanceItem
 
         Example:
@@ -48,10 +48,25 @@ class ConcordanceItem():
         :type censusStandardMeshblock: str
         :param electorate: electorate id
         :type electorate: str
+        :param task: task name
         """
 
         self.censusStandardMeshblock = censusStandardMeshblock
-        self.electorate = electorate
+        self.unformatted_electorate = electorate
+        self.electorate = ConcordanceItem.format_electorate_id(electorate, task)
+
+    @staticmethod
+    def format_electorate_id(electorate_id: str, task: str) -> str:
+        """
+        Formats an electorate ID, ensuring it's in the correct format for
+        the Statistics NZ API, given the current task
+        :param electorate_id: original electorate ID
+        :param task: current task
+        """
+        code = task[-1].upper()
+        if electorate_id.startswith(code):
+            return electorate_id
+        return code + electorate_id
 
 
 class BoundaryRequest():

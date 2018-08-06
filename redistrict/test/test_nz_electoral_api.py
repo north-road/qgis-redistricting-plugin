@@ -28,6 +28,7 @@ from redistrict.linz.nz_electoral_api import (BoundaryRequest,
                                               NzElectoralApi,
                                               Handler)
 
+
 # pylint: disable=broad-except,attribute-defined-outside-init
 
 
@@ -87,6 +88,23 @@ class NzElectoralApiTest(unittest.TestCase):
             nam.reply.finished.connect(el.quit)
             el.exec_(QEventLoop.ExcludeUserInputEvents)
 
+    def test_concordance(self):
+        """
+        Test creating concordance items
+        """
+        item = ConcordanceItem("0001234", electorate='N01', task='GN')
+        self.assertEqual(item.electorate, 'N01')
+        self.assertEqual(item.unformatted_electorate, 'N01')
+        item = ConcordanceItem("0001234", electorate='01', task='GN')
+        self.assertEqual(item.electorate, 'N01')
+        self.assertEqual(item.unformatted_electorate, '01')
+        item = ConcordanceItem("0001234", electorate='01', task='GS')
+        self.assertEqual(item.electorate, 'S01')
+        self.assertEqual(item.unformatted_electorate, '01')
+        item = ConcordanceItem("0001234", electorate='01', task='M')
+        self.assertEqual(item.electorate, 'M01')
+        self.assertEqual(item.unformatted_electorate, '01')
+
     def test_status(self):
         """Test status API call"""
         self._call('status', blocking=True)
@@ -95,9 +113,9 @@ class NzElectoralApiTest(unittest.TestCase):
     def test_boundaryChanges(self):
         """Test boundaryChanges API call"""
         concordance = [
-            ConcordanceItem("0001234", "N01"),
-            ConcordanceItem("0001235", "N01"),
-            ConcordanceItem("0001236", "N02"),
+            ConcordanceItem("0001234", "01", 'GN'),
+            ConcordanceItem("0001235", "01", 'GN'),
+            ConcordanceItem("0001236", "02", 'GN'),
         ]
         request = BoundaryRequest(concordance, "north")
         self._call('boundaryChanges', request, blocking=True)
@@ -124,9 +142,9 @@ class NzElectoralApiTest(unittest.TestCase):
     def test_boundaryChanges_async(self):
         """Test boundaryChanges API call in async mode"""
         concordance = [
-            ConcordanceItem("0001234", "N01"),
-            ConcordanceItem("0001235", "N01"),
-            ConcordanceItem("0001236", "N02"),
+            ConcordanceItem("0001234", "N01", 'GN'),
+            ConcordanceItem("0001235", "N01", 'GN'),
+            ConcordanceItem("0001236", "N02", 'GN'),
         ]
         request = BoundaryRequest(concordance, "north")
         self._call('boundaryChanges', request)
