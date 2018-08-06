@@ -98,7 +98,6 @@ class ElectorateEditQueue(QUndoStack):
         Rolls back the buffer to the start of the meshblock changes
         """
         self.sync_to_meshblock_undostack_index(0)
-        self.clear()
 
     def push_changes(self, attribute_edits: dict, geometry_edits: dict):
         """

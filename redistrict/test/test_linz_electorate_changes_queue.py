@@ -28,7 +28,7 @@ from qgis.core import (QgsVectorLayer,
 class LINZElectorateQueueTest(unittest.TestCase):
     """Test ElectorateEditQueue."""
 
-    def testQueue(self):
+    def testQueue(self):  # pylint: disable=too-many-statements
         """
         Test queue operations
         """
@@ -177,6 +177,34 @@ class LINZElectorateQueueTest(unittest.TestCase):
 
         self.assertFalse(queue.forward())
         self.assertTrue(queue.back())
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
+                          ['test2', NULL, 11112, 22, 23, 0, 'y'],
+                          ['test3', NULL, 11113, 32, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((110 0, 115 0, 115 5, 110 5, 110 0))',
+                          'Polygon ((10 10, 10 5, 5 5, 5 10, 0 10, 0 15, 10 15, 10 10))',
+                          'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
+
+        queue.forward()
+        queue.rollback()
+        self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
+                         [['test1', NULL, 11111, 12, 13, 1, 'x'],
+                          ['test2', NULL, 11112, 22, 23, 0, 'y'],
+                          ['test3', NULL, 11113, 32, 33, 1, 'z'],
+                          ['test4', NULL, 11114, 42, 43, 0, 'xx'],
+                          ['aaa', NULL, 11115, 52, 53, 1, 'yy']])
+        self.assertEqual([f.geometry().asWkt() for f in district_layer.getFeatures()],
+                         ['Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))',
+                          'Polygon ((10 10, 10 5, 5 5, 5 10, 0 10, 0 15, 10 15, 10 10))',
+                          'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
+                          'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
+                          ''])
+        self.assertTrue(queue.forward())
         self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
                          [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
                           ['test2', NULL, 11112, 22, 23, 0, 'y'],
