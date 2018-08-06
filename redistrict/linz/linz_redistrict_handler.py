@@ -267,6 +267,11 @@ class LinzRedistrictHandler(RedistrictHandler):
             district = f[self.target_field]
             if district == NULL:
                 continue
+
+            if district == new_district:
+                target_ids = [t for t in target_ids if t != f.id()]
+                continue
+
             meshblock_number = f[self.meshblock_number_idx]
 
             if district not in self.pending_affected_districts:
