@@ -33,7 +33,7 @@ class DeprecateElectorateDialogTest(unittest.TestCase):
         Test dialog functionality
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=code:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int",
+            "Point?crs=EPSG:4326&field=fld1:string&field=code:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN', 1, False])

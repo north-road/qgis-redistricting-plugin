@@ -62,6 +62,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         self.stats_nz_pop_field = 'stats_nz_pop'
         self.stats_nz_var_20_field = 'stats_nz_var_20'
         self.stats_nz_var_23_field = 'stats_nz_var_23'
+        self.scenario_id_field = 'scenario_id'
 
         self.source_field_index = self.source_layer.fields().lookupField(self.source_field)
         assert self.source_field_index >= 0
@@ -78,6 +79,8 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         assert self.stats_nz_var_20_field_index >= 0
         self.stats_nz_var_23_field_index = self.source_layer.fields().lookupField(self.stats_nz_var_23_field)
         assert self.stats_nz_var_23_field_index >= 0
+        self.scenario_id_field_index = self.source_layer.fields().lookupField(self.scenario_id_field)
+        assert self.scenario_id_field_index >= 0
 
         self.quota_layer = quota_layer
 
@@ -222,7 +225,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
 
         return abs((population - quota) / quota) >= 0.05
 
-    def create_electorate(self, new_electorate_code, new_electorate_name: str) -> (bool, str):
+    def create_electorate(self, new_electorate_code, new_electorate_name: str, initial_scenario: int) -> (bool, str):
         """
         Creates a new electorate
         :param new_electorate_code: code for new electorate
@@ -240,6 +243,8 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         f[self.source_layer.fields().lookupField(self.title_field)] = new_electorate_name
         f[self.type_field_index] = self.electorate_type
         f[self.source_field_index] = new_id
+        f[self.deprecated_field_index] = 0
+        f[self.scenario_id_field_index] = initial_scenario
         f[code_field_idx] = new_electorate_code
 
         if not self.source_layer.dataProvider().addFeatures([f]):

@@ -1263,7 +1263,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         new_name = dlg.name()
         new_code = dlg.code()
 
-        res, error = registry.create_electorate(new_electorate_code=new_code, new_electorate_name=new_name)
+        res, error = registry.create_electorate(new_electorate_code=new_code,
+                                                new_electorate_name=new_name,
+                                                initial_scenario=self.context.scenario)
         if not res:
             self.report_failure(error)
         else:
