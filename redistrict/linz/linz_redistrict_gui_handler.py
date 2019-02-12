@@ -115,7 +115,7 @@ class LinzRedistrictGuiHandler(RedistrictGuiHandler):
         <p>Population: <span style="font-weight:bold;{POP_STYLE}">{POPULATION}{ESTIMATED_POP_*}</span> <span style="color: {VARIATION_COLOR}; font-weight: bold">{VARIATION}</span>{ESTIMATED_POP_STRING}</p>
         <p>Quota Variation 2020: <span style="font-weight:bold;{POP_STYLE}">{STATS_NZ_VAR_YEAR1}</span><br>
         Quota Variation 2023: <span style="font-weight:bold;{POP_STYLE}">{STATS_NZ_VAR_YEAR2}</span></p>
-        <p><a href="request">Request population from Statistics NZ</a></p>""").format(
+        <p><a href="request">Update scenario statistics</a></p>""").format(
             **contents)
         self.redistrict_dock().show_message(message)
         self.redistrict_dock().request_population_callback = self.request_population

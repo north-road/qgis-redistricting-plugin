@@ -187,7 +187,7 @@ frame.setHtml("""<h1>Nelson</h1>
 <span style="font-style:italic">* Only estimated population available</span></p>
 <p>Quota Variation 2020: <span style="font-weight:bold">unknown</span><br>
 Quota Variation 2023: <span style="font-weight:bold">unknown</span></p>
-<p><a href="xxx">Request population from Statistics NZ</a></p>
+<p><a href="xxx">Update scenario statistics</a></p>
 """)
 if False:
     # updating
@@ -197,7 +197,7 @@ if False:
     <p>Population: <span style="font-weight:bold; font-style: italic">updating</span></p>
     <p>Quota Variation 2020: <span style="font-weight:bold; font-style: italic">updating</span><br>
     Quota Variation 2023: <span style="font-weight:bold; font-style: italic">updating</span></p>
-    <p><a href="xxx">Request population from Statistics NZ</a></p>
+    <p><a href="xxx">Update scenario statistics</a></p>
     """)
     # actual
 
@@ -207,7 +207,7 @@ if False:
     <p>Population: <span style="font-weight:bold;">54382</span> <span style="">(-1%)</span></p>
     <p>Quota Variation 2020: <span style="font-weight:bold">+2%</span><br>
     Quota Variation 2023: <span style="font-weight:bold">+3%</span></p>
-    <p><a href="xxx">Request population from Statistics NZ</a></p>
+    <p><a href="xxx">Update scenario statistics</a></p>
     """)
 
     frame.setHtml('')
