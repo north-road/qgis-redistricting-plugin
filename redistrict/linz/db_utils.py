@@ -30,7 +30,7 @@ class DbUtils:
         :param destination: destination file
         :return: boolean representing success or not
         """
-        pass
+        pass  # pylint: disable=unnecessary-pass
 
 
 class CopyFileTask(QgsTask):

@@ -73,4 +73,4 @@ class RedistrictingDockWidget(QgsDockWidget):
         Called on clicking an anchor link in the dock frame
         :param link: link clicked
         """
-        pass
+        pass  # pylint: disable=unnecessary-pass

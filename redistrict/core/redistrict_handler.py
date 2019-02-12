@@ -36,13 +36,13 @@ class RedistrictHandler(QObject):
         """
         Called when a new edit type operation is about to begin, before any edits are made
         """
-        pass
+        pass  # pylint: disable=unnecessary-pass
 
     def end_operation(self):
         """
         Called when a after an edit type operation is about to finished
         """
-        pass
+        pass  # pylint: disable=unnecessary-pass
 
     def begin_edit_group(self, message):
         """
