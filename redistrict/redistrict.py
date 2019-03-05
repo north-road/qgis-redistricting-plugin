@@ -1087,12 +1087,25 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.iface.messageBar().pushMessage(
             message, level=Qgis.Critical)
 
-    def reset(self, clear_project=False):
+    def reset(self, clear_project=False):  # pylint:disable=too-many-statements
         """
         Resets the plugin, clearing the current project and stopping the redistrict operation
         """
         if not self.is_redistricting:
             return
+
+        if self.meshblock_layer:
+            self.meshblock_layer.layerModified.disconnect(self.update_layer_modified_actions)
+            self.meshblock_layer.editingStarted.disconnect(self.toggle_redistrict_actions)
+            self.meshblock_layer.editingStopped.disconnect(self.toggle_redistrict_actions)
+            self.meshblock_layer.selectionChanged.disconnect(self.toggle_redistrict_actions)
+            self.meshblock_layer.undoStack().indexChanged.disconnect(self.electorate_edit_queue.sync_to_meshblock_undostack_index)
+            self.meshblock_layer.undoStack().indexChanged.disconnect(
+                self.update_undo_actions)
+            self.meshblock_layer.beforeCommitChanges.disconnect(
+                self.electorate_edit_queue.clear)
+            self.meshblock_layer.beforeRollBack.disconnect(
+                self.electorate_edit_queue.rollback)
 
         self.api_request_queue.clear()
         if clear_project:
