@@ -591,6 +591,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Enables or disables the task switching commands
         """
         try:
+            self.begin_action.setEnabled(enabled)
             for action in self.switch_menu.actions():
                 action.setEnabled(enabled)
             for action in self.scenarios_menu.actions():
