@@ -1340,11 +1340,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.validation_task.taskCompleted.connect(self.validation_complete)
         self.validation_task.taskCompleted.connect(self.refresh_canvases)
-        self.validation_task.taskTerminated.connect(
-            partial(self.report_failure, self.tr('Validation failed')))
+        self.validation_task.taskTerminated.connect(self.validation_failed)
 
         QgsApplication.taskManager().addTask(self.validation_task)
         self.validation_results_dock.setUserVisible(True)
+        self.enable_task_switches(False)
 
     def validation_complete(self):
         """
@@ -1355,6 +1355,15 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.validation_results_dock.show_validation_results(results=results)
 
         self.validation_results_dock.setUserVisible(True)
+        self.validation_task = None
+        self.enable_task_switches(True)
+
+    def validation_failed(self):
+        """
+        Triggered on validation task failure
+        """
+        self.report_failure(self.tr('Validation failed'))
+        self.enable_task_switches(True)
 
     def view_log(self):
         """
@@ -1393,17 +1402,25 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                       scenario_registry=self.scenario_registry,
                                       scenario=self.context.scenario, user_log_layer=self.user_log_layer)
 
-        self.export_task.taskCompleted.connect(
-            partial(self.report_success, self.tr('Export complete')))
+        self.export_task.taskCompleted.connect(self.__export_complete)
         self.export_task.taskTerminated.connect(self.__export_failed)
 
         QgsApplication.taskManager().addTask(self.export_task)
+        self.enable_task_switches(False)
+
+    def __export_complete(self):
+        """
+        Triggered on export success
+        """
+        self.report_success(self.tr('Export complete'))
+        self.enable_task_switches(True)
 
     def __export_failed(self):
         """
         Triggered on export failure
         """
         self.report_failure(self.tr('Export failed: {}').format(self.export_task.message))
+        self.enable_task_switches(True)
 
     def request_population_update(self, electorate_id):
         """
