@@ -16,6 +16,7 @@ __revision__ = '$Format:%H$'
 from qgis.core import (QgsVectorLayer,
                        QgsFeature,
                        QgsVectorFileWriter,
+                       QgsFeedback,
                        NULL)
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.scenario_registry import ScenarioRegistry
@@ -56,7 +57,16 @@ class ExportTask(ScenarioBaseTask):
         self.message = None
         self.user_log_layer = user_log_layer
 
-    def run(self):  # pylint: disable=missing-docstring,too-many-locals
+        self.feedback = QgsFeedback()
+
+    def cancel(self):
+        """
+        Cancels the export
+        """
+        super().cancel()
+        self.feedback.cancel()
+
+    def run(self):  # pylint: disable=missing-docstring,too-many-locals,too-many-return-statements,too-many-branches,too-many-statements
         try:
             electorate_geometries, electorate_attributes = self.calculate_new_electorates()
         except CanceledException:
@@ -68,6 +78,9 @@ class ExportTask(ScenarioBaseTask):
         electorate_features = []
 
         for electorate_feature_id, attributes in electorate_attributes.items():
+            if self.isCanceled():
+                return False
+
             electorate_code = attributes[self.ELECTORATE_CODE]
             geometry = electorate_geometries[electorate_feature_id]
 
@@ -81,6 +94,9 @@ class ExportTask(ScenarioBaseTask):
                     meshblock_electorates[meshblock_number] = {}
                 meshblock_electorates[meshblock_number][electorate_type] = electorate_code
 
+                if self.isCanceled():
+                    return False
+
             electorate_feature = QgsFeature()
             electorate_feature.setGeometry(geometry)
             electorate_feature.setAttributes([electorate_type, electorate_code, name])
@@ -92,12 +108,18 @@ class ExportTask(ScenarioBaseTask):
         if not electorate_layer.dataProvider().addFeatures(electorate_features):
             return False
 
+        if self.isCanceled():
+            return False
+
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = 'GPKG'
         options.layerName = 'electorates'
         options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
+        options.feedback = self.feedback
         error, self.message = QgsVectorFileWriter.writeAsVectorFormat(electorate_layer, self.dest_file, options)
         if error:
+            return False
+        if self.isCanceled():
             return False
 
         layer = QgsVectorLayer(
@@ -111,20 +133,26 @@ class ExportTask(ScenarioBaseTask):
             m = electorates[self.M] if self.M in electorates else NULL
             f.setAttributes([meshblock_number, gn, gs, m])
             meshblock_features.append(f)
+            if self.isCanceled():
+                return False
 
         layer.dataProvider().addFeatures(meshblock_features)
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = 'GPKG'
         options.layerName = 'meshblocks'
+        options.feedback = self.feedback
         options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
 
         error, self.message = QgsVectorFileWriter.writeAsVectorFormat(layer, self.dest_file, options)
         if error:
             return False
+        if self.isCanceled():
+            return False
 
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = 'GPKG'
         options.layerName = 'user_log'
+        options.feedback = self.feedback
         options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
 
         error, self.message = QgsVectorFileWriter.writeAsVectorFormat(self.user_log_layer, self.dest_file, options)
