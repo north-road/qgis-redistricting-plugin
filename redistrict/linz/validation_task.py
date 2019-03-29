@@ -19,7 +19,8 @@ from qgis.core import (QgsGeometry,
                        NULL)
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.scenario_registry import ScenarioRegistry
-from redistrict.linz.scenario_base_task import ScenarioBaseTask
+from redistrict.linz.scenario_base_task import (ScenarioBaseTask,
+                                                CanceledException)
 
 
 class ValidationTask(ScenarioBaseTask):
@@ -61,10 +62,16 @@ class ValidationTask(ScenarioBaseTask):
         self.electorate_layer.dataProvider().changeAttributeValues(attribute_change_map)
 
     def run(self):  # pylint: disable=missing-docstring, too-many-locals
-        electorate_geometries, electorate_attributes = self.calculate_new_electorates()
+        try:
+            electorate_geometries, electorate_attributes = self.calculate_new_electorates()
+        except CanceledException:
+            return False
 
         attribute_change_map = {}
         for electorate_feature_id, attributes in electorate_attributes.items():
+            if self.isCanceled():
+                return False
+
             electorate_id = attributes[self.ELECTORATE_ID]
             pop = attributes[self.ESTIMATED_POP]
             electorate_type = attributes[self.ELECTORATE_TYPE]
@@ -105,6 +112,9 @@ class ValidationTask(ScenarioBaseTask):
                                      self.ERROR: error})
                 attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
                                                                self.invalid_reason_idx: error}
+
+        if self.isCanceled():
+            return False
 
         # commit changes
         if not self.electorate_layer.dataProvider().changeAttributeValues(attribute_change_map):

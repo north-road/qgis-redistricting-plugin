@@ -21,6 +21,13 @@ from qgis.core import (QgsTask,
 from redistrict.linz.scenario_registry import ScenarioRegistry
 
 
+class CanceledException(Exception):
+    """
+    Triggered when task is canceled
+    """
+    pass
+
+
 class ScenarioBaseTask(QgsTask):
     """
     Base class for scenario related tasks
@@ -36,7 +43,8 @@ class ScenarioBaseTask(QgsTask):
     NON_OFFSHORE_MESHBLOCKS = 'NON_OFFSHORE_MESHBLOCKS'
     ESTIMATED_POP = 'ESTIMATED_POP'
 
-    def __init__(self, task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,  # pylint: disable=too-many-locals, too-many-statements
+    def __init__(self,  # pylint: disable=too-many-locals, too-many-statements
+                 task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,
                  meshblock_number_field_name: str, scenario_registry: ScenarioRegistry, scenario,
                  task: Optional[str] = None):
         """
@@ -132,6 +140,9 @@ class ScenarioBaseTask(QgsTask):
         electorate_attributes = {}
         i = 0
         for electorate_id, params in self.electorates_to_process.items():
+            if self.isCanceled():
+                raise CanceledException
+
             self.setProgress(100 * i / len(self.electorates_to_process))
 
             electorate_feature_id = params[self.ELECTORATE_FEATURE_ID]

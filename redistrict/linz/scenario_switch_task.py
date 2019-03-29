@@ -16,7 +16,8 @@ __revision__ = '$Format:%H$'
 from qgis.core import (QgsVectorLayer,
                        NULL)
 from redistrict.linz.scenario_registry import ScenarioRegistry
-from redistrict.linz.scenario_base_task import ScenarioBaseTask
+from redistrict.linz.scenario_base_task import (ScenarioBaseTask,
+                                                CanceledException)
 
 
 class ScenarioSwitchTask(ScenarioBaseTask):
@@ -55,7 +56,10 @@ class ScenarioSwitchTask(ScenarioBaseTask):
         assert self.stats_nz_var_23_field_index >= 0
 
     def run(self):  # pylint: disable=missing-docstring
-        electorate_geometries, electorate_attributes = self.calculate_new_electorates()
+        try:
+            electorate_geometries, electorate_attributes = self.calculate_new_electorates()
+        except CanceledException:
+            return False
 
         attribute_change_map = {}
         geometry_change_map = {}

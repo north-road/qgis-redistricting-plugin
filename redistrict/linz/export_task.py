@@ -19,7 +19,8 @@ from qgis.core import (QgsVectorLayer,
                        NULL)
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.scenario_registry import ScenarioRegistry
-from redistrict.linz.scenario_base_task import ScenarioBaseTask
+from redistrict.linz.scenario_base_task import (ScenarioBaseTask,
+                                                CanceledException)
 
 
 class ExportTask(ScenarioBaseTask):
@@ -56,7 +57,10 @@ class ExportTask(ScenarioBaseTask):
         self.user_log_layer = user_log_layer
 
     def run(self):  # pylint: disable=missing-docstring,too-many-locals
-        electorate_geometries, electorate_attributes = self.calculate_new_electorates()
+        try:
+            electorate_geometries, electorate_attributes = self.calculate_new_electorates()
+        except CanceledException:
+            return False
 
         # we also need a dictionary of meshblock number to all electorate types
         meshblock_electorates = {}
