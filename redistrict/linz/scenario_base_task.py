@@ -25,7 +25,6 @@ class CanceledException(Exception):
     """
     Triggered when task is canceled
     """
-    pass
 
 
 class ScenarioBaseTask(QgsTask):
