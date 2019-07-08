@@ -141,6 +141,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.scenarios_menu = None
         self.electorate_menu = None
         self.database_menu = None
+        self.rebuild_action = None
         self.export_action = None
 
         self.is_redistricting = False
@@ -395,6 +396,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         options_menu.addMenu(self.database_menu)
 
+        self.rebuild_action = QAction(self.tr('Rebuild Electorates'), parent=options_menu)
+        self.rebuild_action.triggered.connect(self.rebuild_electorates)
+        options_menu.addAction(self.rebuild_action)
+
         self.export_action = QAction(self.tr('Export Electorates...'), parent=options_menu)
         self.export_action.triggered.connect(self.export_electorates)
         options_menu.addAction(self.export_action)
@@ -609,6 +614,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.redo_action.setEnabled(enabled)
             self.validate_action.setEnabled(enabled)
             self.export_action.setEnabled(enabled)
+            self.rebuild_action.setEnabled(enabled)
             if enabled:
                 self.toggle_redistrict_actions()
         except (AttributeError, RuntimeError):
@@ -911,12 +917,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.switch_scenario(dlg.selected_scenario())
         dlg.deleteLater()
 
-    def switch_scenario(self, scenario: int):
+    def switch_scenario(self, scenario: int, title=None, description=None):
         """
         Switches the current scenario to a new scenario
         :param scenario: new scenario ID
         """
-
         if self.is_editing():
             QMessageBox.warning(self.iface.mainWindow(), self.tr('Switch Scenario'),
                                 self.tr(
@@ -926,9 +931,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.enable_task_switches(False)
         electorate_registry = self.get_district_registry()
         scenario_name = self.scenario_registry.get_scenario_name(scenario)
-        task_name = self.tr('Switching to {}').format(scenario_name)
+        task_name = title if title is not None else self.tr('Switching to {}').format(scenario_name)
 
-        progress_dialog = BlockingDialog(self.tr('Switch Scenario'), self.tr('Preparing switch...'))
+        if title is None:
+            title = self.tr('Switch Scenario')
+        if description is None:
+            description = self.tr('Preparing switch...')
+
+        progress_dialog = BlockingDialog(title, description)
         progress_dialog.force_show_and_paint()
 
         self.switch_task = ScenarioSwitchTask(task_name,
@@ -1131,6 +1141,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.electorate_menu = None
         self.database_menu = None
         self.export_action = None
+        self.rebuild_action = None
 
         # TODO - block reset when changes in queue, edits enabled!!
         self.electorate_edit_queue = None
@@ -1370,6 +1381,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Shows the user interaction log
         """
         self.iface.showAttributeTable(self.user_log_layer)
+
+    def rebuild_electorates(self):
+        """
+        Rebuilds the current scenario from scratch
+        """
+
+        if self.is_editing():
+            QMessageBox.warning(self.iface.mainWindow(), self.tr('Rebuild Electorates'),
+                                self.tr(
+                                    'Cannot rebuild electorates while editing meshblocks. Save or cancel the current edits and try again.'))
+            return
+
+        self.switch_scenario(self.context.scenario, title=self.tr('Rebuild Electorates'), description=self.tr('Preparing rebuild...'))
 
     def export_electorates(self):
         """
