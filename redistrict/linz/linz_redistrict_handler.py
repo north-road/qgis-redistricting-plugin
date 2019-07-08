@@ -234,9 +234,7 @@ class LinzRedistrictHandler(RedistrictHandler):
                                                                   self.stats_nz_var_23_field_index: NULL,
                                                                   self.invalid_field_index: NULL,
                                                                   self.invalid_reason_field_index: NULL}
-        self.electorate_changes_queue.push_changes(new_attributes, new_geometries)
-
-        self.user_log_layer.dataProvider().addFeatures(self.pending_log_entries)
+        self.electorate_changes_queue.push_changes(new_attributes, new_geometries, self.pending_log_entries)
 
         self.electorate_changes_queue.blocked = True
         super().end_edit_group()

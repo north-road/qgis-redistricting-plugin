@@ -497,7 +497,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.switch_task.taskCompleted.connect(self.progress_item.close)
         self.switch_task.taskCompleted.connect(partial(self.start_editing_action.setEnabled, True))
         self.switch_task.taskTerminated.connect(self.progress_item.close)
-        self.electorate_edit_queue = ElectorateEditQueue(electorate_layer=self.electorate_layer)
+        self.electorate_edit_queue = ElectorateEditQueue(electorate_layer=self.electorate_layer,
+                                                         user_log_layer=self.user_log_layer)
 
         self.meshblock_layer.undoStack().indexChanged.connect(self.electorate_edit_queue.sync_to_meshblock_undostack_index)
         self.meshblock_layer.undoStack().indexChanged.connect(

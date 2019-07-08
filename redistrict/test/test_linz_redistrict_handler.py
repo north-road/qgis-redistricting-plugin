@@ -87,7 +87,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         user_log_layer = make_user_log_layer()
-        queue = ElectorateEditQueue(electorate_layer=district_layer)
+        queue = ElectorateEditQueue(electorate_layer=district_layer, user_log_layer=user_log_layer)
 
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, meshblock_number_field_name='fld1',
                                         target_field='fld1', electorate_changes_queue=queue,
@@ -231,7 +231,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         user_log_layer = make_user_log_layer()
-        queue = ElectorateEditQueue(electorate_layer=district_layer)
+        queue = ElectorateEditQueue(electorate_layer=district_layer, user_log_layer=user_log_layer)
 
         handler = LinzRedistrictHandler(meshblock_layer=meshblock_layer, meshblock_number_field_name='fld1',
                                         target_field='fld1', electorate_changes_queue=queue,

@@ -13,8 +13,10 @@ __copyright__ = 'Copyright 2018, LINZ'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
+from typing import List
 from qgis.core import (QgsVectorLayer,
-                       QgsFeatureRequest)
+                       QgsFeatureRequest,
+                       QgsFeature)
 from qgis.PyQt.QtWidgets import (QUndoCommand,
                                  QUndoStack)
 
@@ -26,7 +28,9 @@ class QueueItem(QUndoCommand):
 
     def __init__(self, electorate_layer: QgsVectorLayer,
                  previous_attributes: dict, previous_geometries: dict,
-                 new_attributes: dict, new_geometries: dict):
+                 new_attributes: dict, new_geometries: dict,
+                 user_log_layer: QgsVectorLayer,
+                 user_log_entries: List[QgsFeature]):
         """
         Constructor
         :param electorate_layer: associated electorate layer
@@ -34,6 +38,8 @@ class QueueItem(QUndoCommand):
         :param previous_geometries: dictionary of previous geometries
         :param new_attributes: dictionary of attribute edits
         :param new_geometries: dictionary of geometry edits
+        :param user_log_layer: user log layer
+        :param user_log_entries: user log entries associated with this change
         """
         super().__init__()
         self.electorate_layer = electorate_layer
@@ -41,15 +47,25 @@ class QueueItem(QUndoCommand):
         self.previous_geometries = previous_geometries
         self.new_attributes = new_attributes
         self.new_geometries = new_geometries
+        self.user_log_layer = user_log_layer
+        self.user_log_entries = user_log_entries
+        self.user_log_entry_fids = []
 
     def redo(self):  # pylint: disable=missing-docstring
         self.electorate_layer.dataProvider().changeGeometryValues(self.new_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(self.new_attributes)
         self.electorate_layer.triggerRepaint()
 
+        self.user_log_entry_fids = [f.id() for f in
+                                    self.user_log_layer.dataProvider().addFeatures(self.user_log_entries)[1]]
+
     def undo(self):  # pylint: disable=missing-docstring
         self.electorate_layer.dataProvider().changeGeometryValues(self.previous_geometries)
         self.electorate_layer.dataProvider().changeAttributeValues(self.previous_attributes)
+
+        self.user_log_layer.dataProvider().deleteFeatures(self.user_log_entry_fids)
+        self.user_log_entry_fids = []
+
         self.electorate_layer.triggerRepaint()
 
     def id(self):  # pylint: disable=missing-docstring
@@ -66,13 +82,15 @@ class ElectorateEditQueue(QUndoStack):
     to restore electorate layer to a matching state
     """
 
-    def __init__(self, electorate_layer: QgsVectorLayer):
+    def __init__(self, electorate_layer: QgsVectorLayer, user_log_layer: QgsVectorLayer):
         """
         Constructor
         :param electorate_layer: target electorate layer
+        :param user_log_layer: user log layer
         """
         super().__init__()
         self.electorate_layer = electorate_layer
+        self.user_log_layer = user_log_layer
         self.meshblock_undo_index = 0
         self.blocked = False
 
@@ -99,11 +117,12 @@ class ElectorateEditQueue(QUndoStack):
         """
         self.sync_to_meshblock_undostack_index(0)
 
-    def push_changes(self, attribute_edits: dict, geometry_edits: dict):
+    def push_changes(self, attribute_edits: dict, geometry_edits: dict, log_entries: List[QgsFeature]):
         """
         Pushes a new set of electorate layer changes to the end of the queue
         :param attribute_edits: dictionary of attribute edits
         :param geometry_edits: dictionary of geometry edits
+        :param log_entries: user log entries associated with this change
         """
 
         self.meshblock_undo_index += 1
@@ -121,7 +140,9 @@ class ElectorateEditQueue(QUndoStack):
         geometries = {f.id(): f.geometry() for f in self.electorate_layer.getFeatures(request)}
         prev_geometries = {feature_id: geometries[feature_id] for feature_id, v in geometry_edits.items()}
 
-        self.push(QueueItem(self.electorate_layer, prev_attributes, prev_geometries, attribute_edits, geometry_edits))
+        self.push(QueueItem(self.electorate_layer, prev_attributes, prev_geometries, attribute_edits, geometry_edits,
+                            self.user_log_layer,
+                            log_entries))
 
     def back(self) -> bool:
         """

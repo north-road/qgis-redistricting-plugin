@@ -15,14 +15,15 @@ __copyright__ = 'Copyright 2018, LINZ'
 __revision__ = '$Format:%H$'
 
 import unittest
-from redistrict.linz.electorate_changes_queue import (
-    ElectorateEditQueue
-)
 from qgis.core import (QgsVectorLayer,
                        QgsFeature,
                        QgsGeometry,
                        QgsRectangle,
                        NULL)
+from redistrict.linz.electorate_changes_queue import (
+    ElectorateEditQueue
+)
+from redistrict.test.test_linz_redistrict_handler import make_user_log_layer
 
 
 class LINZElectorateQueueTest(unittest.TestCase):
@@ -32,6 +33,7 @@ class LINZElectorateQueueTest(unittest.TestCase):
         """
         Test queue operations
         """
+        user_log_layer = make_user_log_layer()
         district_layer = QgsVectorLayer(
             "Polygon?crs=EPSG:4326&field=fld1:string&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=invalid:int&field=invalid_reason:string",
             "source", "memory")
@@ -66,12 +68,18 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
 
-        queue = ElectorateEditQueue(electorate_layer=district_layer)
+        queue = ElectorateEditQueue(electorate_layer=district_layer, user_log_layer=user_log_layer)
         self.assertFalse(queue.back())
         self.assertFalse(queue.forward())
 
+        self.assertEqual(user_log_layer.featureCount(), 0)
+        user_log_f1 = QgsFeature(user_log_layer.fields())
+        user_log_f1['username'] = 'test user'
+        user_log_f2 = QgsFeature(user_log_layer.fields())
+        user_log_f2['username'] = 'test user2'
+
         queue.push_changes({d.id(): {0: 'xtest1', 2: 21111}},
-                           {d.id(): QgsGeometry.fromRect(QgsRectangle(115, 0, 110, 5))})
+                           {d.id(): QgsGeometry.fromRect(QgsRectangle(115, 0, 110, 5))}, [user_log_f1, user_log_f2])
         self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
                          [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
                           ['test2', NULL, 11112, 22, 23, 0, 'y'],
@@ -84,11 +92,17 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], ['test user', 'test user2'])
+
+        user_log_f3 = QgsFeature(user_log_layer.fields())
+        user_log_f3['username'] = 'test user3'
+        user_log_f4 = QgsFeature(user_log_layer.fields())
+        user_log_f4['username'] = 'test user4'
 
         queue.push_changes({d2.id(): {0: 'xtest2', 2: 31111},
                             d3.id(): {0: 'xtest3', 3: 42222}},
                            {d2.id(): QgsGeometry.fromRect(QgsRectangle(215, 0, 210, 25)),
-                            d3.id(): QgsGeometry.fromRect(QgsRectangle(110, 1, 150, 4))})
+                            d3.id(): QgsGeometry.fromRect(QgsRectangle(110, 1, 150, 4))}, [user_log_f3, user_log_f4])
         self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
                          [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
                           ['xtest2', NULL, 31111, 22, 23, 0, 'y'],
@@ -101,6 +115,9 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((110 1, 150 1, 150 4, 110 4, 110 1))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()],
+                         ['test user', 'test user2', 'test user3', 'test user4'])
+
         self.assertFalse(queue.forward())
 
         self.assertTrue(queue.back())
@@ -116,6 +133,7 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], ['test user', 'test user2'])
 
         self.assertTrue(queue.back())
 
@@ -131,6 +149,7 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], [])
 
         self.assertFalse(queue.back())
 
@@ -146,6 +165,7 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], [])
 
         self.assertTrue(queue.forward())
         self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
@@ -160,6 +180,7 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], ['test user', 'test user2'])
 
         self.assertTrue(queue.forward())
         self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
@@ -174,6 +195,8 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((110 1, 150 1, 150 4, 110 4, 110 1))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()],
+                         ['test user', 'test user2', 'test user3', 'test user4'])
 
         self.assertFalse(queue.forward())
         self.assertTrue(queue.back())
@@ -189,6 +212,7 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], ['test user', 'test user2'])
 
         queue.forward()
         queue.rollback()
@@ -204,6 +228,8 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], [])
+
         self.assertTrue(queue.forward())
         self.assertEqual([f.attributes() for f in district_layer.getFeatures()],
                          [['xtest1', NULL, 21111, 12, 13, 1, 'x'],
@@ -217,6 +243,7 @@ class LINZElectorateQueueTest(unittest.TestCase):
                           'Polygon ((0 5, 5 5, 5 10, 0 10, 0 5))',
                           'Polygon ((0 0, 5 0, 5 5, 0 5, 0 0))',
                           ''])
+        self.assertEqual([f['username'] for f in user_log_layer.getFeatures()], ['test user', 'test user2'])
 
 
 if __name__ == "__main__":
