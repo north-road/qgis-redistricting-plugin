@@ -65,6 +65,7 @@ class RedistrictHandler(QObject):
         """
         self.target_layer.destroyEditCommand()
         self.target_layer.triggerRepaint()
+        self.redistrict_occured.emit()
 
     def assign_district(self, target_ids, new_district):
         """

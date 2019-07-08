@@ -66,6 +66,9 @@ class LinzRedistrictHandler(RedistrictHandler):
         self.stats_nz_var_20_field = 'stats_nz_var_20'
         self.stats_nz_var_23_field = 'stats_nz_var_23'
 
+        # trigger stats dock update on undo/redo
+        self.electorate_changes_queue.indexChanged.connect(self.redistrict_occured)
+
         self.estimated_pop_idx = self.electorate_layer.fields().lookupField('estimated_pop')
         assert self.estimated_pop_idx >= 0
         self.meshblock_number_idx = self.target_layer.fields().lookupField(meshblock_number_field_name)
