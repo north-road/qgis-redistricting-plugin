@@ -65,6 +65,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         self.stats_nz_var_23_field = 'stats_nz_var_23'
         self.scenario_id_field = 'scenario_id'
         self.electorate_stats_id = 'electorate_id_stats'
+        self.expected_regions_field = 'expected_regions'
 
         self.source_field_index = self.source_layer.fields().lookupField(self.source_field)
         assert self.source_field_index >= 0
@@ -85,6 +86,8 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         assert self.scenario_id_field_index >= 0
         self.electorate_stats_id_field_index = self.source_layer.fields().lookupField(self.electorate_stats_id)
         assert self.electorate_stats_id_field_index >= 0
+        self.expected_regions_field_index = self.source_layer.fields().lookupField(self.expected_regions_field)
+        assert self.expected_regions_field_index >= 0
 
         self.quota_layer = quota_layer
 
@@ -258,6 +261,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         elif self.electorate_type == LinzRedistrictingContext.TASK_M:
             stats_code = 'M{}'.format(new_electorate_code)
         f[self.electorate_stats_id_field_index] = stats_code
+        f[self.expected_regions_field_index] = 1
 
         if not self.source_layer.dataProvider().addFeatures([f]):
             return False, QCoreApplication.translate('LinzRedistrict', 'Could not create new electorate')

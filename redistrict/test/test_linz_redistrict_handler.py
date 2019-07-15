@@ -211,7 +211,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertTrue(success)
 
         district_layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:int&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=invalid:int&field=invalid_reason:string",
+            "Polygon?crs=EPSG:4326&field=fld1:int&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=invalid:int&field=invalid_reason:string&field=expected_regions:int",
             "source", "memory")
         d = QgsFeature()
         d.setAttributes([1])

@@ -49,7 +49,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test a LinzDistrictRegistry
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN', 1000])
@@ -134,7 +134,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test retrieving quotas for districts
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN'])
@@ -175,7 +175,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test retrieving codes for electorates
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=code:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=fld1:string&field=code:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test1", "xtest1", 'GN'])
@@ -208,7 +208,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test retrieving populations for districts
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN', 1000])
@@ -266,7 +266,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test getting vector layer district at point
         """
         layer = QgsVectorLayer(
-            "Polygon?crs=EPSG:4326&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Polygon?crs=EPSG:4326&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["GN district", "GN"])
@@ -302,7 +302,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test creating electorates
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "code4", "test4", 'GN', 1000, 0])
@@ -340,6 +340,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         self.assertEqual([f['deprecated'] for f in layer.getFeatures()], [0, 0, 1, 0])
         self.assertEqual([f['scenario_id'] for f in layer.getFeatures()], [NULL, NULL, NULL, 1])
         self.assertEqual([f['electorate_id_stats'] for f in layer.getFeatures()], [NULL, NULL, NULL, 'Ncode5'])
+        self.assertEqual([f['expected_regions'] for f in layer.getFeatures()], [NULL, NULL, NULL, 1])
 
         res, error = reg.create_electorate('test5', 'test5', 1)
         self.assertFalse(res)
@@ -350,7 +351,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test deprecating electorates
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "code4", "test4", 'GN', 1000, True])
@@ -383,7 +384,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test setting the Stats NZ stored api values for electorates
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "code4", "test4", 'GN', 1000, True])
@@ -404,24 +405,24 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         reg.update_stats_nz_values(1, {'currentPopulation': 1111,
                                        'varianceYear1': 1.5,
                                        'varianceYear2': -1.1})
-        self.assertEqual([f.attributes()[-5:-2] for f in layer.getFeatures()],
+        self.assertEqual([f.attributes()[-6:-3] for f in layer.getFeatures()],
                          [[1111, 1.5, -1.1], [NULL, NULL, NULL], [NULL, NULL, NULL]])
         reg.update_stats_nz_values(2, {'currentPopulation': 1112,
                                        'varianceYear1': 1.6,
                                        'varianceYear2': -1.2})
-        self.assertEqual([f.attributes()[-5:-2] for f in layer.getFeatures()], [[1111, 1.5, -1.1], [1112, 1.6, -1.2],
+        self.assertEqual([f.attributes()[-6:-3] for f in layer.getFeatures()], [[1111, 1.5, -1.1], [1112, 1.6, -1.2],
                                                                                 [NULL, NULL, NULL]])
 
         reg.flag_stats_nz_updating(3)
-        self.assertEqual([f.attributes()[-5:-2] for f in layer.getFeatures()], [[1111, 1.5, -1.1], [1112, 1.6, -1.2],
+        self.assertEqual([f.attributes()[-6:-3] for f in layer.getFeatures()], [[1111, 1.5, -1.1], [1112, 1.6, -1.2],
                                                                                 [-1, NULL, NULL]])
         reg.update_stats_nz_values(3, {'currentPopulation': 1113,
                                        'varianceYear1': 1.7,
                                        'varianceYear2': -1.3})
-        self.assertEqual([f.attributes()[-5:-2] for f in layer.getFeatures()],
+        self.assertEqual([f.attributes()[-6:-3] for f in layer.getFeatures()],
                          [[1111, 1.5, -1.1], [1112, 1.6, -1.2], [1113, 1.7, -1.3]])
         reg.flag_stats_nz_updating(1)
-        self.assertEqual([f.attributes()[-5:-2] for f in layer.getFeatures()],
+        self.assertEqual([f.attributes()[-6:-3] for f in layer.getFeatures()],
                          [[-1, NULL, NULL], [1112, 1.6, -1.2], [1113, 1.7, -1.3]])
 
     def testGetStatsNzValues(self):
@@ -429,7 +430,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test retrieving cached stats nz values
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "code4", "test4", 'GN', 1000, True])
