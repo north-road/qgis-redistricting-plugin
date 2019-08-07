@@ -15,7 +15,11 @@ __revision__ = '$Format:%H$'
 
 from functools import partial
 from typing import Union
-from qgis.core import QgsSettings
+from qgis.core import (
+    QgsSettings,
+    QgsProxyProgressTask,
+    QgsApplication
+)
 from qgis.PyQt.QtCore import QObject, pyqtSignal, QTimer
 from redistrict.linz.networkaccessmanager import NetworkAccessManager
 from redistrict.linz.nz_electoral_api import NzElectoralApi, BoundaryRequest
@@ -53,24 +57,31 @@ class ApiRequestQueue(QObject):
         :param request: Boundary request object
         """
         result = connector.boundaryChanges(request)
+        task = QgsProxyProgressTask('Requesting populations from Stats API')
+        QgsApplication.taskManager().addTask(task)
         if isinstance(result, str):
             # no need to wait - we already have a result (i.e. blocking request)
-            self.boundary_change_queue.append((connector, request, result))
+            self.boundary_change_queue.append((connector, request, result, task))
             self.process_queue()
         else:
-            result.reply.finished.connect(partial(self.finished_boundary_request, connector, result, request))
+            result.reply.finished.connect(partial(self.finished_boundary_request, connector, result, request, task))
 
     def clear(self):
         """
         Clears all requests from the queue
         """
+        for c in self.boundary_change_queue:
+            task = c[3]
+            task.finalize(True)
         self.boundary_change_queue = []
 
-    def finished_boundary_request(self, connector: NzElectoralApi, request: NetworkAccessManager, boundary_request: BoundaryRequest):
+    def finished_boundary_request(self, connector: NzElectoralApi, request: NetworkAccessManager,
+                                  boundary_request: BoundaryRequest, task: QgsProxyProgressTask):
         """
         Triggered when a non-blocking boundary request is finished
         :param connector: API connector
         :param request: completed request
+        :param task: associated task
         """
         response = connector.parse_async(request)
         if response['status'] not in (200, 202):
@@ -78,16 +89,17 @@ class ApiRequestQueue(QObject):
                 error = '{}: {} {}'.format(response['status'], response['reason'], response['content']['message'])
             except KeyError:
                 error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
+            task.finalize(False)
             self.error.emit(boundary_request, error)
             return
         request_id = response['content']
-        self.boundary_change_queue.append((connector, boundary_request, request_id))
+        self.boundary_change_queue.append((connector, boundary_request, request_id, task))
 
     def process_queue(self):
         """
         Processes the outstanding queue, checking if any requests have finished calculation
         """
-        for (connector, boundary_request, request_id) in self.boundary_change_queue:
+        for (connector, boundary_request, request_id, _) in self.boundary_change_queue:
             self.check_for_result(connector, boundary_request, request_id)
 
     def remove_from_queue(self, request_id):
@@ -95,9 +107,14 @@ class ApiRequestQueue(QObject):
         Removes a request from the queue
         :param request_id: id of request
         """
+        for c in self.boundary_change_queue:
+            # finish task
+            if c[2] == request_id:
+                c[3].finalize(True)
         self.boundary_change_queue = [c for c in self.boundary_change_queue if c[2] != request_id]
 
-    def check_for_result(self, connector: NzElectoralApi, boundary_request: BoundaryRequest, request_id: str):
+    def check_for_result(self, connector: NzElectoralApi, boundary_request: BoundaryRequest,
+                         request_id: str):
         """
         Checks if a boundary request has finished calculating
         :param connector: API connector
