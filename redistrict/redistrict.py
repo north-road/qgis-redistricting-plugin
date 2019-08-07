@@ -146,6 +146,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.is_redistricting = False
         self.electorate_layer = None
+        self.electorate_layer_labels = None
         self.meshblock_layer = None
         self.scenario_layer = None
         self.quota_layer = None
@@ -444,6 +445,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         try:
             self.electorate_layer = QgsProject.instance().mapLayersByName(
                 'Electorates')[0]
+            try:
+                self.electorate_layer_labels = QgsProject.instance().mapLayersByName(
+                    'Electorate Names and Stats')[0]
+            except IndexError:
+                pass
             self.meshblock_layer = QgsProject.instance().mapLayersByName(
                 'Meshblocks')[0]
             self.quota_layer = QgsProject.instance().mapLayersByName(
@@ -725,7 +731,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                         task=self.context.task,
                                         user_log_layer=self.user_log_layer,
                                         scenario=self.context.scenario)
-        handler.redistrict_occured.connect(self.refresh_dock_stats)
+        handler.redistrict_occured.connect(self.redistrict_occurred)
         return handler
 
     def get_gui_handler(self) -> LinzRedistrictGuiHandler:
@@ -744,6 +750,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         :param electorate: current electorate shown
         """
         self.current_dock_electorate = electorate
+
+    def redistrict_occurred(self):
+        """
+        Triggered whenever a redistrict occurs
+        """
+        if self.electorate_layer_labels:
+            self.electorate_layer_labels.triggerRepaint()
+        self.refresh_dock_stats()
 
     def refresh_dock_stats(self):
         """
@@ -1128,6 +1142,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 QgsProject.instance().cleared.connect(self.reset)
         self.is_redistricting = False
         self.electorate_layer = None
+        self.electorate_layer_labels = None
         self.meshblock_layer = None
         self.quota_layer = None
         self.scenario_layer = None
