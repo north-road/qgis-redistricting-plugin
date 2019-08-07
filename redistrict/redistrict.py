@@ -1486,7 +1486,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.refresh_dock_stats()
         self.refresh_canvases()
 
-    def update_stats_for_scenario(self):
+    def update_stats_for_scenario(self, _):
         """
         Triggers a complete stats NZ refresh
         """
