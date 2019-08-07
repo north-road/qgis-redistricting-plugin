@@ -41,6 +41,7 @@ class ScenarioBaseTask(QgsTask):
     OFFSHORE_MESHBLOCKS = 'OFFSHORE_MESHBLOCKS'
     NON_OFFSHORE_MESHBLOCKS = 'NON_OFFSHORE_MESHBLOCKS'
     ESTIMATED_POP = 'ESTIMATED_POP'
+    EXPECTED_REGIONS = 'EXPECTED_REGIONS'
 
     def __init__(self,  # pylint: disable=too-many-locals, too-many-statements
                  task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,
@@ -92,6 +93,8 @@ class ScenarioBaseTask(QgsTask):
         assert self.name_idx >= 0
         self.meshblock_number_idx = meshblock_layer.fields().lookupField(meshblock_number_field_name)
         assert self.meshblock_number_idx >= 0
+        self.expected_regions_idx = electorate_layer.fields().lookupField('expected_regions')
+        assert self.expected_regions_idx >= 0
 
         # do a bit of preparatory processing on the main thread for safety
 
@@ -103,13 +106,14 @@ class ScenarioBaseTask(QgsTask):
         # dict of electorates to process (by id)
         self.electorates_to_process = {}
         request = QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx, self.code_idx, self.name_idx])
+        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx, self.code_idx, self.name_idx, self.expected_regions_idx])
         for electorate in electorate_layer.getFeatures(request):
             # get meshblocks for this electorate in the target scenario
             electorate_id = electorate[electorate_id_idx]
             electorate_type = electorate[self.type_idx]
             electorate_code = electorate[self.code_idx]
             electorate_name = electorate[self.name_idx]
+            expected_regions = electorate[self.expected_regions_idx]
             if self.task and electorate_type != self.task:
                 continue
 
@@ -125,6 +129,7 @@ class ScenarioBaseTask(QgsTask):
                                                           self.ELECTORATE_TYPE: electorate_type,
                                                           self.ELECTORATE_CODE: electorate_code,
                                                           self.ELECTORATE_NAME: electorate_name,
+                                                          self.EXPECTED_REGIONS: expected_regions,
                                                           self.MESHBLOCKS: matching_meshblocks,
                                                           self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
                                                           self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}
@@ -165,6 +170,7 @@ class ScenarioBaseTask(QgsTask):
                                                             self.ELECTORATE_TYPE: electorate_type,
                                                             self.ELECTORATE_NAME: params[self.ELECTORATE_NAME],
                                                             self.ELECTORATE_CODE: params[self.ELECTORATE_CODE],
+                                                            self.EXPECTED_REGIONS: params[self.EXPECTED_REGIONS],
                                                             self.MESHBLOCKS: matching_meshblocks,
                                                             self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
                                                             self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}

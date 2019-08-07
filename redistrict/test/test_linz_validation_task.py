@@ -47,9 +47,9 @@ class ValidationTaskTest(unittest.TestCase):
         f4 = QgsFeature()
         f4.setAttributes([4, 1, 14, 3, 4, 8])
         f5 = QgsFeature()
-        f5.setAttributes([5, 1, 15, 0, 5, 8])
+        f5.setAttributes([5, 1, 15, 3, 5, 8])
         f6 = QgsFeature()
-        f6.setAttributes([6, 1, 16, 0, 5, 8])
+        f6.setAttributes([6, 1, 16, 2, 5, 8])
         mb_electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
 
         reg = ScenarioRegistry(
@@ -62,21 +62,21 @@ class ValidationTaskTest(unittest.TestCase):
             "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=deprecated:int&field=invalid:int&field=invalid_reason:string&field=name:string&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
-        f.setAttributes([1, "test1", 'GN', 1, 0, 0, 1, 'old invalid'])
+        f.setAttributes([1, "test1", 'GN', 1, 0, 0, 1, 'old invalid', NULL, NULL, NULL, NULL, NULL, 1])
         f2 = QgsFeature()
-        f2.setAttributes([2, "test2", 'GN', 1, 0, 0, 1, 'old invalid 2'])
+        f2.setAttributes([2, "test2", 'GN', 1, 0, 0, 1, 'old invalid 2', NULL, NULL, NULL, NULL, NULL, 2])
         f3 = QgsFeature()
-        f3.setAttributes([3, "test3", 'GN', 1, 0, 0, 1, 'old invalid 3'])
+        f3.setAttributes([3, "test3", 'GN', 1, 0, 0, 1, 'old invalid 3', NULL, NULL, NULL, NULL, NULL, 2])
         f4 = QgsFeature()
-        f4.setAttributes([4, "test4", 'GS', 1, 0, 0, 1, 'old invalid 4'])
+        f4.setAttributes([4, "test4", 'GS', 1, 0, 0, 1, 'old invalid 4', NULL, NULL, NULL, NULL, NULL, 2])
         f5 = QgsFeature()
-        f5.setAttributes([5, "test5", 'GS', 1, 0, 0, 1, 'old invalid 5'])
+        f5.setAttributes([5, "test5", 'GS', 1, 0, 0, 1, 'old invalid 5', NULL, NULL, NULL, NULL, NULL, 1])
         f6 = QgsFeature()
-        f6.setAttributes([6, "test6", 'GS', 1, 0, 0, 1, 'old invalid 6'])
+        f6.setAttributes([6, "test6", 'GS', 1, 0, 0, 1, 'old invalid 6', NULL, NULL, NULL, NULL, NULL, 1])
         f7 = QgsFeature()
-        f7.setAttributes([7, "test7", 'M', 1, 0, 0, 1, 'old invalid 7'])
+        f7.setAttributes([7, "test7", 'M', 1, 0, 0, 1, 'old invalid 7', NULL, NULL, NULL, NULL, NULL, 1])
         f8 = QgsFeature()
-        f8.setAttributes([8, "test8", 'M', 1, 0, 0, 1, 'old invalid 8'])
+        f8.setAttributes([8, "test8", 'M', 1, 0, 0, 1, 'old invalid 8', NULL, NULL, NULL, NULL, NULL, 1])
         electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6, f7, f8])
 
         meshblock_layer = QgsVectorLayer(
@@ -148,22 +148,28 @@ class ValidationTaskTest(unittest.TestCase):
                               task='GS')
 
         self.assertTrue(task.run())
-        self.assertEqual(len(task.results), 3)
+        self.assertEqual(len(task.results), 5)
         self.assertEqual(task.results[0][ValidationTask.ELECTORATE_ID], 4)
         self.assertEqual(task.results[0][ValidationTask.ELECTORATE_NAME], 'test4')
         self.assertEqual(task.results[0][ValidationTask.ERROR], 'Outside quota tolerance')
-        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 5)
-        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test5')
-        self.assertEqual(task.results[1][ValidationTask.ERROR], 'Outside quota tolerance')
-        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_ID], 6)
-        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_NAME], 'test6')
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 4)
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test4')
+        self.assertEqual(task.results[1][ValidationTask.ERROR], 'Electorate has less parts than expected')
+        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_ID], 5)
+        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_NAME], 'test5')
         self.assertEqual(task.results[2][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual(task.results[3][ValidationTask.ELECTORATE_ID], 5)
+        self.assertEqual(task.results[3][ValidationTask.ELECTORATE_NAME], 'test5')
+        self.assertEqual(task.results[3][ValidationTask.ERROR], 'Electorate is non-contiguous')
+        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_ID], 6)
+        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_NAME], 'test6')
+        self.assertEqual(task.results[4][ValidationTask.ERROR], 'Outside quota tolerance')
         self.assertEqual([f.attributes()[:9] for f in electorate_layer.getFeatures()],
                          [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL, NULL],
                           [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
                           [3, 'test3', 'GN', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
-                          [4, 'test4', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
-                          [5, 'test5', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
+                          [4, 'test4', 'GS', 1, 0, 0, 1, 'Electorate has less parts than expected', NULL],
+                          [5, 'test5', 'GS', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
                           [6, 'test6', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
                           [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
                           [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])

@@ -14,8 +14,7 @@ __copyright__ = 'Copyright 2018, LINZ'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsGeometry,
-                       QgsVectorLayer,
+from qgis.core import (QgsVectorLayer,
                        NULL)
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.scenario_registry import ScenarioRegistry
@@ -75,9 +74,7 @@ class ValidationTask(ScenarioBaseTask):
             electorate_id = attributes[self.ELECTORATE_ID]
             pop = attributes[self.ESTIMATED_POP]
             electorate_type = attributes[self.ELECTORATE_TYPE]
-
-            electorate_non_offshore_meshblocks = attributes[self.NON_OFFSHORE_MESHBLOCKS]
-            electorate_offshore_meshblocks = attributes[self.OFFSHORE_MESHBLOCKS]
+            expected_regions = attributes[self.EXPECTED_REGIONS]
 
             quota = self.electorate_registry.get_quota_for_district_type(electorate_type)
             name = self.electorate_registry.get_district_title(electorate_id)
@@ -98,14 +95,17 @@ class ValidationTask(ScenarioBaseTask):
                 attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
                                                                self.invalid_reason_idx: error}
 
-            if electorate_offshore_meshblocks:
-                # electorate has some offshore meshblocks - we do the geometry validation on the
-                # non-offshore ones alone
-                geometry = QgsGeometry.unaryUnion([f.geometry() for f in electorate_non_offshore_meshblocks])
-
             # contiguity check
-            if geometry.isMultipart() and geometry.constGet().numGeometries() > 1:
+            if geometry.isMultipart() and geometry.constGet().numGeometries() > expected_regions:
                 error = QCoreApplication.translate('LinzRedistrict', 'Electorate is non-contiguous')
+                self.results.append({self.ELECTORATE_ID: electorate_id,
+                                     self.ELECTORATE_NAME: name,
+                                     self.ELECTORATE_GEOMETRY: geometry,
+                                     self.ERROR: error})
+                attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
+                                                               self.invalid_reason_idx: error}
+            elif not geometry.isMultipart() and expected_regions > 1:
+                error = QCoreApplication.translate('LinzRedistrict', 'Electorate has less parts than expected')
                 self.results.append({self.ELECTORATE_ID: electorate_id,
                                      self.ELECTORATE_NAME: name,
                                      self.ELECTORATE_GEOMETRY: geometry,
