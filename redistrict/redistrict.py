@@ -78,6 +78,7 @@ from .linz.export_task import ExportTask
 from .linz.nz_electoral_api import ConcordanceItem, BoundaryRequest, get_api_connector
 from .linz.api_request_queue import ApiRequestQueue
 from .linz.electorate_changes_queue import ElectorateEditQueue
+from .linz.population_dock_widget import SelectedPopulationDockWidget
 
 VERSION = '0.1'
 
@@ -129,6 +130,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.begin_action = None
         self.stats_tool_action = None
         self.validate_action = None
+        self.show_population_dock_action = None
         self.theme_menu = None
         self.new_themed_view_menu = None
         self.tool = None
@@ -165,6 +167,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.export_task = None
         self.progress_item = None
         self.switch_menu = None
+        self.selected_population_dock = None
         self.api_request_queue = ApiRequestQueue()
         self.api_request_queue.result_fetched.connect(self.api_request_finished)
         self.api_request_queue.error.connect(self.stats_api_error)
@@ -324,6 +327,20 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         new_themed_map_tool_button.setPopupMode(QToolButton.InstantPopup)
         new_themed_map_tool_button.setMenu(self.new_themed_view_menu)
         self.redistricting_toolbar.addWidget(new_themed_map_tool_button)
+
+        self.selected_population_dock = SelectedPopulationDockWidget(self.iface, self.meshblock_layer)
+        self.selected_population_dock.set_task(self.context.task)
+        self.selected_population_dock.set_district_registry(self.get_district_registry())
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.selected_population_dock)
+        self.selected_population_dock.setFloating(True)
+        self.selected_population_dock.setUserVisible(False)
+
+        self.show_population_dock_action = QAction(GuiUtils.get_icon(
+            'population.svg'), self.tr('Show Selected Population Window'))
+        self.show_population_dock_action.setCheckable(True)
+        self.selected_population_dock.setToggleVisibilityAction(self.show_population_dock_action)
+        self.redistricting_toolbar.addAction(
+            self.show_population_dock_action)
 
         self.iface.addToolBar(self.redistricting_toolbar)
         GuiUtils.float_toolbar_over_widget(self.redistricting_toolbar,
@@ -698,6 +715,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.dock.update_dock_title(context=self.context)
 
         self.enable_task_switches(True)
+        if self.selected_population_dock:
+            self.selected_population_dock.set_task(self.context.task)
+            self.selected_population_dock.set_district_registry(self.get_district_registry())
 
     def refresh_canvases(self):
         """
@@ -1183,6 +1203,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         except RuntimeError:
             pass
         self.redistricting_toolbar = None
+
+        self.selected_population_dock.deleteLater()
+        self.selected_population_dock = None
+
         self.enable_task_switches(False)
         self.begin_action.setEnabled(True)
 
