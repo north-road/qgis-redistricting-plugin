@@ -28,6 +28,7 @@ from qgis.core import (QgsSettings,
 from qgis.gui import (QgsMapCanvas,
                       QgsMapCanvasItem)
 from redistrict.gui.interactive_redistrict_tool import DecoratorFactory
+from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 
 
 class CentroidDecorator(QgsMapCanvasItem):
@@ -35,13 +36,15 @@ class CentroidDecorator(QgsMapCanvasItem):
     Decorates centroids of features with population statistics
     """
 
-    def __init__(self, canvas: QgsMapCanvas, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer, task: str):
+    def __init__(self, canvas: QgsMapCanvas, electorate_layer: QgsVectorLayer,
+                 meshblock_layer: QgsVectorLayer, task: str, quota: int):
         """
         Constructor
         :param canvas: map canvas
         :param electorate_layer: electorates layer
         :param meshblock_layer: meshblocks layer
         :param task: current task
+        :param quota: target quota
         """
         super().__init__(canvas)
         self.canvas = canvas
@@ -55,6 +58,7 @@ class CentroidDecorator(QgsMapCanvasItem):
         self.text_format.background().setOffset(QPointF(0, -0.7))
         self.text_format.background().setRadii(QSizeF(1, 1))
         self.image = None
+        self.quota = quota
 
     def redraw(self):
         """
@@ -86,10 +90,13 @@ class CentroidDecorator(QgsMapCanvasItem):
 
             calc = QgsAggregateCalculator(self.meshblock_layer)
             calc.setFilter('staged_electorate={}'.format(f['electorate_id']))
-            estimated_pop, ok = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(self.task.lower()))  # pylint: disable=unused-variable
+            estimated_pop, _ = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(
+                self.task.lower()))
 
+            variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
             text_string = ['{}'.format(f['name']),
-                           '{}'.format(int(estimated_pop))]
+                           '{}'.format(int(estimated_pop)),
+                           '{}{}%'.format('+' if variance > 0 else '', variance)]
             QgsTextRenderer().drawText(QPointF(pixel.x(), pixel.y()), 0, QgsTextRenderer.AlignCenter,
                                        text_string, render_context, self.text_format)
 
@@ -103,11 +110,12 @@ class CentroidDecoratorFactory(DecoratorFactory):
     Factory for CentroidDecorator
     """
 
-    def __init__(self, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer, task: str):
+    def __init__(self, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer, task: str, quota: int):
         super().__init__()
         self.electorate_layer = electorate_layer
         self.meshblock_layer = meshblock_layer
         self.task = task
+        self.quota = quota
 
     def create_decorator(self, canvas: QgsMapCanvas):
         """
@@ -117,6 +125,7 @@ class CentroidDecoratorFactory(DecoratorFactory):
         are desired
         """
         if QgsSettings().value('redistrict/show_overlays', False, bool, QgsSettings.Plugins):
-            return CentroidDecorator(canvas, electorate_layer=self.electorate_layer, meshblock_layer=self.meshblock_layer, task=self.task)
+            return CentroidDecorator(canvas, electorate_layer=self.electorate_layer,
+                                     meshblock_layer=self.meshblock_layer, task=self.task, quota=self.quota)
 
         return None

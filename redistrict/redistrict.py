@@ -830,12 +830,15 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         :param active: True if tool was activated
         """
         if active:
+            district_registry = self.get_district_registry()
+            quota = district_registry.get_quota_for_district_type(self.context.task)
             tool = InteractiveRedistrictingTool(self.iface.mapCanvas(), handler=self.get_handler(),
-                                                district_registry=self.get_district_registry(),
+                                                district_registry=district_registry,
                                                 decorator_factory=CentroidDecoratorFactory(
                                                     electorate_layer=self.electorate_layer,
                                                     meshblock_layer=self.meshblock_layer,
-                                                    task=self.context.task))
+                                                    task=self.context.task,
+                                                    quota=quota))
             self.set_current_tool(tool=tool)
             tool.setAction(self.interactive_redistrict_action)
         else:
