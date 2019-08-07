@@ -42,6 +42,7 @@ class ScenarioBaseTask(QgsTask):
     NON_OFFSHORE_MESHBLOCKS = 'NON_OFFSHORE_MESHBLOCKS'
     ESTIMATED_POP = 'ESTIMATED_POP'
     EXPECTED_REGIONS = 'EXPECTED_REGIONS'
+    DEPRECATED = 'DEPRECATED'
 
     def __init__(self,  # pylint: disable=too-many-locals, too-many-statements
                  task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,
@@ -95,6 +96,8 @@ class ScenarioBaseTask(QgsTask):
         assert self.meshblock_number_idx >= 0
         self.expected_regions_idx = electorate_layer.fields().lookupField('expected_regions')
         assert self.expected_regions_idx >= 0
+        self.deprecated_idx = electorate_layer.fields().lookupField('deprecated')
+        assert self.deprecated_idx >= 0
 
         # do a bit of preparatory processing on the main thread for safety
 
@@ -106,7 +109,7 @@ class ScenarioBaseTask(QgsTask):
         # dict of electorates to process (by id)
         self.electorates_to_process = {}
         request = QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx, self.code_idx, self.name_idx, self.expected_regions_idx])
+        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx, self.code_idx, self.name_idx, self.expected_regions_idx, self.deprecated_idx])
         for electorate in electorate_layer.getFeatures(request):
             # get meshblocks for this electorate in the target scenario
             electorate_id = electorate[electorate_id_idx]
@@ -114,6 +117,7 @@ class ScenarioBaseTask(QgsTask):
             electorate_code = electorate[self.code_idx]
             electorate_name = electorate[self.name_idx]
             expected_regions = electorate[self.expected_regions_idx]
+            deprecated = electorate[self.deprecated_idx]
             if self.task and electorate_type != self.task:
                 continue
 
@@ -130,6 +134,7 @@ class ScenarioBaseTask(QgsTask):
                                                           self.ELECTORATE_CODE: electorate_code,
                                                           self.ELECTORATE_NAME: electorate_name,
                                                           self.EXPECTED_REGIONS: expected_regions,
+                                                          self.DEPRECATED: deprecated,
                                                           self.MESHBLOCKS: matching_meshblocks,
                                                           self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
                                                           self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}
@@ -171,6 +176,7 @@ class ScenarioBaseTask(QgsTask):
                                                             self.ELECTORATE_NAME: params[self.ELECTORATE_NAME],
                                                             self.ELECTORATE_CODE: params[self.ELECTORATE_CODE],
                                                             self.EXPECTED_REGIONS: params[self.EXPECTED_REGIONS],
+                                                            self.DEPRECATED: params[self.DEPRECATED],
                                                             self.MESHBLOCKS: matching_meshblocks,
                                                             self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
                                                             self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}

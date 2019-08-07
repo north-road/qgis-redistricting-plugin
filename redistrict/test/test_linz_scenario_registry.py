@@ -465,7 +465,7 @@ class ScenarioRegistryTest(unittest.TestCase):
             meshblock_electorate_layer=mb_electorate_layer
         )
         electorate_layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=invalid:int&field=invalid_reason:string&field=name:string&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=expected_regions:int",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=type:string&field=estimated_pop:int&field=scenario_id:int&field=invalid:int&field=invalid_reason:string&field=name:string&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=expected_regions:int&field=deprecated:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "test1", 'GN', -1, 0, 1, 'old invalid', NULL, 1111, 11, -11])
@@ -512,14 +512,14 @@ class ScenarioRegistryTest(unittest.TestCase):
                                   meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=1)
         self.assertTrue(task.run())
         self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()],
-                         [[1, 'test1', 'GN', 11, 1, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [2, 'test2', 'GN', 25, 1, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [3, 'test3', 'GN', 0, 1, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [4, 'test4', 'GS', 20, 1, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [5, 'test5', 'GS', 70, 1, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [6, 'test6', 'GS', 0, 1, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [7, 'test7', 'M', 18, 1, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [8, 'test8', 'M', 27, 1, NULL, None, NULL, NULL, NULL, NULL, NULL]])
+                         [[1, 'test1', 'GN', 11, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [2, 'test2', 'GN', 25, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [3, 'test3', 'GN', 0, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [4, 'test4', 'GS', 20, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [5, 'test5', 'GS', 70, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [6, 'test6', 'GS', 0, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [7, 'test7', 'M', 18, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [8, 'test8', 'M', 27, 1, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL]])
         self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['Point (1 2)',
                                                                                           'MultiPoint ((2 3),(4 5))',
                                                                                           EMPTY_GEOMETRY_COLLECTION_WKT,
@@ -543,14 +543,14 @@ class ScenarioRegistryTest(unittest.TestCase):
                                   meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=2)
         self.assertTrue(task.run())
         self.assertEqual([f.attributes() for f in electorate_layer.getFeatures()],
-                         [[1, 'test1', 'GN', 0, 2, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [2, 'test2', 'GN', 23, 2, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [3, 'test3', 'GN', 13, 2, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [4, 'test4', 'GS', 70, 2, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [5, 'test5', 'GS', 20, 2, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [6, 'test6', 'GS', 0, 2, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [7, 'test7', 'M', 21, 2, NULL, None, NULL, NULL, NULL, NULL, NULL],
-                          [8, 'test8', 'M', 24, 2, NULL, None, NULL, NULL, NULL, NULL, NULL]])
+                         [[1, 'test1', 'GN', 0, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [2, 'test2', 'GN', 23, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [3, 'test3', 'GN', 13, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [4, 'test4', 'GS', 70, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [5, 'test5', 'GS', 20, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [6, 'test6', 'GS', 0, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [7, 'test7', 'M', 21, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL],
+                          [8, 'test8', 'M', 24, 2, NULL, None, NULL, NULL, NULL, NULL, NULL, NULL]])
         self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], [EMPTY_GEOMETRY_COLLECTION_WKT,
                                                                                           'MultiPoint ((1 2),(2 3))',
                                                                                           'Point (4 5)',

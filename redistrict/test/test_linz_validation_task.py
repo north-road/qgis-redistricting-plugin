@@ -41,15 +41,15 @@ class ValidationTaskTest(unittest.TestCase):
         f = QgsFeature()
         f.setAttributes([1, 1, 11, 1, 0, 7])
         f2 = QgsFeature()
-        f2.setAttributes([2, 1, 12, 2, 0, 7])
+        f2.setAttributes([2, 1, 12, 2, 0, 0])
         f3 = QgsFeature()
-        f3.setAttributes([3, 1, 13, 2, 0, 7])
+        f3.setAttributes([3, 1, 13, 2, 0, 0])
         f4 = QgsFeature()
-        f4.setAttributes([4, 1, 14, 3, 4, 8])
+        f4.setAttributes([4, 1, 14, 3, 4, 0])
         f5 = QgsFeature()
-        f5.setAttributes([5, 1, 15, 3, 5, 8])
+        f5.setAttributes([5, 1, 15, 3, 5, 0])
         f6 = QgsFeature()
-        f6.setAttributes([6, 1, 16, 2, 5, 8])
+        f6.setAttributes([6, 1, 16, 2, 5, 0])
         mb_electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6])
 
         reg = ScenarioRegistry(
@@ -74,9 +74,10 @@ class ValidationTaskTest(unittest.TestCase):
         f6 = QgsFeature()
         f6.setAttributes([6, "test6", 'GS', 1, 0, 0, 1, 'old invalid 6', NULL, NULL, NULL, NULL, NULL, 1])
         f7 = QgsFeature()
-        f7.setAttributes([7, "test7", 'M', 1, 0, 0, 1, 'old invalid 7', NULL, NULL, NULL, NULL, NULL, 1])
+        f7.setAttributes([7, "test7", 'M', 1, 0, 1, 1, 'old invalid 7', NULL, NULL, NULL, NULL, NULL, 1])
         f8 = QgsFeature()
-        f8.setAttributes([8, "test8", 'M', 1, 0, 0, 1, 'old invalid 8', NULL, NULL, NULL, NULL, NULL, 1])
+        # deprecated
+        f8.setAttributes([8, "test8", 'M', 1, 0, 1, 1, 'old invalid 8', NULL, NULL, NULL, NULL, NULL, 1])
         electorate_layer.dataProvider().addFeatures([f, f2, f3, f4, f5, f6, f7, f8])
 
         meshblock_layer = QgsVectorLayer(
@@ -118,8 +119,8 @@ class ValidationTaskTest(unittest.TestCase):
                           [4, 'test4', 'GS', 1, 0, 0, 1, 'old invalid 4', NULL],
                           [5, 'test5', 'GS', 1, 0, 0, 1, 'old invalid 5', NULL],
                           [6, 'test6', 'GS', 1, 0, 0, 1, 'old invalid 6', NULL],
-                          [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
-                          [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
+                          [7, 'test7', 'M', 1, 0, 1, 1, 'old invalid 7', NULL],
+                          [8, 'test8', 'M', 1, 0, 1, 1, 'old invalid 8', NULL]])
 
         self.assertTrue(task.run())
         self.assertEqual(len(task.results), 2)
@@ -136,8 +137,8 @@ class ValidationTaskTest(unittest.TestCase):
                           [4, 'test4', 'GS', 1, 0, 0, 1, 'old invalid 4', NULL],
                           [5, 'test5', 'GS', 1, 0, 0, 1, 'old invalid 5', NULL],
                           [6, 'test6', 'GS', 1, 0, 0, 1, 'old invalid 6', NULL],
-                          [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
-                          [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
+                          [7, 'test7', 'M', 1, 0, 1, 1, 'old invalid 7', NULL],
+                          [8, 'test8', 'M', 1, 0, 1, 1, 'old invalid 8', NULL]])
 
         electorate_registry = LinzElectoralDistrictRegistry(source_layer=electorate_layer, source_field='electorate_id',
                                                             title_field='code', electorate_type='GN',
@@ -171,8 +172,31 @@ class ValidationTaskTest(unittest.TestCase):
                           [4, 'test4', 'GS', 1, 0, 0, 1, 'Electorate has less parts than expected', NULL],
                           [5, 'test5', 'GS', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
                           [6, 'test6', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
-                          [7, 'test7', 'M', 1, 0, 0, 1, 'old invalid 7', NULL],
-                          [8, 'test8', 'M', 1, 0, 0, 1, 'old invalid 8', NULL]])
+                          [7, 'test7', 'M', 1, 0, 1, 1, 'old invalid 7', NULL],
+                          [8, 'test8', 'M', 1, 0, 1, 1, 'old invalid 8', NULL]])
+
+        electorate_registry = LinzElectoralDistrictRegistry(source_layer=electorate_layer, source_field='electorate_id',
+                                                            title_field='code', electorate_type='M',
+                                                            quota_layer=quota_layer)
+
+        task = ValidationTask(task_name='', electorate_registry=electorate_registry, meshblock_layer=meshblock_layer,
+                              meshblock_number_field_name='MeshblockNumber', scenario_registry=reg, scenario=1,
+                              task='M')
+
+        self.assertTrue(task.run())
+        self.assertEqual(len(task.results), 1)
+        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_ID], 7)
+        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_NAME], 'test7')
+        self.assertEqual(task.results[0][ValidationTask.ERROR], 'Deprecated electorate has meshblocks assigned')
+        self.assertEqual([f.attributes()[:9] for f in electorate_layer.getFeatures()],
+                         [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL, NULL],
+                          [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
+                          [3, 'test3', 'GN', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
+                          [4, 'test4', 'GS', 1, 0, 0, 1, 'Electorate has less parts than expected', NULL],
+                          [5, 'test5', 'GS', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
+                          [6, 'test6', 'GS', 1, 0, 0, 1, 'Outside quota tolerance', NULL],
+                          [7, 'test7', 'M', 1, 0, 1, 1, 'Deprecated electorate has meshblocks assigned', NULL],
+                          [8, 'test8', 'M', 0, 1, 1, 0, NULL, NULL]])
 
 
 if __name__ == "__main__":

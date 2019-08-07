@@ -75,6 +75,7 @@ class ValidationTask(ScenarioBaseTask):
             pop = attributes[self.ESTIMATED_POP]
             electorate_type = attributes[self.ELECTORATE_TYPE]
             expected_regions = attributes[self.EXPECTED_REGIONS]
+            deprecated = attributes[self.DEPRECATED]
 
             quota = self.electorate_registry.get_quota_for_district_type(electorate_type)
             name = self.electorate_registry.get_district_title(electorate_id)
@@ -86,7 +87,7 @@ class ValidationTask(ScenarioBaseTask):
                                                            self.scenario_id_idx: self.scenario,
                                                            self.estimated_pop_idx: attributes[self.ESTIMATED_POP]}
             # quota check
-            if self.electorate_registry.variation_exceeds_allowance(quota=quota, population=pop):
+            if not deprecated and self.electorate_registry.variation_exceeds_allowance(quota=quota, population=pop):
                 error = QCoreApplication.translate('LinzRedistrict', 'Outside quota tolerance')
                 self.results.append({self.ELECTORATE_ID: electorate_id,
                                      self.ELECTORATE_NAME: name,
@@ -96,7 +97,15 @@ class ValidationTask(ScenarioBaseTask):
                                                                self.invalid_reason_idx: error}
 
             # contiguity check
-            if geometry.isMultipart() and geometry.constGet().numGeometries() > expected_regions:
+            if deprecated and not geometry.isEmpty():
+                error = QCoreApplication.translate('LinzRedistrict', 'Deprecated electorate has meshblocks assigned')
+                self.results.append({self.ELECTORATE_ID: electorate_id,
+                                     self.ELECTORATE_NAME: name,
+                                     self.ELECTORATE_GEOMETRY: geometry,
+                                     self.ERROR: error})
+                attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
+                                                               self.invalid_reason_idx: error}
+            elif geometry.isMultipart() and geometry.constGet().numGeometries() > expected_regions:
                 error = QCoreApplication.translate('LinzRedistrict', 'Electorate is non-contiguous')
                 self.results.append({self.ELECTORATE_ID: electorate_id,
                                      self.ELECTORATE_NAME: name,
