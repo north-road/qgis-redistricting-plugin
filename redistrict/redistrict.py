@@ -731,7 +731,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                         task=self.context.task,
                                         user_log_layer=self.user_log_layer,
                                         scenario=self.context.scenario)
-        handler.redistrict_occured.connect(self.redistrict_occurred)
+        handler.redistrict_occured.connect(self.refresh_dock_stats)
+        handler.operation_ended.connect(self.redistrict_occurred)
         return handler
 
     def get_gui_handler(self) -> LinzRedistrictGuiHandler:

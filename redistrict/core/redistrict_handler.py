@@ -25,6 +25,7 @@ class RedistrictHandler(QObject):
     """
 
     redistrict_occured = pyqtSignal()
+    operation_ended = pyqtSignal()
 
     def __init__(self, target_layer, target_field):
         super().__init__()
@@ -40,7 +41,7 @@ class RedistrictHandler(QObject):
 
     def end_operation(self):
         """
-        Called when a after an edit type operation is about to finished
+        Called after an edit type operation is about to finished
         """
         pass  # pylint: disable=unnecessary-pass
 
@@ -57,6 +58,7 @@ class RedistrictHandler(QObject):
         """
         self.target_layer.endEditCommand()
         self.redistrict_occured.emit()
+        self.operation_ended.emit()
 
     def discard_edit_group(self):
         """
@@ -66,6 +68,7 @@ class RedistrictHandler(QObject):
         self.target_layer.destroyEditCommand()
         self.target_layer.triggerRepaint()
         self.redistrict_occured.emit()
+        self.operation_ended.emit()
 
     def assign_district(self, target_ids, new_district):
         """
