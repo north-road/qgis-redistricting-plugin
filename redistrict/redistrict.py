@@ -43,7 +43,8 @@ from qgis.core import (NULL,
                        QgsExpressionContextUtils,
                        Qgis,
                        QgsSettings,
-                       QgsTask)
+                       QgsTask,
+                       QgsProviderRegistry)
 from qgis.gui import (QgisInterface,
                       QgsMapTool,
                       QgsNewNameDialog)
@@ -92,6 +93,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
     TASK_M = 'M'
 
     MESHBLOCK_NUMBER_FIELD = 'meshblock_no'
+
+    USE_2018_MESHBLOCKS = False
 
     def __init__(self, iface: QgisInterface):  # pylint: disable=too-many-statements
         """Constructor.
@@ -413,6 +416,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         import_master_action = QAction(self.tr('Import Master Database...'), parent=self.database_menu)
         import_master_action.triggered.connect(self.import_master_database)
         self.database_menu.addAction(import_master_action)
+        load_meshblocks_action = QAction(self.tr('Load New Meshblocks...'), parent=self.database_menu)
+        load_meshblocks_action.triggered.connect(self.load_meshblocks)
+        self.database_menu.addAction(load_meshblocks_action)
 
         options_menu.addMenu(self.database_menu)
 
@@ -1536,6 +1542,118 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         self.report_failure(self.tr('Export failed: {}').format(self.export_task.message))
         self.enable_task_switches(True)
+
+    def load_meshblocks(self):
+        """
+        Loads a new meshblock layer
+        """
+        if self.is_editing():
+            QMessageBox.warning(self.iface.mainWindow(), self.tr('Load New Meshblocks'),
+                                self.tr(
+                                    'Cannot load meshblocks while editing meshblocks. Save or cancel the current edits and try again.'))
+            return
+
+        dlg = ConfirmationDialog(self.tr('Load New Meshblocks'),
+                                 self.tr(
+                                     'This method has not yet been tested, and results MUST be manually validated. Please ensure you have backups of the master DB prior to running this.\n\nEnter \'I ACCEPT\' to continue.'),
+                                 self.tr('I ACCEPT'), parent=self.iface.mainWindow())
+        if not dlg.exec_():
+            return
+
+        settings = QgsSettings()
+        last_path = settings.value('redistricting/last_mb_import_path', QDir.homePath())
+
+        source = QFileDialog.getExistingDirectory(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                  self.tr('Load New Meshblocks'), last_path)
+        if not source:
+            return
+
+        settings.setValue('redistricting/last_mb_import_path', source)
+
+        dlg = ConfirmationDialog(self.tr('Load New Meshblocks'),
+                                 self.tr(
+                                     'Loading new meshblocks will completely replace the existing meshblocks in the database.\n\nThis action cannot be reversed!\n\nEnter \'I ACCEPT\' to continue.'),
+                                 self.tr('I ACCEPT'), parent=self.iface.mainWindow())
+        if not dlg.exec_():
+            return
+
+        QMessageBox.warning(self.iface.mainWindow(), self.tr('Load New Meshblocks'),
+                            self.tr(
+                                'Before loading new meshblocks you must make a backup copy of the current database.\n\nClick OK, and then select a path for this backup.'))
+
+        # force backup of existing database
+        last_backup_path = settings.value('redistricting/last_backup_path', QDir.homePath())
+        destination, _filter = QFileDialog.getSaveFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                           self.tr('Backup Current Database'), last_backup_path,
+                                                           filter='Database Files (*.gpkg)')
+        if not destination:
+            return
+
+        settings.setValue('redistricting/last_backup_path', destination)
+
+        prev_source = self.db_source
+        prev_meshblock_layer_source = self.meshblock_layer.source()
+        prev_meshblock_layer_path = QgsProviderRegistry.instance().decodeUri('ogr', prev_source)['path']
+        self.reset(clear_project=True)
+
+        if QFile.exists(destination):
+            if not QFile.remove(destination):
+                self.report_failure(self.tr('Could not backup current database to “{}”').format(destination))
+                return
+
+        if not QFile.copy(prev_source, destination):
+            self.report_failure(self.tr('Could not backup current database to “{}”').format(destination))
+            return
+
+        if self.USE_2018_MESHBLOCKS:
+            assert False, 'not supported yet'
+            # meshblock_number_field = 'MB2018_V1_00'
+        else:
+            meshblock_layer = 'MB2013_HD_Full'
+            meshblock_number_field = 'MB2013'
+
+        source_layer = QgsVectorLayer('{}|layername={}'.format(source, meshblock_layer), 'meshblock_source')
+        assert source_layer.isValid()
+        non_digitized_layer = QgsVectorLayer(
+            '{}|layername={}'.format(prev_meshblock_layer_path, 'non_digitized_meshblocks'), 'non_digitized')
+        non_digitized = [f['meshblock_no'] for f in non_digitized_layer.getFeatures()]
+        assert non_digitized
+
+        offshore_layer = QgsVectorLayer('{}|layername={}'.format(prev_meshblock_layer_path, 'offshore_meshblocks'),
+                                        'offshore_meshblocks')
+        offshore = [f['meshblock_no'] for f in offshore_layer.getFeatures()]
+        assert offshore
+
+        island_layer = QgsVectorLayer('{}|layername={}'.format(prev_meshblock_layer_path, 'meshblock_island'),
+                                      'meshblock_island')
+        island = {f['meshblock_no']: f['ns_island'] for f in island_layer.getFeatures()}
+        assert island
+
+        dest_layer = QgsVectorLayer(prev_meshblock_layer_source, 'meshblock_dest')
+        assert dest_layer.isValid()
+
+        dest_layer.dataProvider().truncate()
+        meshblocks = []
+        for f in source_layer.getFeatures():
+            mb_id = str(int(f[meshblock_number_field]))
+
+            if mb_id in non_digitized:
+                print('skipping non-digitized meshblock: {}'.format(mb_id))
+                continue
+
+            is_offshore = mb_id in offshore
+            nth_sth = island[mb_id]
+
+            attrs = f.attributes()
+            # offline populations not known at this stage!
+            attrs.extend([0, 0, 0, is_offshore, nth_sth, NULL])
+            f.setAttributes(attrs)
+            meshblocks.append(f)
+
+        assert dest_layer.dataProvider().addFeatures(meshblocks)
+        QMessageBox.warning(self.iface.mainWindow(), self.tr('Load New Meshblocks'),
+                            self.tr(
+                                'Please run a full scenario rebuild after re-loading the plugin'))
 
     def request_population_update(self, electorate_id):
         """
