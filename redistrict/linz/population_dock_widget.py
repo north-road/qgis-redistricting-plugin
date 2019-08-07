@@ -19,12 +19,14 @@ from qgis.PyQt.QtWidgets import (QWidget,
                                  QTextBrowser)
 from qgis.core import (
     QgsVectorLayer,
-    QgsFeatureRequest
+    QgsFeatureRequest,
+    QgsAggregateCalculator
 )
 from qgis.gui import (QgsDockWidget,
                       QgisInterface)
 from qgis.utils import iface
 from redistrict.gui.district_selection_dialog import DistrictPicker
+from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 
 
 class SelectedPopulationDockWidget(QgsDockWidget):
@@ -57,12 +59,16 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         self.task = None
         self.district_registry = None
         self.target_electorate = None
+        self.quota = 0
 
     def set_task(self, task: str):
         """
         Sets the current task to use when showing populations
         """
         self.task = task
+        if self.district_registry:
+            self.quota = self.district_registry.get_quota_for_district_type(self.task)
+
         self.selection_changed()
 
     def set_district_registry(self, registry):
@@ -70,6 +76,10 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         Sets the associated district registry
         """
         self.district_registry = registry
+
+        if self.task:
+            self.quota = self.district_registry.get_quota_for_district_type(self.task)
+
         self.selection_changed()
 
     def selection_changed(self):
@@ -95,9 +105,41 @@ class SelectedPopulationDockWidget(QgsDockWidget):
 
         html = """<h3>Target Electorate: <a href="#">{}</a></h3><p>""".format(
             self.district_registry.get_district_title(self.target_electorate))
+
+        overall = 0
         for electorate, pop in counts.items():
-            html += """\n{}: <span style="font-weight:bold">{}</span><br>""".format(
-                self.district_registry.get_district_title(electorate), pop)
+            if self.target_electorate:
+                if electorate != self.target_electorate:
+                    overall += pop
+
+                    calc = QgsAggregateCalculator(self.meshblock_layer)
+                    calc.setFilter('staged_electorate={}'.format(electorate))
+                    estimated_pop, _ = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(
+                        self.task.lower()))
+
+                    estimated_pop -= pop
+                    variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
+
+                    html += """\n{}: <span style="font-weight:bold">-{}</span> (after: {}, {}{}%)<br>""".format(
+                        self.district_registry.get_district_title(electorate), pop, int(estimated_pop),
+                        '+' if variance > 0 else '', variance)
+            else:
+                html += """\n{}: <span style="font-weight:bold">{}</span><br>""".format(
+                    self.district_registry.get_district_title(electorate), pop)
+        if self.target_electorate:
+            calc = QgsAggregateCalculator(self.meshblock_layer)
+            calc.setFilter('staged_electorate={}'.format(self.target_electorate))
+            estimated_pop, _ = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(
+                self.task.lower()))
+
+            estimated_pop += overall
+            variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
+
+            html += """\n{}: <span style="font-weight:bold">+{}</span> (after: {}, {}{}%)<br>""".format(
+                self.district_registry.get_district_title(self.target_electorate), overall, int(estimated_pop),
+                '+' if variance > 0 else '',
+                variance)
+
         html += '</p>'
 
         self.frame.setHtml(html)
