@@ -210,7 +210,7 @@ class NzElectoralApi(QObject):
 
         if payload is not None:
             payload = self.encode_payload(payload)
-            QgsMessageLog.logMessage('Payload ' + payload.decode('utf-8'), "REDISTRICT")
+            # QgsMessageLog.logMessage('Payload ' + payload.decode('utf-8'), "REDISTRICT")
 
         if self.qs:
             path += '?' + self.qs
