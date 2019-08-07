@@ -66,13 +66,13 @@ class LinzRedistrictGuiHandler(RedistrictGuiHandler):
         if stats_nz_calculations['varianceYear1'] != NULL:
             contents['STATS_NZ_VAR_YEAR1'] = '{}{}%'.format(
                 '+' if stats_nz_calculations['varianceYear1'] > 0 else '',
-                stats_nz_calculations['varianceYear1'])
+                round(stats_nz_calculations['varianceYear1'] * 10) / 10)
         else:
             contents['STATS_NZ_VAR_YEAR1'] = 'unknown'
         if stats_nz_calculations['varianceYear2'] != NULL:
             contents['STATS_NZ_VAR_YEAR2'] = '{}{}%'.format(
                 '+' if stats_nz_calculations['varianceYear2'] > 0 else '',
-                stats_nz_calculations['varianceYear2'])
+                round(stats_nz_calculations['varianceYear2'] * 10) / 10)
         else:
             contents['STATS_NZ_VAR_YEAR2'] = 'unknown'
 
