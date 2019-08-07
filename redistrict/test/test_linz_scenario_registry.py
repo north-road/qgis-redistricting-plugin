@@ -29,6 +29,8 @@ from qgis.core import (NULL,
                        QgsPointXY,
                        QgsFeature)
 
+EMPTY_GEOMETRY_COLLECTION_WKT = QgsGeometry.fromWkt('GeometryCollection ()').asWkt()
+
 
 def make_scenario_layer() -> QgsVectorLayer:
     """
@@ -520,10 +522,10 @@ class ScenarioRegistryTest(unittest.TestCase):
                           [8, 'test8', 'M', 27, 1, NULL, None, NULL, NULL, NULL, NULL]])
         self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['Point (1 2)',
                                                                                           'MultiPoint ((2 3),(4 5))',
-                                                                                          'GeometryCollection ()',
+                                                                                          EMPTY_GEOMETRY_COLLECTION_WKT,
                                                                                           'Point (6 7)',
                                                                                           'MultiPoint ((8 9),(10 11))',
-                                                                                          'GeometryCollection ()',
+                                                                                          EMPTY_GEOMETRY_COLLECTION_WKT,
                                                                                           'MultiPoint ((1 2),(2 3),(4 5))',
                                                                                           'MultiPoint ((6 7),(8 9),(10 11))'])
         task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,
@@ -549,12 +551,12 @@ class ScenarioRegistryTest(unittest.TestCase):
                           [6, 'test6', 'GS', 0, 2, NULL, None, NULL, NULL, NULL, NULL],
                           [7, 'test7', 'M', 21, 2, NULL, None, NULL, NULL, NULL, NULL],
                           [8, 'test8', 'M', 24, 2, NULL, None, NULL, NULL, NULL, NULL]])
-        self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], ['GeometryCollection ()',
+        self.assertEqual([f.geometry().asWkt() for f in electorate_layer.getFeatures()], [EMPTY_GEOMETRY_COLLECTION_WKT,
                                                                                           'MultiPoint ((1 2),(2 3))',
                                                                                           'Point (4 5)',
                                                                                           'MultiPoint ((8 9),(10 11))',
                                                                                           'Point (6 7)',
-                                                                                          'GeometryCollection ()',
+                                                                                          EMPTY_GEOMETRY_COLLECTION_WKT,
                                                                                           'MultiPoint ((1 2),(4 5),(8 9))',
                                                                                           'MultiPoint ((2 3),(6 7),(10 11))'])
         task = UpdateStagedElectoratesTask(task_name='', meshblock_layer=meshblock_layer,

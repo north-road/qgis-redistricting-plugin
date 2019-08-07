@@ -137,8 +137,8 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
-        self.assertEqual(district_layer.getFeature(d3.id()).geometry().asWkt(), 'GeometryCollection ()')
-        self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
+        self.assertIn(district_layer.getFeature(d3.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
+        self.assertIn(district_layer.getFeature(d4.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, 0 15, 10 15, 10 10, 5 10, 5 5))')
         self.assertEqual([f.attributes()[-5:] for f in district_layer.getFeatures()], [[11111, 12, 13, 1, 'x'],
@@ -167,8 +167,8 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
-        self.assertEqual(district_layer.getFeature(d3.id()).geometry().asWkt(), 'GeometryCollection ()')
-        self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
+        self.assertIn(district_layer.getFeature(d3.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
+        self.assertIn(district_layer.getFeature(d4.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, 0 15, 10 15, 10 10, 5 10, 5 5))')
         self.assertEqual([f.attributes()[-5:] for f in district_layer.getFeatures()], [[11111, 12, 13, 1, 'x'],
@@ -275,8 +275,8 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
-        self.assertEqual(district_layer.getFeature(d3.id()).geometry().asWkt(), 'GeometryCollection ()')
-        self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
+        self.assertIn(district_layer.getFeature(d3.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
+        self.assertIn(district_layer.getFeature(d4.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, -5 10, -5 15, 0 15, 10 15, 10 10, 5 10, 5 5))')
 
@@ -305,8 +305,8 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
-        self.assertEqual(district_layer.getFeature(d3.id()).geometry().asWkt(), 'GeometryCollection ()')
-        self.assertEqual(district_layer.getFeature(d4.id()).geometry().asWkt(), 'GeometryCollection ()')
+        self.assertIn(district_layer.getFeature(d3.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
+        self.assertIn(district_layer.getFeature(d4.id()).geometry().asWkt(), ('GeometryCollection ()', 'GeometryCollection EMPTY'))
         self.assertEqual(district_layer.getFeature(d5.id()).geometry().asWkt(),
                          'Polygon ((5 5, 5 0, 0 0, 0 5, 0 10, -5 10, -5 15, 0 15, 10 15, 10 10, 5 10, 5 5))')
 
