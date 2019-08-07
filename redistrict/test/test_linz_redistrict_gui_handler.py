@@ -62,7 +62,7 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
         self.assertNotIn('updating', dock.frame.toPlainText())
         self.assertIn('59000', dock.frame.toPlainText())
         self.assertIn('1000*', dock.frame.toPlainText())
-        self.assertIn('-98%', dock.frame.toPlainText())
+        self.assertIn('-98.3%', dock.frame.toPlainText())
         self.assertIn('color:#ff0000', dock.frame.toHtml())
         self.assertIn('estimated population available', dock.frame.toPlainText())
 
@@ -72,7 +72,7 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
         self.assertNotIn('updating', dock.frame.toPlainText())
         self.assertIn('61000', dock.frame.toPlainText())
         self.assertIn('63000*', dock.frame.toPlainText())
-        self.assertIn('+3%', dock.frame.toPlainText())
+        self.assertIn('+3.3%', dock.frame.toPlainText())
         self.assertNotIn('color:#ff0000', dock.frame.toHtml())
         self.assertIn('estimated population available', dock.frame.toPlainText())
 
@@ -82,7 +82,7 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
         self.assertIn('General North Island', dock.frame.toPlainText())
         self.assertIn('updating', dock.frame.toPlainText())
         self.assertNotIn('1000*', dock.frame.toPlainText())
-        self.assertNotIn('-98%', dock.frame.toPlainText())
+        self.assertNotIn('-98.2%', dock.frame.toPlainText())
         self.assertNotIn('color:#ff0000', dock.frame.toHtml())
         self.assertNotIn('estimated population available', dock.frame.toPlainText())
 
@@ -97,7 +97,7 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
         self.assertIn('1111', dock.frame.toPlainText())
         self.assertIn('1.5', dock.frame.toPlainText())
         self.assertIn('-1.1', dock.frame.toPlainText())
-        self.assertIn('-98%', dock.frame.toPlainText())
+        self.assertIn('-98.2%', dock.frame.toPlainText())
         self.assertIn('color:#ff0000', dock.frame.toHtml())
         self.assertNotIn('estimated population available', dock.frame.toPlainText())
 

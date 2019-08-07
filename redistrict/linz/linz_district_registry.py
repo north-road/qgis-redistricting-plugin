@@ -209,7 +209,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
                 'varianceYear2': f[self.stats_nz_var_23_field_index]}
 
     @staticmethod
-    def get_variation_from_quota_percent(quota: int, population: int) -> Optional[int]:
+    def get_variation_from_quota_percent(quota: int, population: int) -> Optional[float]:
         """
         Returns the % variation from the quota for an electorate's population
         :param quota: electorate quota
@@ -218,7 +218,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         """
         if population == NULL:
             return None
-        return round(100 * (population - quota) / quota)
+        return round(1000 * (population - quota) / quota) / 10
 
     @staticmethod
     def variation_exceeds_allowance(quota: int, population: int) -> bool:
