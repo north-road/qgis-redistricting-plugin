@@ -24,6 +24,7 @@ from qgis.core import (
 from qgis.gui import (QgsDockWidget,
                       QgisInterface)
 from qgis.utils import iface
+from redistrict.gui.district_selection_dialog import DistrictPicker
 
 
 class SelectedPopulationDockWidget(QgsDockWidget):
@@ -47,7 +48,7 @@ class SelectedPopulationDockWidget(QgsDockWidget):
 
         self.frame = QTextBrowser()
         self.frame.setOpenLinks(False)
-        # self.frame.anchorClicked.connect(self.anchor_clicked)
+        self.frame.anchorClicked.connect(self.anchor_clicked)
         grid.addWidget(self.frame, 1, 0, 1, 1)
 
         self.setWidget(dock_contents)
@@ -55,6 +56,7 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         self.meshblock_layer.selectionChanged.connect(self.selection_changed)
         self.task = None
         self.district_registry = None
+        self.target_electorate = None
 
     def set_task(self, task: str):
         """
@@ -77,7 +79,8 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         if not self.task or not self.district_registry:
             return
 
-        request = QgsFeatureRequest().setFilterFids(self.meshblock_layer.selectedFeatureIds()).setFlags(QgsFeatureRequest.NoGeometry)
+        request = QgsFeatureRequest().setFilterFids(self.meshblock_layer.selectedFeatureIds()).setFlags(
+            QgsFeatureRequest.NoGeometry)
 
         counts = defaultdict(int)
         for f in self.meshblock_layer.getFeatures(request):
@@ -90,9 +93,23 @@ class SelectedPopulationDockWidget(QgsDockWidget):
                 pop = f['offline_pop_m']
             counts[electorate] += pop
 
-        html = '<p>'
+        html = """<h3>Target Electorate: <a href="#">{}</a></h3><p>""".format(
+            self.district_registry.get_district_title(self.target_electorate))
         for electorate, pop in counts.items():
-            html += """\n{}: <span style="font-weight:bold">{}</span><br>""".format(self.district_registry.get_district_title(electorate), pop)
+            html += """\n{}: <span style="font-weight:bold">{}</span><br>""".format(
+                self.district_registry.get_district_title(electorate), pop)
         html += '</p>'
 
         self.frame.setHtml(html)
+
+    def anchor_clicked(self):
+        """
+        Allows choice of "target" electorate
+        """
+        dlg = DistrictPicker(district_registry=self.district_registry,
+                             parent=self.iface.mainWindow())
+        if dlg.selected_district is None:
+            return
+
+        self.target_electorate = dlg.selected_district
+        self.selection_changed()
