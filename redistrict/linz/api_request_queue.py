@@ -74,7 +74,11 @@ class ApiRequestQueue(QObject):
         """
         response = connector.parse_async(request)
         if response['status'] not in (200, 202):
-            self.error.emit(boundary_request, str(response['status']) + ':' + response['reason'] + ' ' + response['content'])
+            try:
+                error = '{}: {} {}'.format(response['status'], response['reason'], response['content']['message'])
+            except KeyError:
+                error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
+            self.error.emit(boundary_request, error)
             return
         request_id = response['content']
         self.boundary_change_queue.append((connector, boundary_request, request_id))
