@@ -523,7 +523,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.electorate_edit_queue = ElectorateEditQueue(electorate_layer=self.electorate_layer,
                                                          user_log_layer=self.user_log_layer)
 
-        self.meshblock_layer.undoStack().indexChanged.connect(self.electorate_edit_queue.sync_to_meshblock_undostack_index)
+        self.meshblock_layer.undoStack().indexChanged.connect(
+            self.electorate_edit_queue.sync_to_meshblock_undostack_index)
         self.meshblock_layer.undoStack().indexChanged.connect(
             self.update_undo_actions)
         self.meshblock_layer.beforeCommitChanges.connect(
@@ -1044,6 +1045,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Branches the current scenario to a new scenario
         """
+        if self.meshblock_layer.editBuffer() is not None and self.meshblock_layer.editBuffer().isModified():
+            self.report_failure(self.tr(
+                'Cannot branch scenario while unsaved changes are present. Save or cancel the current edits and try again.'))
+            return
+
         current_scenario_name = self.context.get_name_for_current_scenario()
         dlg = self.create_new_scenario_name_dlg(existing_name=current_scenario_name,
                                                 initial_scenario_name=self.tr('{} Copy').format(current_scenario_name))
@@ -1149,7 +1155,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.meshblock_layer.editingStarted.disconnect(self.toggle_redistrict_actions)
             self.meshblock_layer.editingStopped.disconnect(self.toggle_redistrict_actions)
             self.meshblock_layer.selectionChanged.disconnect(self.toggle_redistrict_actions)
-            self.meshblock_layer.undoStack().indexChanged.disconnect(self.electorate_edit_queue.sync_to_meshblock_undostack_index)
+            self.meshblock_layer.undoStack().indexChanged.disconnect(
+                self.electorate_edit_queue.sync_to_meshblock_undostack_index)
             self.meshblock_layer.undoStack().indexChanged.disconnect(
                 self.update_undo_actions)
             self.meshblock_layer.beforeCommitChanges.disconnect(
@@ -1214,6 +1221,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Exports the current database using a background task
         """
+        if self.meshblock_layer.editBuffer() is not None and self.meshblock_layer.editBuffer().isModified():
+            self.report_failure(self.tr(
+                'Cannot export database while unsaved changes are present. Save or cancel the current edits and try again.'))
+            return
+
         settings = QgsSettings()
         last_path = settings.value('redistricting/last_export_path', QDir.homePath())
 
@@ -1375,6 +1387,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Validate electorates
         """
+        if self.meshblock_layer.editBuffer() is not None and self.meshblock_layer.editBuffer().isModified():
+            self.report_failure(self.tr(
+                'Cannot validate while unsaved changes are present. Save or cancel the current edits and try again.'))
+            return
+
         electorate_registry = self.get_district_registry()
         task_name = self.tr('Validating Electorates')
 
@@ -1438,12 +1455,18 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                     'Cannot rebuild electorates while editing meshblocks. Save or cancel the current edits and try again.'))
             return
 
-        self.switch_scenario(self.context.scenario, title=self.tr('Rebuild Electorates'), description=self.tr('Preparing rebuild...'))
+        self.switch_scenario(self.context.scenario, title=self.tr('Rebuild Electorates'),
+                             description=self.tr('Preparing rebuild...'))
 
     def export_electorates(self):
         """
         Exports the final electorates to a database package
         """
+        if self.meshblock_layer.editBuffer() is not None and self.meshblock_layer.editBuffer().isModified():
+            self.report_failure(self.tr(
+                'Cannot export electorates while unsaved changes are present. Save or cancel the current edits and try again.'))
+            return
+
         settings = QgsSettings()
         last_export_path = settings.value('redistricting/last_electorate_export_path', QDir.homePath())
 
@@ -1510,7 +1533,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         # TODO: track scenarios, reject responses on different scenarios
 
-        concordance = [ConcordanceItem(str(m['meshblock_number']), str(electorate_id), self.context.task) for m in electorate_meshblocks]
+        concordance = [ConcordanceItem(str(m['meshblock_number']), str(electorate_id), self.context.task) for m in
+                       electorate_meshblocks]
         request = BoundaryRequest(concordance, area=self.context.task)
         connector = get_api_connector()
         self.api_request_queue.append_request(connector, request)
@@ -1545,7 +1569,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                                                  electorate_type=self.context.task,
                                                                                  scenario_id=self.context.scenario)
             concordance.extend(
-                [ConcordanceItem(str(m['meshblock_number']), str(electorate_id), self.context.task) for m in electorate_meshblocks])
+                [ConcordanceItem(str(m['meshblock_number']), str(electorate_id), self.context.task) for m in
+                 electorate_meshblocks])
 
         self.refresh_dock_stats()
 
