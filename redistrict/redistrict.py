@@ -18,6 +18,7 @@ __revision__ = '$Format:%H$'
 import os.path
 from functools import partial
 from typing import Optional
+from qgis.PyQt import sip
 from qgis.PyQt.QtCore import (QObject,
                               Qt,
                               QUrl,
@@ -175,6 +176,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         # reset the plugin when the project is unloaded
         if hasattr(QgsProject.instance(), 'cleared'):
             QgsProject.instance().cleared.connect(self.reset)
+        QgsProject.instance().layerWillBeRemoved.connect(self.layer_will_be_removed)
 
         self.iface.mapCanvas().setPreviewJobsEnabled(False)
 
@@ -534,6 +536,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+
+        self.begin_redistricting(False)
+
         if self.redistricting_toolbar is not None:
             self.redistricting_toolbar.deleteLater()
         if self.dock is not None:
@@ -865,8 +870,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         else:
             if self.tool is not None:
                 # Disconnect from old tool
-                self.tool.deactivated.disconnect(self.tool_deactivated)
-                self.tool.deleteLater()
+                if not sip.isdeleted(self.tool):
+                    self.tool.deactivated.disconnect(self.tool_deactivated)
+                    self.tool.deleteLater()
                 self.tool = None
             # switch to 'pan' tool
             self.iface.actionPan().trigger()
@@ -1142,6 +1148,23 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         self.iface.messageBar().pushMessage(
             message, level=Qgis.Critical)
+
+    def layer_will_be_removed(self, layer_id):
+        """
+        Triggered when layers are about to be removed from the project
+        """
+        if not self.is_redistricting:
+            return
+
+        if layer_id in (self.meshblock_layer.id(),
+                        self.electorate_layer.id(),
+                        self.quota_layer.id(),
+                        self.scenario_layer.id(),
+                        self.meshblock_electorate_layer.id(),
+                        self.user_log_layer.id()):
+            # oh dear - maybe user has triggered an exit of qgis without gracefully ending redistricting?
+            # better do that now, and hope for the best...
+            self.reset()
 
     def reset(self, clear_project=False):  # pylint:disable=too-many-statements
         """
