@@ -123,13 +123,29 @@ class ValidationTaskTest(unittest.TestCase):
                           [8, 'test8', 'M', 1, 0, 1, 1, 'old invalid 8', NULL]])
 
         self.assertTrue(task.run())
-        self.assertEqual(len(task.results), 2)
+        self.assertEqual(len(task.results), 5)
         self.assertEqual(task.results[0][ValidationTask.ELECTORATE_ID], 2)
         self.assertEqual(task.results[0][ValidationTask.ELECTORATE_NAME], 'test2')
         self.assertEqual(task.results[0][ValidationTask.ERROR], 'Electorate is non-contiguous')
-        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 3)
-        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test3')
-        self.assertEqual(task.results[1][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual(task.results[0][ValidationTask.ELECTORATE_GEOMETRY].asWkt(0), 'MultiPoint ((2 3),(4 5),(10 11))')
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_ID], 2)
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_NAME], 'test2')
+        self.assertEqual(task.results[1][ValidationTask.ERROR], 'Contiguous part 1')
+        self.assertEqual(task.results[1][ValidationTask.ELECTORATE_GEOMETRY].asWkt(0),
+                         'Point (2 3)')
+        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_ID], 2)
+        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_NAME], 'test2')
+        self.assertEqual(task.results[2][ValidationTask.ERROR], 'Contiguous part 2')
+        self.assertEqual(task.results[2][ValidationTask.ELECTORATE_GEOMETRY].asWkt(0),
+                         'Point (4 5)')
+        self.assertEqual(task.results[3][ValidationTask.ELECTORATE_ID], 2)
+        self.assertEqual(task.results[3][ValidationTask.ELECTORATE_NAME], 'test2')
+        self.assertEqual(task.results[3][ValidationTask.ERROR], 'Contiguous part 3')
+        self.assertEqual(task.results[3][ValidationTask.ELECTORATE_GEOMETRY].asWkt(0),
+                         'Point (10 11)')
+        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_ID], 3)
+        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_NAME], 'test3')
+        self.assertEqual(task.results[4][ValidationTask.ERROR], 'Outside quota tolerance')
         self.assertEqual([f.attributes()[:9] for f in electorate_layer.getFeatures()],
                          [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL, NULL],
                           [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],
@@ -149,7 +165,7 @@ class ValidationTaskTest(unittest.TestCase):
                               task='GS')
 
         self.assertTrue(task.run())
-        self.assertEqual(len(task.results), 5)
+        self.assertEqual(len(task.results), 7)
         self.assertEqual(task.results[0][ValidationTask.ELECTORATE_ID], 4)
         self.assertEqual(task.results[0][ValidationTask.ELECTORATE_NAME], 'test4')
         self.assertEqual(task.results[0][ValidationTask.ERROR], 'Outside quota tolerance')
@@ -162,9 +178,21 @@ class ValidationTaskTest(unittest.TestCase):
         self.assertEqual(task.results[3][ValidationTask.ELECTORATE_ID], 5)
         self.assertEqual(task.results[3][ValidationTask.ELECTORATE_NAME], 'test5')
         self.assertEqual(task.results[3][ValidationTask.ERROR], 'Electorate is non-contiguous')
-        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_ID], 6)
-        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_NAME], 'test6')
-        self.assertEqual(task.results[4][ValidationTask.ERROR], 'Outside quota tolerance')
+        self.assertEqual(task.results[3][ValidationTask.ELECTORATE_GEOMETRY].asWkt(0),
+                         'MultiPoint ((8 9),(10 11))')
+        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_ID], 5)
+        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_NAME], 'test5')
+        self.assertEqual(task.results[4][ValidationTask.ERROR], 'Contiguous part 1')
+        self.assertEqual(task.results[4][ValidationTask.ELECTORATE_GEOMETRY].asWkt(0),
+                         'Point (8 9)')
+        self.assertEqual(task.results[5][ValidationTask.ELECTORATE_ID], 5)
+        self.assertEqual(task.results[5][ValidationTask.ELECTORATE_NAME], 'test5')
+        self.assertEqual(task.results[5][ValidationTask.ERROR], 'Contiguous part 2')
+        self.assertEqual(task.results[5][ValidationTask.ELECTORATE_GEOMETRY].asWkt(0),
+                         'Point (10 11)')
+        self.assertEqual(task.results[6][ValidationTask.ELECTORATE_ID], 6)
+        self.assertEqual(task.results[6][ValidationTask.ELECTORATE_NAME], 'test6')
+        self.assertEqual(task.results[6][ValidationTask.ERROR], 'Outside quota tolerance')
         self.assertEqual([f.attributes()[:9] for f in electorate_layer.getFeatures()],
                          [[1, 'test1', 'GN', 58900, 1, 0, 0, NULL, NULL],
                           [2, 'test2', 'GN', 1, 0, 0, 1, 'Electorate is non-contiguous', NULL],

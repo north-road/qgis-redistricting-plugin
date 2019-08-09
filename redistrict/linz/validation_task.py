@@ -15,6 +15,7 @@ __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsVectorLayer,
+                       QgsGeometry,
                        NULL)
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 from redistrict.linz.scenario_registry import ScenarioRegistry
@@ -113,6 +114,13 @@ class ValidationTask(ScenarioBaseTask):
                                      self.ERROR: error})
                 attribute_change_map[electorate_feature_id] = {self.invalid_idx: 1,
                                                                self.invalid_reason_idx: error}
+                for p in range(geometry.constGet().numGeometries()):
+                    part = QgsGeometry(geometry.constGet().geometryN(p).clone())
+                    error = 'Contiguous part {}'.format(p + 1)
+                    self.results.append({self.ELECTORATE_ID: electorate_id,
+                                         self.ELECTORATE_NAME: name,
+                                         self.ELECTORATE_GEOMETRY: part,
+                                         self.ERROR: error})
             elif not geometry.isMultipart() and expected_regions > 1:
                 error = QCoreApplication.translate('LinzRedistrict', 'Electorate has less parts than expected')
                 self.results.append({self.ELECTORATE_ID: electorate_id,
