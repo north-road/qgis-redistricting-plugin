@@ -1543,7 +1543,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.report_failure(self.tr('Export failed: {}').format(self.export_task.message))
         self.enable_task_switches(True)
 
-    def load_meshblocks(self):
+    def load_meshblocks(self):  # pylint: disable=too-many-locals,too-many-return-statements,too-many-statements
         """
         Loads a new meshblock layer
         """
