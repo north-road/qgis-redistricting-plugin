@@ -74,7 +74,8 @@ class LinzRedistrictHandler(RedistrictHandler):
         self.meshblock_number_idx = self.target_layer.fields().lookupField(meshblock_number_field_name)
         assert self.meshblock_number_idx >= 0
         self.offline_pop_field = 'offline_pop_{}'.format(self.task.lower())
-        assert meshblock_layer.fields().lookupField(self.offline_pop_field) >= 0
+        self.offline_pop_field_idx = meshblock_layer.fields().lookupField(self.offline_pop_field)
+        assert self.offline_pop_field_idx >= 0
 
         self.user_log_timestamp_idx = self.user_log_layer.fields().lookupField('timestamp')
         assert self.user_log_timestamp_idx >= 0
@@ -134,20 +135,31 @@ class LinzRedistrictHandler(RedistrictHandler):
             request.setSubsetOfAttributes(attributes_required, self.electorate_layer.fields())
         return self.electorate_layer.getFeatures(request)
 
+    def get_added_meshblocks_request(self, district):
+        """
+        Returns a feature request for meshblocks which were added to a district
+        :param district: district affected
+        """
+        if district not in self.pending_affected_districts:
+            return None
+
+        added = self.pending_affected_districts[district]['ADD']
+        if added:
+            request = QgsFeatureRequest().setFilterFids(added)
+            return request
+
+        return None
+
     def get_added_meshblocks(self, district):
         """
         Returns the meshblock features which were added to a district
         :param district: district affected
         """
-        if district not in self.pending_affected_districts:
+        request = self.get_added_meshblocks_request(district)
+        if request is None:
             return QgsFeatureIterator()
 
-        added = self.pending_affected_districts[district]['ADD']
-        if added:
-            request = QgsFeatureRequest().setFilterFids(added).setSubsetOfAttributes([])
-            return self.target_layer.getFeatures(request)
-
-        return QgsFeatureIterator()
+        return self.target_layer.getFeatures(request.setSubsetOfAttributes([]))
 
     def grow_district_with_added_meshblocks(self, district, original_district_geometry):
         """
@@ -163,20 +175,49 @@ class LinzRedistrictHandler(RedistrictHandler):
 
         return original_district_geometry
 
+    def grow_population_with_added_meshblocks(self, district, original_pop):
+        """
+        Grows an electorate's estimated population by adding the offline meshblock population
+        for meshblocks newly assigned to this district
+        :param district: district to grow
+        :param original_pop: original population for district
+        """
+        request = self.get_added_meshblocks_request(district)
+        if request is None:
+            return original_pop
+
+        pop = original_pop
+        parts = [f.attribute(self.offline_pop_field_idx) for f in self.target_layer.getFeatures(
+            request.setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.offline_pop_field_idx]))]
+        for p in parts:
+            pop += p
+
+        return pop
+
+    def get_removed_meshblocks_request(self, district):
+        """
+        Returns the a feature request for meshblock features which were removed from a district
+        :param district: district affected
+        """
+        if district not in self.pending_affected_districts:
+            return None
+
+        removed = self.pending_affected_districts[district]['REMOVE']
+        if removed:
+            return QgsFeatureRequest().setFilterFids(removed)
+
+        return None
+
     def get_removed_meshblocks(self, district):
         """
         Returns the meshblock features which were removed from a district
         :param district: district affected
         """
-        if district not in self.pending_affected_districts:
+        request = self.get_removed_meshblocks_request(district)
+        if request is None:
             return QgsFeatureIterator()
 
-        removed = self.pending_affected_districts[district]['REMOVE']
-        if removed:
-            request = QgsFeatureRequest().setFilterFids(removed).setSubsetOfAttributes([])
-            return self.target_layer.getFeatures(request)
-
-        return QgsFeatureIterator()
+        return self.target_layer.getFeatures(request.setSubsetOfAttributes([]))
 
     def shrink_district_by_removed_meshblocks(self, district, original_district_geometry):
         """
@@ -192,6 +233,25 @@ class LinzRedistrictHandler(RedistrictHandler):
 
         return original_district_geometry
 
+    def shrink_population_by_removed_meshblocks(self, district, original_pop):
+        """
+        Shrinks an electorate's population by removing the meshblock populations for meshblocks newly
+        removed from this district
+        :param district: district to shrink
+        :param original_pop: original population for district
+        """
+        request = self.get_removed_meshblocks_request(district)
+        if request is None:
+            return original_pop
+
+        pop = original_pop
+        parts = [f.attribute(self.offline_pop_field_idx) for f in self.target_layer.getFeatures(
+            request.setFlags(QgsFeatureRequest.NoGeometry).setSubsetOfAttributes([self.offline_pop_field_idx]))]
+        for p in parts:
+            pop -= p
+
+        return pop
+
     def begin_operation(self):
         CoreUtils.enable_labels_for_layer(self.electorate_layer, False)
 
@@ -206,7 +266,7 @@ class LinzRedistrictHandler(RedistrictHandler):
 
         # step 1: get all electorate features corresponding to affected electorates
         electorate_features = {f[self.electorate_layer_field]: f for f in
-                               self.get_affected_districts([self.electorate_layer_field])}
+                               self.get_affected_districts([self.electorate_layer_field, self.stats_nz_pop_field, 'estimated_pop'])}
 
         # and update the electorate boundaries based on these changes.
         # Ideally we'd redissolve the whole boundary from meshblocks, but that's too
@@ -216,17 +276,19 @@ class LinzRedistrictHandler(RedistrictHandler):
         new_attributes = {}
         for district in self.pending_affected_districts.keys():  # pylint: disable=consider-iterating-dictionary
             district_geometry = electorate_features[district].geometry()
+            # use stats nz pop as initial estimate, if available
+            estimated_pop = electorate_features[district].attribute(self.stats_nz_pop_field_index)
+            if estimated_pop is None or estimated_pop == NULL:
+                # otherwise just use existing estimated pop as starting point
+                estimated_pop = electorate_features[district].attribute(self.estimated_pop_idx)
             # add new bits
             district_geometry = self.grow_district_with_added_meshblocks(district, district_geometry)
+            estimated_pop = self.grow_population_with_added_meshblocks(district, estimated_pop)
             # minus lost bits
             district_geometry = self.shrink_district_by_removed_meshblocks(district, district_geometry)
+            estimated_pop = self.shrink_population_by_removed_meshblocks(district, estimated_pop)
 
             new_geometries[electorate_features[district].id()] = district_geometry
-
-            calc = QgsAggregateCalculator(self.target_layer)
-            calc.setFilter(QgsExpression.createFieldEqualityExpression(self.target_field, district))
-            estimated_pop, ok = calc.calculate(QgsAggregateCalculator.Sum,  # pylint: disable=unused-variable
-                                               self.offline_pop_field)
 
             new_attributes[electorate_features[district].id()] = {self.estimated_pop_idx: estimated_pop,
                                                                   self.stats_nz_pop_field_index: NULL,
