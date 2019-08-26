@@ -20,7 +20,8 @@ from qgis.PyQt.QtWidgets import (QWidget,
 from qgis.core import (
     QgsVectorLayer,
     QgsFeatureRequest,
-    QgsAggregateCalculator
+    QgsExpression,
+    NULL
 )
 from qgis.gui import (QgsDockWidget,
                       QgisInterface)
@@ -106,16 +107,26 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         html = """<h3>Target Electorate: <a href="#">{}</a></h3><p>""".format(
             self.district_registry.get_district_title(self.target_electorate))
 
+        request = QgsFeatureRequest()
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('type', self.task))
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        request.setSubsetOfAttributes(['electorate_id', 'estimated_pop','stats_nz_pop'], self.district_registry.source_layer.fields())
+        original_populations = {}
+        for f in self.district_registry.source_layer.getFeatures(request):
+            estimated_pop = f['stats_nz_pop']
+            if estimated_pop is None or estimated_pop == NULL:
+                # otherwise just use existing estimated pop as starting point
+                estimated_pop = f['estimated_pop']
+            original_populations[f['electorate_id']] = estimated_pop
+
         overall = 0
         for electorate, pop in counts.items():
             if self.target_electorate:
                 if electorate != self.target_electorate:
                     overall += pop
 
-                    calc = QgsAggregateCalculator(self.meshblock_layer)
-                    calc.setFilter('staged_electorate={}'.format(electorate))
-                    estimated_pop, _ = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(
-                        self.task.lower()))
+                    # use stats nz pop as initial estimate, if available
+                    estimated_pop = original_populations[electorate]
 
                     estimated_pop -= pop
                     variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
@@ -127,10 +138,7 @@ class SelectedPopulationDockWidget(QgsDockWidget):
                 html += """\n{}: <span style="font-weight:bold">{}</span><br>""".format(
                     self.district_registry.get_district_title(electorate), pop)
         if self.target_electorate:
-            calc = QgsAggregateCalculator(self.meshblock_layer)
-            calc.setFilter('staged_electorate={}'.format(self.target_electorate))
-            estimated_pop, _ = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(
-                self.task.lower()))
+            estimated_pop = original_populations[self.target_electorate]
 
             estimated_pop += overall
             variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)

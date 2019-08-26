@@ -24,7 +24,6 @@ from qgis.core import (QgsSettings,
                        QgsRenderContext,
                        QgsTextRenderer,
                        QgsVectorLayer,
-                       QgsAggregateCalculator,
                        NULL)
 from qgis.gui import (QgsMapCanvas,
                       QgsMapCanvasItem)
