@@ -21,8 +21,6 @@ from qgis.core import (QgsApplication,
                        QgsFeatureIterator,
                        QgsGeometry,
                        QgsVectorLayer,
-                       QgsAggregateCalculator,
-                       QgsExpression,
                        NULL)
 from redistrict.core.redistrict_handler import RedistrictHandler
 from redistrict.core.core_utils import CoreUtils
