@@ -110,7 +110,8 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         request = QgsFeatureRequest()
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression('type', self.task))
         request.setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes(['electorate_id', 'estimated_pop','stats_nz_pop'], self.district_registry.source_layer.fields())
+        request.setSubsetOfAttributes(['electorate_id', 'estimated_pop', 'stats_nz_pop'],
+                                      self.district_registry.source_layer.fields())
         original_populations = {}
         for f in self.district_registry.source_layer.getFeatures(request):
             estimated_pop = f['stats_nz_pop']

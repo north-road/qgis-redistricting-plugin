@@ -78,11 +78,13 @@ class CentroidDecorator(QgsMapCanvasItem):
                 if estimated_pop is None or estimated_pop == NULL:
                     # otherwise just use existing estimated pop as starting point
                     estimated_pop = f.attribute(handler.estimated_pop_idx)
-                self.original_populations[f.id()]=estimated_pop
+                self.original_populations[f.id()] = estimated_pop
 
         # step 1: get all electorate features corresponding to affected electorates
         electorate_features = {f[handler.electorate_layer_field]: f for f in
-                               handler.get_affected_districts([handler.electorate_layer_field, handler.stats_nz_pop_field, 'estimated_pop'], needs_geometry=False)}
+                               handler.get_affected_districts(
+                                   [handler.electorate_layer_field, handler.stats_nz_pop_field, 'estimated_pop'],
+                                   needs_geometry=False)}
 
         self.new_populations = {}
 
@@ -121,7 +123,8 @@ class CentroidDecorator(QgsMapCanvasItem):
             #    pole, dist = f.geometry().clipped(rect).poleOfInaccessibility(rect.width() / 30)
             pixel = self.toCanvasCoordinates(f.geometry().clipped(rect).centroid().asPoint())
 
-            estimated_pop = self.new_populations[f.id()] if f.id() in self.new_populations else self.original_populations[f.id()]
+            estimated_pop = self.new_populations[f.id()] if f.id() in self.new_populations else \
+            self.original_populations[f.id()]
 
             variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
             text_string = ['{}'.format(f['name']),
