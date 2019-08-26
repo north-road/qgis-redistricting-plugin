@@ -284,7 +284,7 @@ class InteractiveRedistrictingTool(QgsMapTool):
                 self.handler.begin_operation()
                 if self.decorator_factory is not None:
                     self.pop_decorator = self.decorator_factory.create_decorator(self.canvas())
-                if self.pop_decorator:
+                if self.pop_decorator is not None and hasattr(self.pop_decorator, 'redraw'):
                     self.pop_decorator.redraw(self.handler)
                 self.canvas().update()
 
