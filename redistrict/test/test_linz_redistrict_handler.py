@@ -133,7 +133,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
                           [1, 'test2', 'GN', 'test2', 'aaa']])
 
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], ['aaa', 'test2', 'aaa', 'test1', 'aaa'])
-        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 15.0, 0.0, 0.0, 83.0])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 11061, 11091, 11104, 11198])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
@@ -163,7 +163,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         handler.discard_edit_group()
         self.assertFalse(handler.pending_affected_districts)
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], ['aaa', 'test2', 'aaa', 'test1', 'aaa'])
-        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 15.0, 0.0, 0.0, 83.0])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 11061, 11091, 11104, 11198])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
@@ -214,19 +214,19 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
             "Polygon?crs=EPSG:4326&field=fld1:int&field=estimated_pop:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=invalid:int&field=invalid_reason:string&field=expected_regions:int",
             "source", "memory")
         d = QgsFeature()
-        d.setAttributes([1])
+        d.setAttributes([1, NULL, 5])
         d.setGeometry(f4.geometry())
         d2 = QgsFeature()
-        d2.setAttributes([2])
+        d2.setAttributes([2, NULL, 15])
         d2.setGeometry(QgsGeometry.unaryUnion([f2.geometry(), f5.geometry()]))
         d3 = QgsFeature()
-        d3.setAttributes([3])
+        d3.setAttributes([3, NULL, 25])
         d3.setGeometry(f3.geometry())
         d4 = QgsFeature()
-        d4.setAttributes([4])
+        d4.setAttributes([4, NULL, 35])
         d4.setGeometry(f.geometry())
         d5 = QgsFeature()
-        d5.setAttributes([5])
+        d5.setAttributes([5, NULL, 45])
         success, [d, d2, d3, d4, d5] = district_layer.dataProvider().addFeatures([d, d2, d3, d4, d5])
         self.assertTrue(success)
 
@@ -271,7 +271,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         self.assertFalse([f["fld1"] for f in handler.get_removed_meshblocks(5)])
 
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5, 5])
-        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 11.0, 0.0, 0.0, 114.0])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, -26, 4, 34, 159])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
@@ -301,7 +301,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         handler.discard_edit_group()
         self.assertFalse(handler.pending_affected_districts)
         self.assertEqual([f['fld1'] for f in meshblock_layer.getFeatures()], [5, 2, 5, 1, 5, 5])
-        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, 11.0, 0.0, 0.0, 114.0])
+        self.assertEqual([f['estimated_pop'] for f in district_layer.getFeatures()], [NULL, -26, 4, 34, 159])
         self.assertEqual(district_layer.getFeature(d.id()).geometry().asWkt(), 'Polygon ((5 0, 10 0, 10 5, 5 5, 5 0))')
         self.assertEqual(district_layer.getFeature(d2.id()).geometry().asWkt(),
                          'Polygon ((10 10, 10 5, 5 5, 5 10, 10 10))')
