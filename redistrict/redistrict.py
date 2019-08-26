@@ -1581,6 +1581,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Triggers a complete stats NZ refresh
         """
+        if self.meshblock_layer.editBuffer() is not None and self.meshblock_layer.editBuffer().isModified():
+            self.report_failure(self.tr(
+                'Cannot update statistics while unsaved changes are present. Save or cancel the current edits and try again.'))
+            return
+
         district_registry = self.get_district_registry()
 
         electorate_ids = [f['electorate_id'] for f in self.electorate_layer.getFeatures() if
