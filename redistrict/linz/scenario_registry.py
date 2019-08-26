@@ -204,6 +204,7 @@ class ScenarioRegistry():
 
         dest_meshblock_electorate_layer.startEditing()
         dest_meshblock_electorate_layer.addFeatures(new_features)
+        dest_meshblock_electorate_layer.commitChanges()
 
     def branch_scenario(self, scenario_id, new_scenario_name: str):
         """
