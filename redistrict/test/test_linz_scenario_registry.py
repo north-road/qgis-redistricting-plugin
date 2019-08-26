@@ -219,15 +219,31 @@ class ScenarioRegistryTest(unittest.TestCase):
             meshblock_electorate_layer=mb_electorate_layer
         )
 
+        f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
+        self.assertEqual(f, [[1, 2, 0, 'a', 'x'],
+                             [2, 2, 1, 'b', 'y'],
+                             [3, 1, 0, 'c', 'z'],
+                             [4, 1, 1, 'd', 'zz']])
+
         # dupe name
         res, error = reg.branch_scenario(1, 'Scenario 1')
         self.assertFalse(res)
         self.assertIn('already exists', error)
+        f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
+        self.assertEqual(f, [[1, 2, 0, 'a', 'x'],
+                             [2, 2, 1, 'b', 'y'],
+                             [3, 1, 0, 'c', 'z'],
+                             [4, 1, 1, 'd', 'zz']])
 
         # missing source scenario
         res, error = reg.branch_scenario(5, 'Scenario 5')
         self.assertFalse(res)
         self.assertIn('does not exist', error)
+        f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
+        self.assertEqual(f, [[1, 2, 0, 'a', 'x'],
+                             [2, 2, 1, 'b', 'y'],
+                             [3, 1, 0, 'c', 'z'],
+                             [4, 1, 1, 'd', 'zz']])
 
         # good
         res, error = reg.branch_scenario(1, 'Scenario 5')
@@ -241,12 +257,12 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertEqual(f[3], QgsApplication.userFullName())
 
         f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
-        self.assertEqual(f, [[3, 4, 0, 'c', 'z'],
-                             [4, 4, 1, 'd', 'zz'],
-                             [1, 2, 0, 'a', 'x'],
+        self.assertEqual(f, [[1, 2, 0, 'a', 'x'],
                              [2, 2, 1, 'b', 'y'],
                              [3, 1, 0, 'c', 'z'],
-                             [4, 1, 1, 'd', 'zz']])
+                             [4, 1, 1, 'd', 'zz'],
+                             [3, 4, 0, 'c', 'z'],
+                             [4, 4, 1, 'd', 'zz']])
 
         res, error = reg.branch_scenario(2, 'Scenario 6')
         self.assertFalse(error)
@@ -259,14 +275,14 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertEqual(f[3], QgsApplication.userFullName())
 
         f = [f.attributes() for f in mb_electorate_layer.getFeatures()]
-        self.assertEqual(f, [[3, 4, 0, 'c', 'z'],
-                             [4, 4, 1, 'd', 'zz'],
-                             [1, 5, 0, 'a', 'x'],
-                             [2, 5, 1, 'b', 'y'],
-                             [1, 2, 0, 'a', 'x'],
+        self.assertEqual(f, [[1, 2, 0, 'a', 'x'],
                              [2, 2, 1, 'b', 'y'],
                              [3, 1, 0, 'c', 'z'],
-                             [4, 1, 1, 'd', 'zz']])
+                             [4, 1, 1, 'd', 'zz'],
+                             [3, 4, 0, 'c', 'z'],
+                             [4, 4, 1, 'd', 'zz'],
+                             [1, 5, 0, 'a', 'x'],
+                             [2, 5, 1, 'b', 'y']])
 
     def testCopyScenarios(self):
         """
