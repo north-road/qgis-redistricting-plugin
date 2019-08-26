@@ -24,7 +24,8 @@ from qgis.core import (QgsSettings,
                        QgsRenderContext,
                        QgsTextRenderer,
                        QgsVectorLayer,
-                       QgsAggregateCalculator)
+                       QgsAggregateCalculator,
+                       NULL)
 from qgis.gui import (QgsMapCanvas,
                       QgsMapCanvasItem)
 from redistrict.gui.interactive_redistrict_tool import DecoratorFactory
@@ -59,12 +60,45 @@ class CentroidDecorator(QgsMapCanvasItem):
         self.text_format.background().setRadii(QSizeF(1, 1))
         self.image = None
         self.quota = quota
+        self.original_populations = {}
+        self.new_populations = {}
 
-    def redraw(self):
+    def redraw(self, handler):
         """
         Forces a redraw of the cached image
         """
         self.image = None
+
+        if not self.original_populations:
+            # first run, get initial estimates
+            request = QgsFeatureRequest()
+            request.setFilterExpression(QgsExpression.createFieldEqualityExpression('type', self.task))
+            request.setFlags(QgsFeatureRequest.NoGeometry)
+            for f in self.electorate_layer.getFeatures(request):
+                estimated_pop = f.attribute(handler.stats_nz_pop_field_index)
+                if estimated_pop is None or estimated_pop == NULL:
+                    # otherwise just use existing estimated pop as starting point
+                    estimated_pop = f.attribute(handler.estimated_pop_idx)
+                self.original_populations[f.id()]=estimated_pop
+
+        # step 1: get all electorate features corresponding to affected electorates
+        electorate_features = {f[handler.electorate_layer_field]: f for f in
+                               handler.get_affected_districts([handler.electorate_layer_field, handler.stats_nz_pop_field, 'estimated_pop'], needs_geometry=False)}
+
+        self.new_populations = {}
+
+        for district in handler.pending_affected_districts.keys():  # pylint: disable=consider-iterating-dictionary
+            # use stats nz pop as initial estimate, if available
+            estimated_pop = electorate_features[district].attribute(handler.stats_nz_pop_field_index)
+            if estimated_pop is None or estimated_pop == NULL:
+                # otherwise just use existing estimated pop as starting point
+                estimated_pop = electorate_features[district].attribute(handler.estimated_pop_idx)
+            # add new bits
+            estimated_pop = handler.grow_population_with_added_meshblocks(district, estimated_pop)
+            # minus lost bits
+            estimated_pop = handler.shrink_population_by_removed_meshblocks(district, estimated_pop)
+
+            self.new_populations[electorate_features[district].id()] = estimated_pop
 
     def paint(self, painter, option, widget):  # pylint: disable=missing-docstring, unused-argument, too-many-locals
         if self.image is not None:
@@ -88,10 +122,7 @@ class CentroidDecorator(QgsMapCanvasItem):
             #    pole, dist = f.geometry().clipped(rect).poleOfInaccessibility(rect.width() / 30)
             pixel = self.toCanvasCoordinates(f.geometry().clipped(rect).centroid().asPoint())
 
-            calc = QgsAggregateCalculator(self.meshblock_layer)
-            calc.setFilter('staged_electorate={}'.format(f['electorate_id']))
-            estimated_pop, _ = calc.calculate(QgsAggregateCalculator.Sum, 'offline_pop_{}'.format(
-                self.task.lower()))
+            estimated_pop = self.new_populations[f.id()] if f.id() in self.new_populations else self.original_populations[f.id()]
 
             variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
             text_string = ['{}'.format(f['name']),

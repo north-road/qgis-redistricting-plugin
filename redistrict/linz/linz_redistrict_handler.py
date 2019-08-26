@@ -121,7 +121,7 @@ class LinzRedistrictHandler(RedistrictHandler):
                                                                    self.pending_affected_districts.keys()])))  # pylint: disable=consider-iterating-dictionary
         return district_filter
 
-    def get_affected_districts(self, attributes_required=None):
+    def get_affected_districts(self, attributes_required=None, needs_geometry=True):
         """
         Returns an iterator over features for all pending affected
         electorates
@@ -131,6 +131,8 @@ class LinzRedistrictHandler(RedistrictHandler):
         request = QgsFeatureRequest().setFilterExpression(self.create_affected_district_filter())
         if attributes_required is not None:
             request.setSubsetOfAttributes(attributes_required, self.electorate_layer.fields())
+        if not needs_geometry:
+            request.setFlags(QgsFeatureRequest.NoGeometry)
         return self.electorate_layer.getFeatures(request)
 
     def get_added_meshblocks_request(self, district):
