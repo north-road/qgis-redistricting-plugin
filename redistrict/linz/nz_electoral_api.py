@@ -30,7 +30,7 @@ from qgis.core import (QgsMessageLog,
                        QgsSettings)
 
 # API Version
-GMS_VERSION = "LINZ_Output_20180108_2018_V1_00"
+GMS_VERSION = "StatsNZ_MB_V1_01_20190808_1410"
 
 
 class ConcordanceItem():
