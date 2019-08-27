@@ -445,7 +445,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.dock.dock_toolbar().addAction(self.help_action)
 
-        self.set_task(self.TASK_GN)
+        self.set_task(QgsSettings().value('redistricting/last_task', self.TASK_GN))
 
     def begin_redistricting(self, checked):
         """
@@ -508,7 +508,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                   meshblock_electorate_layer=self.meshblock_electorate_layer)
 
         self.context = LinzRedistrictingContext(scenario_registry=self.scenario_registry)
-        self.context.task = self.TASK_GN
+        self.context.task = QgsSettings().value('redistricting/last_task', self.TASK_GN)
         self.meshblock_layer.layerModified.connect(self.update_layer_modified_actions)
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
@@ -711,6 +711,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         self.context.task = task
         QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.context.task)
+        QgsSettings().setValue('redistricting/last_task', self.context.task)
+
 
         # self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.context.get_name_for_current_task())
 
