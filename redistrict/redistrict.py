@@ -713,7 +713,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'task', self.context.task)
         QgsSettings().setValue('redistricting/last_task', self.context.task)
 
-
         # self.electorate_layer.renderer().rootRule().children()[0].setLabel(self.context.get_name_for_current_task())
 
         self.iface.layerTreeView().refreshLayerSymbology(self.electorate_layer.id())
