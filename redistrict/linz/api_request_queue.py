@@ -87,6 +87,8 @@ class ApiRequestQueue(QObject):
         if response['status'] not in (200, 202):
             try:
                 error = '{}: {} {}'.format(response['status'], response['reason'], response['content']['message'])
+            except TypeError:
+                error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
             except KeyError:
                 error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
             task.finalize(False)
