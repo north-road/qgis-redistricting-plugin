@@ -799,6 +799,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         handler = self.get_gui_handler()
         handler.show_stats_for_district(self.current_dock_electorate)
+        if self.selected_population_dock:
+            self.selected_population_dock.update()
 
     def redistrict_selected(self):
         """
@@ -982,6 +984,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             return
 
         self.enable_task_switches(False)
+        self.clear_current_views()
+
         electorate_registry = self.get_district_registry()
         scenario_name = self.scenario_registry.get_scenario_name(scenario)
         task_name = title if title is not None else self.tr('Switching to {}').format(scenario_name)
@@ -1054,6 +1058,12 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         dlg.setConflictingNameWarning(self.tr('A scenario with this name already exists!'))
         return dlg
 
+    def clear_current_views(self):
+        """
+        Resets current statistical views, like the selected population dock
+        """
+        self.selected_population_dock.reset()
+
     def branch_scenario(self):
         """
         Branches the current scenario to a new scenario
@@ -1068,6 +1078,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                 initial_scenario_name=self.tr('{} Copy').format(current_scenario_name))
         dlg.setWindowTitle(self.tr('Branch to New Scenario'))
         if dlg.exec_():
+            self.clear_current_views()
+
             progress_dialog = BlockingDialog(self.tr('Branching Scenario'), self.tr('Branching scenario...'))
             progress_dialog.force_show_and_paint()
 
@@ -1122,6 +1134,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         dlg.setHintString(self.tr('Enter name for imported scenario'))
         if not dlg.exec_():
             return
+
+        self.clear_current_views()
 
         new_scenario_name = dlg.name()
 
@@ -1485,6 +1499,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                     'Cannot rebuild electorates while editing meshblocks. Save or cancel the current edits and try again.'))
             return
 
+        self.clear_current_views()
         self.switch_scenario(self.context.scenario, title=self.tr('Rebuild Electorates'),
                              description=self.tr('Preparing rebuild...'))
 

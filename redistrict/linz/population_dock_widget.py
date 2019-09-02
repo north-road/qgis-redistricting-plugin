@@ -62,6 +62,19 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         self.target_electorate = None
         self.quota = 0
 
+    def reset(self):
+        """
+        Clears the current results shown in the dock
+        """
+        self.target_electorate = None
+        self.frame.setHtml('')
+
+    def update(self):
+        """
+        Refreshes the stats shown in the dock
+        """
+        self.selection_changed()
+
     def set_task(self, task: str):
         """
         Sets the current task to use when showing populations
