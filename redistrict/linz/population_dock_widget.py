@@ -70,6 +70,7 @@ class SelectedPopulationDockWidget(QgsDockWidget):
         if self.district_registry:
             self.quota = self.district_registry.get_quota_for_district_type(self.task)
 
+        self.target_electorate = None
         self.selection_changed()
 
     def set_district_registry(self, registry):
