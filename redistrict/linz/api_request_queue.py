@@ -83,19 +83,24 @@ class ApiRequestQueue(QObject):
         :param request: completed request
         :param task: associated task
         """
-        response = connector.parse_async(request)
-        if response['status'] not in (200, 202):
-            try:
-                error = '{}: {} {}'.format(response['status'], response['reason'], response['content']['message'])
-            except TypeError:
-                error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
-            except KeyError:
-                error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
+        try:
+            response = connector.parse_async(request)
+            if response['status'] not in (200, 202):
+                try:
+                    error = '{}: {} {}'.format(response['status'], response['reason'], response['content']['message'])
+                except TypeError:
+                    error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
+                except KeyError:
+                    error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
+                task.finalize(False)
+                self.error.emit(boundary_request, error)
+                return
+            request_id = response['content']
+            self.boundary_change_queue.append((connector, boundary_request, request_id, task))
+        except AttributeError:
+            # e.g. due to an aborted request
             task.finalize(False)
-            self.error.emit(boundary_request, error)
             return
-        request_id = response['content']
-        self.boundary_change_queue.append((connector, boundary_request, request_id, task))
 
     def process_queue(self):
         """
