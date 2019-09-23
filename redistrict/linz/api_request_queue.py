@@ -147,12 +147,16 @@ class ApiRequestQueue(QObject):
         :param request_id: ID of request
         :param request: completed request
         """
-        results = connector.parse_async(request)
-        if results['status'] not in (200, 202):
+        try:
+            results = connector.parse_async(request)
+            if results['status'] not in (200, 202):
+                self.remove_from_queue(request_id)
+                self.error.emit(boundary_request, str(results['status']) + ":" + results['reason'] + ' ' + str(results['content']))
+                return
+            self.check_boundary_result_reply(request_id, results['content'])
+        except AttributeError:
             self.remove_from_queue(request_id)
-            self.error.emit(boundary_request, str(results['status']) + ":" + results['reason'] + ' ' + str(results['content']))
             return
-        self.check_boundary_result_reply(request_id, results['content'])
 
     def check_boundary_result_reply(self, request_id: str, reply: Union[dict, str]):
         """
