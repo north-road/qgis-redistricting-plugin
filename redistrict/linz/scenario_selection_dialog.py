@@ -38,7 +38,7 @@ class ScenarioSelectionDialog(QDialog):
 
         self.scenario_registry = scenario_registry
 
-        self.setWindowTitle(self.tr('Select Current Scenario'))
+        self.setWindowTitle(self.tr('Select Active Scenario'))
 
         layout = QVBoxLayout()
 

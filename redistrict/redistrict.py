@@ -968,6 +968,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         Allows user to switch the current scenario
         """
         dlg = ScenarioSelectionDialog(scenario_registry=self.scenario_registry, parent=self.iface.mainWindow())
+        dlg.set_selected_scenario(self.context.scenario)
         if dlg.exec_():
             self.switch_scenario(dlg.selected_scenario())
         dlg.deleteLater()
