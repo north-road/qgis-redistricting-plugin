@@ -509,6 +509,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.context = LinzRedistrictingContext(scenario_registry=self.scenario_registry)
         self.context.task = QgsSettings().value('redistricting/last_task', self.TASK_GN)
+        self.context.scenario = QgsSettings().value('redistricting/last_scenario', 1, int)
         self.meshblock_layer.layerModified.connect(self.update_layer_modified_actions)
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
@@ -1037,6 +1038,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         QgsApplication.taskManager().addTask(self.staged_task)
 
         self.context.set_scenario(scenario)
+        QgsSettings().setValue('redistricting/last_scenario', scenario)
 
     def scenario_changed(self):
         """
