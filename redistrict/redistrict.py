@@ -7,7 +7,7 @@ the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 """
 
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines,too-many-statements
 
 __author__ = '(C) 2018 by Nyall Dawson'
 __date__ = '20/04/2018'
@@ -509,7 +509,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.context = LinzRedistrictingContext(scenario_registry=self.scenario_registry)
         self.context.task = QgsSettings().value('redistricting/last_task', self.TASK_GN)
-        self.context.scenario = QgsSettings().value('redistricting/last_scenario', 1, int)
+
+        if not self.scenario_registry.scenario_exists(QgsSettings().value('redistricting/last_scenario', 1, int)):
+            # uh oh - scenario doesn't exist anymore!
+            QMessageBox.critical(self.iface.mainWindow(), 'Missing Scenario', 'The previously used scenario ({}) no longer exists! Please rebuild the database from another scenario.'.format(QgsSettings().value('redistricting/last_scenario', 1, int)))
+            self.context.scenario = 1
+        else:
+            self.context.scenario = QgsSettings().value('redistricting/last_scenario', 1, int)
+
         self.meshblock_layer.layerModified.connect(self.update_layer_modified_actions)
         self.meshblock_layer.editingStarted.connect(self.toggle_redistrict_actions)
         self.meshblock_layer.editingStopped.connect(self.toggle_redistrict_actions)
