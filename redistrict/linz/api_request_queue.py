@@ -100,6 +100,7 @@ class ApiRequestQueue(QObject):
         except AttributeError:
             # e.g. due to an aborted request
             task.finalize(False)
+            self.error.emit(boundary_request, 'Cancelled')
             return
 
     def process_queue(self):
@@ -156,6 +157,7 @@ class ApiRequestQueue(QObject):
             self.check_boundary_result_reply(request_id, results['content'])
         except AttributeError:
             self.remove_from_queue(request_id)
+            self.error.emit(boundary_request, 'Cancelled')
             return
 
     def check_boundary_result_reply(self, request_id: str, reply: Union[dict, str]):
