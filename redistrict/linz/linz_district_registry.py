@@ -19,7 +19,8 @@ from qgis.core import (NULL,
                        QgsFeatureRequest,
                        QgsFeature,
                        QgsExpression,
-                       QgsVectorLayer)
+                       QgsVectorLayer,
+                       QgsFields)
 from redistrict.core.district_registry import VectorLayerDistrictRegistry
 from redistrict.linz.linz_redistricting_context import LinzRedistrictingContext
 
@@ -246,7 +247,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         new_id = int(self.source_layer.maximumValue(self.source_field_index)) + 1
 
         f = QgsFeature()
-        f.initAttributes(self.source_layer.fields().count())
+        f.initAttributes(len([n for n in range(len(self.source_layer.fields())) if self.source_layer.fields().fieldOrigin(n) == QgsFields.OriginProvider]))
         f[self.source_layer.fields().lookupField(self.title_field)] = new_electorate_name
         f[self.type_field_index] = self.electorate_type
         f[self.source_field_index] = new_id
