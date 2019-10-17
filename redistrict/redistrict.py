@@ -1273,24 +1273,31 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.electorate_edit_queue = None
 
         try:
-            self.dock.deleteLater()
+            if self.dock:
+                self.dock.deleteLater()
         except RuntimeError:
             pass
         self.dock = None
 
         try:
-            self.validation_results_dock.deleteLater()
+            if self.validation_results_dock:
+                self.validation_results_dock.deleteLater()
         except RuntimeError:
             pass
         self.validation_results_dock = None
 
         try:
-            self.redistricting_toolbar.deleteLater()
+            if self.redistricting_toolbar:
+                self.redistricting_toolbar.deleteLater()
         except RuntimeError:
             pass
         self.redistricting_toolbar = None
 
-        self.selected_population_dock.deleteLater()
+        try:
+            if self.selected_population_dock:
+                self.selected_population_dock.deleteLater()
+        except RuntimeError:
+            pass
         self.selected_population_dock = None
 
         self.enable_task_switches(False)
