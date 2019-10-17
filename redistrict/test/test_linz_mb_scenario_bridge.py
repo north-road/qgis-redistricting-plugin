@@ -81,7 +81,7 @@ class ScenarioMeshblockBridgeTest(unittest.TestCase):
         self.assertEqual(new_electorates, {})
 
         # add change
-        features = [f for f in meshblock_layer.getFeatures()]
+        features = [f for f in meshblock_layer.getFeatures()]  # pylint: disable=unnecessary-comprehension
         meshblock_layer.changeAttributeValues(features[0].id(), {1: 'c'})
         new_electorates = bridge.get_new_electorates()
         self.assertEqual(new_electorates, {0: 'c'})

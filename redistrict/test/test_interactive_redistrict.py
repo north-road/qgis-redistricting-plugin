@@ -79,7 +79,7 @@ class InteractiveRedistrictTest(unittest.TestCase):
         tool = InteractiveRedistrictingTool(canvas, handler, district_registry=registry)
         # point inside a feature
         self.assertFalse(tool.get_district_boundary_matches(QgsPointXY(10, 30)))
-        self.assertFalse([f for f in tool.get_target_features_from_matches([])])
+        self.assertFalse([f for f in tool.get_target_features_from_matches([])])  # pylint: disable=unnecessary-comprehension
         self.assertFalse(tool.get_districts_from_matches([]))
         self.assertFalse(tool.matches_are_valid_for_boundary([]))
 

@@ -120,7 +120,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         handler.end_edit_group()
         self.assertFalse(handler.pending_affected_districts)
         self.assertEqual(handler.create_affected_district_filter(), '')
-        self.assertFalse([f for f in handler.get_affected_districts()])
+        self.assertFalse([f for f in handler.get_affected_districts()])  # pylint: disable=unnecessary-comprehension
         self.assertFalse([f["fld1"] for f in handler.get_added_meshblocks('test3')])
         self.assertFalse([f["fld1"] for f in handler.get_added_meshblocks('aaa')])
         self.assertFalse([f.id() for f in handler.get_removed_meshblocks('test2')])
@@ -263,7 +263,7 @@ class LINZRedistrictHandlerTest(unittest.TestCase):
         handler.end_edit_group()
         self.assertFalse(handler.pending_affected_districts)
         self.assertEqual(handler.create_affected_district_filter(), '')
-        self.assertFalse([f for f in handler.get_affected_districts()])
+        self.assertFalse([f for f in handler.get_affected_districts()])  # pylint: disable=unnecessary-comprehension
         self.assertFalse([f["fld1"] for f in handler.get_added_meshblocks(3)])
         self.assertFalse([f["fld1"] for f in handler.get_added_meshblocks(5)])
         self.assertFalse([f.id() for f in handler.get_removed_meshblocks(2)])

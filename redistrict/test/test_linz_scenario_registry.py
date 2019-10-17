@@ -250,7 +250,7 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertFalse(error)
         self.assertEqual(res, 4)
 
-        f = [f for f in layer.getFeatures()][-1]
+        f = [f for f in layer.getFeatures()][-1]  # pylint: disable=unnecessary-comprehension
         self.assertEqual(f[0], res)
         self.assertEqual(f[1], 'Scenario 5')
         self.assertEqual(f[2].date(), QDateTime.currentDateTime().date())
@@ -268,7 +268,7 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertFalse(error)
         self.assertEqual(res, 5)
 
-        f = [f for f in layer.getFeatures()][-1]
+        f = [f for f in layer.getFeatures()][-1]  # pylint: disable=unnecessary-comprehension
         self.assertEqual(f[0], res)
         self.assertEqual(f[1], 'Scenario 6')
         self.assertEqual(f[2].date(), QDateTime.currentDateTime().date())
@@ -326,7 +326,7 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertFalse(error)
         self.assertEqual(layer2.featureCount(), 1)
         self.assertEqual(mb_electorate_layer2.featureCount(), 2)
-        f = [f for f in layer2.getFeatures()][-1]
+        f = [f for f in layer2.getFeatures()][-1]  # pylint: disable=unnecessary-comprehension
         self.assertEqual(f[0], res)
         self.assertEqual(f[1], 'copied scenario')
         self.assertEqual(f[2].date(), QDate(2018, 6, 4))
@@ -343,7 +343,7 @@ class ScenarioRegistryTest(unittest.TestCase):
         self.assertFalse(error)
         self.assertEqual(layer2.featureCount(), 2)
         self.assertEqual(mb_electorate_layer2.featureCount(), 4)
-        f = [f for f in layer2.getFeatures()][-1]
+        f = [f for f in layer2.getFeatures()][-1]  # pylint: disable=unnecessary-comprehension
         self.assertEqual(f[0], res2)
         self.assertEqual(f[1], 'copied scenario 2')
         self.assertEqual(f[2].date(), QDate(2018, 7, 5))
