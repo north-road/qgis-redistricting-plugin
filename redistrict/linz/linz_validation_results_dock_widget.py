@@ -20,7 +20,7 @@ from qgis.PyQt.QtWidgets import (QGridLayout,
                                  QTableWidget,
                                  QTableWidgetItem,
                                  QToolButton)
-from qgis.core import QgsRectangle
+from qgis.core import QgsGeometry
 from qgis.gui import QgsDockWidget
 from qgis.utils import iface
 from redistrict.gui.gui_utils import GuiUtils
@@ -55,12 +55,12 @@ class LinzValidationResultsDockWidget(QgsDockWidget):
         self.setWindowTitle(self.tr('Validation Results'))
         self.table = None
 
-    def zoom_to_extent(self, extent: QgsRectangle):
+    def zoom_to_extent(self, geom: QgsGeometry):
         """
         Zooms the canvas to the given extent
-        :param extent: extent to zoom to
+        :param geom: extent to zoom to
         """
-        self.iface.mapCanvas().zoomToFeatureExtent(extent)
+        self.iface.mapCanvas().zoomToFeatureExtent(geom.boundingBox())
 
     def clear(self):
         """
@@ -81,27 +81,31 @@ class LinzValidationResultsDockWidget(QgsDockWidget):
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(['', 'Electorate', 'Error'])
 
-        def create_zoom_button(extent: QgsRectangle):
+        def create_zoom_button(geom: QgsGeometry):
             """
             Creates a zoom to electorate button
-            :param extent: extent to zoom to
+            :param geom: extent to zoom to
             """
             button = QToolButton()
-            button.setToolTip('Zoom to Electorate')
+            if geom.isEmpty():
+                button.setEnabled(False)
+                button.setToolTip('Electorate has no meshblocks assigned')
+            else:
+                button.setToolTip('Zoom to Electorate')
             button.setIcon(GuiUtils.get_icon('zoom_selected.svg'))
-            button.clicked.connect(partial(self.zoom_to_extent, extent))
+            button.clicked.connect(partial(self.zoom_to_extent, geom))
             return button
 
         self.table.setRowCount(0)
 
         def add_electorate(electorate_id, name: str, error: str,  # pylint: disable=unused-argument
-                           extent: QgsRectangle):
+                           geom: QgsGeometry):
             """
             Adds an electorate to the results table
             :param electorate_id: electorate ID
             :param name: electorate name
             :param error: error string
-            :param extent: extent of electorate geometry
+            :param geom: electorate geometry
             """
             flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
             name_item = QTableWidgetItem(name)
@@ -114,13 +118,13 @@ class LinzValidationResultsDockWidget(QgsDockWidget):
 
             self.table.setItem(row, 1, name_item)
             self.table.setItem(row, 2, error_item)
-            self.table.setCellWidget(row, 0, create_zoom_button(extent))
+            self.table.setCellWidget(row, 0, create_zoom_button(geom))
 
         for result in results:
             add_electorate(electorate_id=result[ValidationTask.ELECTORATE_ID],
                            name=result[ValidationTask.ELECTORATE_NAME],
                            error=result[ValidationTask.ERROR],
-                           extent=result[ValidationTask.ELECTORATE_GEOMETRY].boundingBox())
+                           geom=result[ValidationTask.ELECTORATE_GEOMETRY])
 
         self.table.setColumnWidth(0, 30)
         self.widget().layout().addWidget(self.table, 1, 0, 1, 1)
