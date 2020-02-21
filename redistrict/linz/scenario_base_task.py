@@ -43,6 +43,7 @@ class ScenarioBaseTask(QgsTask):
     ESTIMATED_POP = 'ESTIMATED_POP'
     EXPECTED_REGIONS = 'EXPECTED_REGIONS'
     DEPRECATED = 'DEPRECATED'
+    STATS_NZ_POP = 'STATS_NZ_POP'
 
     def __init__(self,  # pylint: disable=too-many-locals, too-many-statements
                  task_name: str, electorate_layer: QgsVectorLayer, meshblock_layer: QgsVectorLayer,
@@ -81,6 +82,9 @@ class ScenarioBaseTask(QgsTask):
         self.mb_offshore_idx = meshblock_layer.fields().lookupField('offshore')
         assert self.mb_offshore_idx >= 0
 
+        self.stats_nz_pop_idx = electorate_layer.fields().lookupField('stats_nz_pop')
+        assert self.stats_nz_pop_idx >= 0
+
         self.invalid_reason_idx = self.electorate_layer.fields().lookupField('invalid_reason')
         assert self.invalid_reason_idx >= 0
         self.invalid_idx = self.electorate_layer.fields().lookupField('invalid')
@@ -109,7 +113,7 @@ class ScenarioBaseTask(QgsTask):
         # dict of electorates to process (by id)
         self.electorates_to_process = {}
         request = QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry)
-        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx, self.code_idx, self.name_idx, self.expected_regions_idx, self.deprecated_idx])
+        request.setSubsetOfAttributes([electorate_id_idx, self.type_idx, self.code_idx, self.name_idx, self.expected_regions_idx, self.deprecated_idx, self.stats_nz_pop_idx])
         for electorate in electorate_layer.getFeatures(request):
             # get meshblocks for this electorate in the target scenario
             electorate_id = electorate[electorate_id_idx]
@@ -118,6 +122,7 @@ class ScenarioBaseTask(QgsTask):
             electorate_name = electorate[self.name_idx]
             expected_regions = electorate[self.expected_regions_idx]
             deprecated = electorate[self.deprecated_idx]
+            stats_nz_pop = electorate[self.stats_nz_pop_idx]
             if self.task and electorate_type != self.task:
                 continue
 
@@ -137,7 +142,8 @@ class ScenarioBaseTask(QgsTask):
                                                           self.DEPRECATED: deprecated,
                                                           self.MESHBLOCKS: matching_meshblocks,
                                                           self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
-                                                          self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}
+                                                          self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks,
+                                                          self.STATS_NZ_POP: stats_nz_pop}
 
         self.setDependentLayers([electorate_layer])
 
@@ -179,7 +185,8 @@ class ScenarioBaseTask(QgsTask):
                                                             self.DEPRECATED: params[self.DEPRECATED],
                                                             self.MESHBLOCKS: matching_meshblocks,
                                                             self.OFFSHORE_MESHBLOCKS: offshore_meshblocks,
-                                                            self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}
+                                                            self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks,
+                                                            self.STATS_NZ_POP: params[self.STATS_NZ_POP]}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
             electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)

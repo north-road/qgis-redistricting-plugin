@@ -73,7 +73,8 @@ class ValidationTask(ScenarioBaseTask):
                 return False
 
             electorate_id = attributes[self.ELECTORATE_ID]
-            pop = attributes[self.ESTIMATED_POP]
+            # prefer stats nz pop if available
+            pop = attributes[self.STATS_NZ_POP] if attributes[self.STATS_NZ_POP] is not None and attributes[self.STATS_NZ_POP] != NULL else attributes[self.ESTIMATED_POP]
             electorate_type = attributes[self.ELECTORATE_TYPE]
             expected_regions = attributes[self.EXPECTED_REGIONS]
             deprecated = attributes[self.DEPRECATED]
