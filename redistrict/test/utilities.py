@@ -27,18 +27,18 @@ def get_qgis_app(cleanup=True):
     global QGIS_APP, PARENT, IFACE, CANVAS  # pylint: disable=W0603
 
     if iface:
-        from qgis.core import QgsApplication
+        from qgis.core import QgsApplication  # pylint: disable=import-outside-toplevel
         QGIS_APP = QgsApplication
         CANVAS = iface.mapCanvas()
         PARENT = iface.mainWindow()
         IFACE = iface
         return QGIS_APP, CANVAS, IFACE, PARENT
 
-    from qgis.core import QgsApplication
-    from qgis.gui import QgsMapCanvas
-    from qgis.PyQt.QtCore import QSize
-    from qgis.PyQt.QtWidgets import QWidget
-    from .qgis_interface import QgisInterface
+    from qgis.core import QgsApplication  # pylint: disable=import-outside-toplevel
+    from qgis.gui import QgsMapCanvas  # pylint: disable=import-outside-toplevel
+    from qgis.PyQt.QtCore import QSize  # pylint: disable=import-outside-toplevel
+    from qgis.PyQt.QtWidgets import QWidget  # pylint: disable=import-outside-toplevel
+    from .qgis_interface import QgisInterface  # pylint: disable=import-outside-toplevel
 
     global QGISAPP  # pylint: disable=global-variable-undefined
 

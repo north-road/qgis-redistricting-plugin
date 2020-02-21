@@ -19,5 +19,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
-    from .redistrict import LinzRedistrict
+    from .redistrict import LinzRedistrict  # pylint: disable=import-outside-toplevel
     return LinzRedistrict(iface)
