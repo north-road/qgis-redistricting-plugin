@@ -1,26 +1,16 @@
-# coding=utf-8
-"""Redistricting Handler test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
+"""
+Redistricting Handler test.
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
 import unittest
+from qgis.core import (
+    QgsVectorLayer,
+    QgsFeature,
+    NULL
+)
 from redistrict.core.redistrict_handler import (
     RedistrictHandler
 )
-from qgis.core import (QgsVectorLayer,
-                       QgsFeature,
-                       NULL)
 
 
 class RedistrictHandlerTest(unittest.TestCase):
