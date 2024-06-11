@@ -1,5 +1,6 @@
-# coding=utf-8
-"""Common functionality used by regression tests."""
+"""
+Common functionality used by regression tests.
+"""
 
 import sys
 import logging
@@ -40,10 +41,10 @@ def get_qgis_app(cleanup=True):
     from qgis.PyQt.QtWidgets import QWidget  # pylint: disable=import-outside-toplevel
     from .qgis_interface import QgisInterface  # pylint: disable=import-outside-toplevel
 
-    global QGISAPP  # pylint: disable=global-variable-undefined
+    global QGISAPP  # pylint: disable=global-variable-undefined,used-before-assignment
 
     try:
-        QGISAPP
+        QGISAPP  # pylint: disable=used-before-assignment
     except NameError:
         myGuiFlag = True  # All test will run qgis in gui mode
 
@@ -70,7 +71,7 @@ def get_qgis_app(cleanup=True):
             :param level: log message level (severity)
             :return:
             """
-            print('{}({}): {}'.format(tag, level, message))
+            print(f'{tag}({level}): {message}')
 
         QgsApplication.instance().messageLog().messageReceived.connect(
             debug_log_message)

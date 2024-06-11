@@ -1,29 +1,19 @@
-# coding=utf-8
-"""LINZ Redistricting Handler test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
+"""
+LINZ Redistricting Handler test.
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
 import unittest
+from qgis.core import (
+    QgsVectorLayer,
+    QgsFeature,
+    QgsGeometry,
+    QgsRectangle,
+    NULL
+)
 from redistrict.linz.linz_redistrict_handler import (
     LinzRedistrictHandler
 )
 from redistrict.linz.electorate_changes_queue import ElectorateEditQueue
-from qgis.core import (QgsVectorLayer,
-                       QgsFeature,
-                       QgsGeometry,
-                       QgsRectangle,
-                       NULL)
 
 
 def make_user_log_layer() -> QgsVectorLayer:

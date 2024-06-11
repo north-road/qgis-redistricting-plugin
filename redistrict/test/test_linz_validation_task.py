@@ -1,30 +1,23 @@
-# coding=utf-8
-"""LINZ Scenario Validation Task Test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
+"""
+LINZ Scenario Validation Task Test.
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
 import unittest
+
+from qgis.core import (
+    NULL,
+    QgsVectorLayer,
+    QgsGeometry,
+    QgsPointXY,
+    QgsFeature
+)
+
 from redistrict.linz.scenario_registry import ScenarioRegistry
-from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
+from redistrict.linz.linz_district_registry import \
+    LinzElectoralDistrictRegistry
 from redistrict.linz.validation_task import ValidationTask
 from redistrict.test.test_linz_scenario_registry import make_scenario_layer
 from redistrict.test.test_linz_district_registry import make_quota_layer
-from qgis.core import (NULL,
-                       QgsVectorLayer,
-                       QgsGeometry,
-                       QgsPointXY,
-                       QgsFeature)
 
 
 class ValidationTaskTest(unittest.TestCase):
