@@ -1,17 +1,6 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Database Utilities
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Redistricting Plugin - Database Utilities
+"""
 
 from qgis.PyQt.QtCore import QFile
 from qgis.core import QgsTask
@@ -59,11 +48,15 @@ class CopyFileTask(QgsTask):
 
             if QFile.exists(dest):
                 if not QFile.remove(dest):
+                    # pylint: disable=consider-using-f-string
                     self.error = self.tr('Could not remove existing file {}'.format(dest))
+                    # pylint: enable=consider-using-f-string
                     return False
 
             if not QFile.copy(source, dest):
+                # pylint: disable=consider-using-f-string
                 self.error = self.tr('Could not copy file {} to {}'.format(source, dest))
+                # pylint: enable=consider-using-f-string
                 return False
 
             current += 1

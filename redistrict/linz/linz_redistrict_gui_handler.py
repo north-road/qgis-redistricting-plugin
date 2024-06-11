@@ -1,17 +1,7 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - LINZ Specific redistricting GUI handler
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+LINZ Redistricting Plugin - LINZ Specific redistricting GUI handler
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '30/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
 
 from typing import Callable, Optional
 from qgis.core import NULL
@@ -64,15 +54,15 @@ class LinzRedistrictGuiHandler(RedistrictGuiHandler):
 
         contents['STATS_NZ_POP'] = stats_nz_calculations['currentPopulation']
         if stats_nz_calculations['varianceYear1'] != NULL:
-            contents['STATS_NZ_VAR_YEAR1'] = '{}{}%'.format(
-                '+' if stats_nz_calculations['varianceYear1'] > 0 else '',
-                round(stats_nz_calculations['varianceYear1'] * 10) / 10)
+            variance_dir_str = '+' if stats_nz_calculations['varianceYear1'] > 0 else ''
+            rounded_variance = round(stats_nz_calculations['varianceYear1'] * 10) / 10
+            contents['STATS_NZ_VAR_YEAR1'] = f'{variance_dir_str}{rounded_variance}%'
         else:
             contents['STATS_NZ_VAR_YEAR1'] = 'unknown'
         if stats_nz_calculations['varianceYear2'] != NULL:
-            contents['STATS_NZ_VAR_YEAR2'] = '{}{}%'.format(
-                '+' if stats_nz_calculations['varianceYear2'] > 0 else '',
-                round(stats_nz_calculations['varianceYear2'] * 10) / 10)
+            variance_dir_str = '+' if stats_nz_calculations['varianceYear2'] > 0 else ''
+            rounded_variance = round(stats_nz_calculations['varianceYear2'] * 10) / 10
+            contents['STATS_NZ_VAR_YEAR2'] = f'{variance_dir_str}{rounded_variance}%'
         else:
             contents['STATS_NZ_VAR_YEAR2'] = 'unknown'
 
@@ -90,21 +80,21 @@ class LinzRedistrictGuiHandler(RedistrictGuiHandler):
                                                                                              population=contents[
                                                                                                  'POPULATION'])
             if contents['VARIATION'] is not None and contents['VARIATION'] > 0:
-                contents['VARIATION'] = '+{}'.format(contents['VARIATION'])
+                contents['VARIATION'] = f'+{contents["VARIATION"]}'
 
             contents['VARIATION_COLOR'] = 'red' if self._district_registry.variation_exceeds_allowance(
                 quota=contents['QUOTA'],
                 population=contents[
                     'POPULATION']) else 'black'
-            contents['VARIATION'] = '({}%)'.format(contents['VARIATION'])
+            contents['VARIATION'] = f'({contents["VARIATION"]}%)'
         else:
             contents['VARIATION'] = ''
             contents['VARIATION_COLOR'] = 'black'
 
         contents['ESTIMATED_POP_*'] = '*' if contents['IS_ESTIMATED_POP'] else ''
         tr_estimated_pop_string = QCoreApplication.translate('LinzRedistrict', 'Only estimated population available')
-        contents['ESTIMATED_POP_STRING'] = """<br>
-        <span style="font-style:italic">* {}</span>""".format(tr_estimated_pop_string) if contents[
+        contents['ESTIMATED_POP_STRING'] = f"""<br>
+        <span style="font-style:italic">* {tr_estimated_pop_string}</span>""" if contents[
             'IS_ESTIMATED_POP'] else ''
 
         contents['POP_STYLE'] = 'font-style:italic;' if contents['IS_UPDATING'] else ''

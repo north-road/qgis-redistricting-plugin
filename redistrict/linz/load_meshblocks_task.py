@@ -1,23 +1,14 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Load meshblocks task
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+LINZ Redistricting Plugin - Load meshblocks task
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
 from typing import Optional
-from qgis.core import (QgsTask,
-                       QgsFeatureRequest,
-                       QgsVectorLayer,
-                       QgsGeometry)
+from qgis.core import (
+    QgsTask,
+    QgsFeatureRequest,
+    QgsVectorLayer,
+    QgsGeometry
+)
 from redistrict.linz.scenario_registry import ScenarioRegistry
 
 
@@ -152,13 +143,13 @@ class LoadMeshblocksTask(QgsTask):
 
             if electorate_type == 'M':
                 estimated_pop = sum(
-                    [mbf[self.mb_off_pop_m_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_m_idx]])
+                    mbf[self.mb_off_pop_m_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_m_idx])
             elif electorate_type == 'GN':
                 estimated_pop = sum(
-                    [mbf[self.mb_off_pop_ni_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_ni_idx]])
+                    mbf[self.mb_off_pop_ni_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_ni_idx])
             else:
                 estimated_pop = sum(
-                    [mbf[self.mb_off_pop_si_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_si_idx]])
+                    mbf[self.mb_off_pop_si_idx] for mbf in matching_meshblocks if mbf[self.mb_off_pop_si_idx])
 
             electorate_attributes[electorate_feature_id] = {self.ESTIMATED_POP: estimated_pop,
                                                             self.ELECTORATE_ID: electorate_id,

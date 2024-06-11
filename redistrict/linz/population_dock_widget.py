@@ -1,17 +1,6 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Selected population dock widget
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Redistricting Plugin - Selected population dock widget
+"""
 
 from collections import defaultdict
 from qgis.PyQt.QtWidgets import (QWidget,
@@ -119,8 +108,9 @@ class SelectedPopulationDockWidget(QgsDockWidget):
                 pop = f['offline_pop_m']
             counts[electorate] += pop
 
-        html = """<h3>Target Electorate: <a href="#">{}</a></h3><p>""".format(
-            self.district_registry.get_district_title(self.target_electorate))
+        district_title = self.district_registry.get_district_title(
+            self.target_electorate)
+        html = f"""<h3>Target Electorate: <a href="#">{district_title}</a></h3><p>"""
 
         request = QgsFeatureRequest()
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression('type', self.task))
@@ -147,22 +137,18 @@ class SelectedPopulationDockWidget(QgsDockWidget):
                     estimated_pop -= pop
                     variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
 
-                    html += """\n{}: <span style="font-weight:bold">-{}</span> (after: {}, {}{}%)<br>""".format(
-                        self.district_registry.get_district_title(electorate), pop, int(estimated_pop),
-                        '+' if variance > 0 else '', variance)
+                    change_dir_str = '+' if variance > 0 else ''
+                    html += f"""\n{district_title}: <span style="font-weight:bold">-{pop}</span> (after: {int(estimated_pop)}, {change_dir_str}{variance}%)<br>"""
             else:
-                html += """\n{}: <span style="font-weight:bold">{}</span><br>""".format(
-                    self.district_registry.get_district_title(electorate), pop)
+                html += f"""\n{district_title}: <span style="font-weight:bold">{pop}</span><br>"""
         if self.target_electorate:
             estimated_pop = original_populations[self.target_electorate]
 
             estimated_pop += overall
             variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
 
-            html += """\n{}: <span style="font-weight:bold">+{}</span> (after: {}, {}{}%)<br>""".format(
-                self.district_registry.get_district_title(self.target_electorate), overall, int(estimated_pop),
-                '+' if variance > 0 else '',
-                variance)
+            change_dir_str = '+' if variance > 0 else ''
+            html += f"""\n{district_title}: <span style="font-weight:bold">+{overall}</span> (after: { int(estimated_pop)}, {change_dir_str}{variance}%)<br>"""
 
         html += '</p>'
 

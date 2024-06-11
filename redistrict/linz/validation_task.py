@@ -1,17 +1,6 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Electorate validation task
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Redistricting Plugin - Electorate validation task
+"""
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsVectorLayer,
@@ -117,7 +106,7 @@ class ValidationTask(ScenarioBaseTask):
                                                                self.invalid_reason_idx: error}
                 for p in range(geometry.constGet().numGeometries()):
                     part = QgsGeometry(geometry.constGet().geometryN(p).clone())
-                    error = 'Contiguous part {}'.format(p + 1)
+                    error = f'Contiguous part {p + 1}'
                     self.results.append({self.ELECTORATE_ID: electorate_id,
                                          self.ELECTORATE_NAME: name,
                                          self.ELECTORATE_GEOMETRY: part,

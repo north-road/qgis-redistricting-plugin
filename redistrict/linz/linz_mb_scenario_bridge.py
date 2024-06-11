@@ -1,17 +1,6 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - LINZ meshblock to scenario bridge
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Redistricting Plugin - LINZ meshblock to scenario bridge
+"""
 
 from typing import Dict, List
 from qgis.PyQt.QtCore import QObject
@@ -58,7 +47,7 @@ class LinzMeshblockScenarioBridge(QObject):
         """
         assert self.task is not None
 
-        electorate_field_name = '{}_id'.format(self.task)
+        electorate_field_name = f'{self.task}_id'
         electorate_field_idx = self.meshblock_scenario_layer.fields().lookupField(electorate_field_name)
         assert electorate_field_idx >= 0
 
@@ -92,7 +81,8 @@ class LinzMeshblockScenarioBridge(QObject):
         request = QgsFeatureRequest()
         request.setSubsetOfAttributes([self.target_meshblock_number_idx])
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', self.scenario))
-        meshblock_filter = 'meshblock_number IN ({})'.format(','.join([str(mb) for mb in meshblock_numbers]))
+        meshblock_numbers_str = ','.join([str(mb) for mb in meshblock_numbers])
+        meshblock_filter = f'meshblock_number IN ({meshblock_numbers_str})'
         request.combineFilterExpression(meshblock_filter)
         # create dictionary of meshblock number to id
         mb_number_to_target_id = {}
@@ -106,7 +96,7 @@ class LinzMeshblockScenarioBridge(QObject):
         """
         assert self.task is not None
 
-        electorate_field_name = '{}_id'.format(self.task)
+        electorate_field_name = f'{self.task}_id'
         electorate_field_idx = self.meshblock_scenario_layer.fields().lookupField(electorate_field_name)
         assert electorate_field_idx >= 0, electorate_field_name
 

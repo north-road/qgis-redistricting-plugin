@@ -1,25 +1,16 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - District registry
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+LINZ Redistricting Plugin - District registry
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
 from collections import OrderedDict
-from qgis.core import (QgsCoordinateTransform,
-                       QgsProject,
-                       QgsSettings,
-                       QgsFeatureRequest,
-                       QgsExpression,
-                       NULL)
+from qgis.core import (
+    QgsCoordinateTransform,
+    QgsProject,
+    QgsSettings,
+    QgsFeatureRequest,
+    QgsExpression,
+    NULL
+)
 
 MAX_RECENT_DISTRICTS = 5
 
@@ -100,7 +91,7 @@ class DistrictRegistry():
         """
         Returns the QSettings key corresponding to this registry
         """
-        return 'redistricting/{}'.format(self.name)
+        return f'redistricting/{self.name}'
 
     def district_list(self):
         """
@@ -119,8 +110,7 @@ class DistrictRegistry():
         """
         Clears the list of recent districts
         """
-        QgsSettings().setValue('{}/recent_districts'.format(
-            self.settings_key()), [])
+        QgsSettings().setValue(f'{self.settings_key()}/recent_districts', [])
 
     def push_recent_district(self, district):
         """
@@ -132,16 +122,17 @@ class DistrictRegistry():
                            [d for d in recent_districts
                             if d != district]
         recent_districts = recent_districts[:MAX_RECENT_DISTRICTS]
-        QgsSettings().setValue('{}/recent_districts'.format(
-            self.settings_key()), recent_districts)
+        QgsSettings().setValue(f'{self.settings_key()}/recent_districts',
+                               recent_districts)
 
     def recent_districts_list(self):
         """
         Returns a list of recently used districts
         """
         valid_districts = self.district_list()
-        return [d for d in QgsSettings().value('{}/recent_districts'.format(
-            self.settings_key()), []) if d in valid_districts]
+        return [d for d in QgsSettings().value(
+            f'{self.settings_key()}/recent_districts',
+            []) if d in valid_districts]
 
     def get_district_at_point(self, rect, crs):  # pylint: disable=unused-argument
         """

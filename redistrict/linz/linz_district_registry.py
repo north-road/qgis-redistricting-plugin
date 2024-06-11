@@ -1,26 +1,17 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - LINZ Specific District registry
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Redistricting Plugin - LINZ Specific District registry
+"""
 
 from typing import Optional
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (NULL,
-                       QgsFeatureRequest,
-                       QgsFeature,
-                       QgsExpression,
-                       QgsVectorLayer,
-                       QgsFields)
+from qgis.core import (
+    NULL,
+    QgsFeatureRequest,
+    QgsFeature,
+    QgsExpression,
+    QgsVectorLayer,
+    QgsFields
+)
 from redistrict.core.district_registry import VectorLayerDistrictRegistry
 from redistrict.linz.linz_redistricting_context import LinzRedistrictingContext
 
@@ -105,7 +96,7 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         if self.electorate_type:
             request.setFilterExpression(
                 QgsExpression.createFieldEqualityExpression(self.type_field, self.electorate_type))
-        request.combineFilterExpression('"{}" is null or not "{}"'.format(self.deprecated_field, self.deprecated_field))
+        request.combineFilterExpression(f'"{self.deprecated_field}" is null or not "{self.deprecated_field}"')
         return request
 
     def get_district_type(self, electorate_id) -> str:
@@ -256,11 +247,11 @@ class LinzElectoralDistrictRegistry(VectorLayerDistrictRegistry):
         f[code_field_idx] = new_electorate_code
         stats_code = ''
         if self.electorate_type == LinzRedistrictingContext.TASK_GN:
-            stats_code = 'N{}'.format(new_electorate_code)
+            stats_code = f'N{new_electorate_code}'
         elif self.electorate_type == LinzRedistrictingContext.TASK_GS:
-            stats_code = 'S{}'.format(new_electorate_code)
+            stats_code = f'S{new_electorate_code}'
         elif self.electorate_type == LinzRedistrictingContext.TASK_M:
-            stats_code = 'M{}'.format(new_electorate_code)
+            stats_code = f'M{new_electorate_code}'
         f[self.electorate_stats_id_field_index] = stats_code
         f[self.expected_regions_field_index] = 1
 

@@ -1,23 +1,14 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Staged electorate updating task
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+LINZ Redistricting Plugin - Staged electorate updating task
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
-from qgis.core import (NULL,
-                       QgsTask,
-                       QgsFeatureRequest,
-                       QgsVectorLayer,
-                       QgsExpression)
+from qgis.core import (
+    NULL,
+    QgsTask,
+    QgsFeatureRequest,
+    QgsVectorLayer,
+    QgsExpression
+)
 from redistrict.linz.scenario_registry import ScenarioRegistry
 
 
@@ -44,7 +35,7 @@ class UpdateStagedElectoratesTask(QgsTask):
 
         self.mb_number_idx = scenario_registry.meshblock_electorate_layer.fields().lookupField('meshblock_number')
 
-        electorate_field_name = '{}_id'.format(task.lower())
+        electorate_field_name = f'{task.lower()}_id'
         self.electorate_field_idx = scenario_registry.meshblock_electorate_layer.fields().lookupField(
             electorate_field_name)
         assert self.electorate_field_idx >= 0

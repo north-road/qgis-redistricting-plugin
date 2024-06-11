@@ -1,32 +1,29 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Decorator for electorates
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+LINZ Redistricting Plugin - Decorator for electorates
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
-from qgis.PyQt.QtCore import (QSizeF,
-                              QPointF)
-from qgis.PyQt.QtGui import (QImage,
-                             QPainter)
-from qgis.core import (QgsSettings,
-                       QgsFeatureRequest,
-                       QgsExpression,
-                       QgsTextFormat,
-                       QgsRenderContext,
-                       QgsTextRenderer,
-                       QgsVectorLayer,
-                       NULL)
-from qgis.gui import (QgsMapCanvas,
-                      QgsMapCanvasItem)
+from qgis.PyQt.QtCore import (
+    QSizeF,
+    QPointF
+)
+from qgis.PyQt.QtGui import (
+    QImage,
+    QPainter
+)
+from qgis.core import (
+    QgsSettings,
+    QgsFeatureRequest,
+    QgsExpression,
+    QgsTextFormat,
+    QgsRenderContext,
+    QgsTextRenderer,
+    QgsVectorLayer,
+    NULL
+)
+from qgis.gui import (
+    QgsMapCanvas,
+    QgsMapCanvasItem
+)
 from redistrict.gui.interactive_redistrict_tool import DecoratorFactory
 from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
 
@@ -127,9 +124,10 @@ class CentroidDecorator(QgsMapCanvasItem):
             self.original_populations[f.id()]
 
             variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
-            text_string = ['{}'.format(f['name']),
-                           '{}'.format(int(estimated_pop)),
-                           '{}{}%'.format('+' if variance > 0 else '', variance)]
+            variance_dir_string = '+' if variance > 0 else ''
+            text_string = [f'{f['name']}',
+                           f'{int(estimated_pop)}',
+                           f'{variance_dir_string}{variance}%']
             QgsTextRenderer().drawText(QPointF(pixel.x(), pixel.y()), 0, QgsTextRenderer.AlignCenter,
                                        text_string, render_context, self.text_format)
 

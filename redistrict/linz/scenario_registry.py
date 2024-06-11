@@ -1,29 +1,22 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Scenario registry
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Redistricting Plugin - Scenario registry
+"""
 
 from collections import OrderedDict
 from typing import Optional
-from qgis.PyQt.QtCore import (QCoreApplication,
-                              QDateTime)
-from qgis.core import (QgsFeatureRequest,
-                       QgsExpression,
-                       QgsVectorLayer,
-                       QgsFeature,
-                       QgsApplication,
-                       QgsFeatureIterator,
-                       NULL)
+from qgis.PyQt.QtCore import (
+    QCoreApplication,
+    QDateTime
+)
+from qgis.core import (
+    QgsFeatureRequest,
+    QgsExpression,
+    QgsVectorLayer,
+    QgsFeature,
+    QgsApplication,
+    QgsFeatureIterator,
+    NULL
+)
 
 
 class ScenarioRegistry():
@@ -270,7 +263,7 @@ class ScenarioRegistry():
         """
         request = QgsFeatureRequest()
 
-        type_field = '{}_id'.format(electorate_type.lower())
+        type_field = f'{electorate_type.lower()}_id'
         type_field_index = self.meshblock_electorate_layer.fields().lookupField(type_field)
         assert type_field_index >= 0
 

@@ -1,19 +1,8 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+LINZ Redistricting Plugin
 """
 
 # pylint: disable=too-many-lines,too-many-statements
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
 
 import os.path
 from functools import partial
@@ -114,7 +103,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            '{}.qm'.format(locale))
+            f'{locale}.qm')
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -510,9 +499,12 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.context = LinzRedistrictingContext(scenario_registry=self.scenario_registry)
         self.context.task = QgsSettings().value('redistricting/last_task', self.TASK_GN)
 
-        if not self.scenario_registry.scenario_exists(QgsSettings().value('redistricting/last_scenario', 1, int)):
+        last_scenario = QgsSettings().value('redistricting/last_scenario', 1,
+                                            int)
+        if not self.scenario_registry.scenario_exists(last_scenario):
             # uh oh - scenario doesn't exist anymore!
-            QMessageBox.critical(self.iface.mainWindow(), 'Missing Scenario', 'The previously used scenario ({}) no longer exists! Please rebuild the database from another scenario.'.format(QgsSettings().value('redistricting/last_scenario', 1, int)))
+            QMessageBox.critical(self.iface.mainWindow(), 'Missing Scenario',
+                                 f'The previously used scenario ({last_scenario}) no longer exists! Please rebuild the database from another scenario.')
             self.context.scenario = 1
         else:
             self.context.scenario = QgsSettings().value('redistricting/last_scenario', 1, int)
@@ -952,8 +944,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                     counter += 1
                     new_name = theme_name + ' ' + str(counter)
                     break
-            if not clash:
-                return new_name
+        return new_name
 
     def switch_theme(self, new_theme: str, open_new_map: bool):
         """
@@ -1115,14 +1106,18 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         QgsSettings().setValue('redistricting/last_import_path', source)
 
-        foreign_scenario_layer = QgsVectorLayer('{}|layername=scenarios'.format(source), 'foreign_scenarios')
+        foreign_scenario_layer = QgsVectorLayer(f'{source}|layername=scenarios', 'foreign_scenarios')
         if not foreign_scenario_layer.isValid():
+            # pylint: disable=consider-using-f-string
             self.report_failure(self.tr('Could not import scenarios from “{}”').format(source))
+            # pylint: enable=consider-using-f-string
             return
-        meshblock_electorates_uri = '{}|layername=meshblock_electorates'.format(source)
+        meshblock_electorates_uri = f'{source}|layername=meshblock_electorates'
         foreign_meshblock_electorates_layer = QgsVectorLayer(meshblock_electorates_uri, 'foreign_meshblock_electorates')
         if not foreign_meshblock_electorates_layer.isValid():
+            # pylint: disable=consider-using-f-string
             self.report_failure(self.tr('Could not import scenarios from “{}”').format(source))
+            # pylint: enable=consider-using-f-string
             return
 
         source_registry = ScenarioRegistry(source_layer=foreign_scenario_layer,
@@ -1670,19 +1665,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             meshblock_layer = 'MB2013_HD_Full'
             meshblock_number_field = 'MB2013'
 
-        source_layer = QgsVectorLayer('{}|layername={}'.format(source, meshblock_layer), 'meshblock_source')
+        source_layer = QgsVectorLayer(f'{source}|layername={meshblock_layer}', 'meshblock_source')
         assert source_layer.isValid()
         non_digitized_layer = QgsVectorLayer(
-            '{}|layername={}'.format(prev_meshblock_layer_path, 'non_digitized_meshblocks'), 'non_digitized')
+            f'{prev_meshblock_layer_path}|layername=non_digitized_meshblocks', 'non_digitized')
         non_digitized = [f['meshblock_no'] for f in non_digitized_layer.getFeatures()]
         assert non_digitized
 
-        offshore_layer = QgsVectorLayer('{}|layername={}'.format(prev_meshblock_layer_path, 'offshore_meshblocks'),
+        offshore_layer = QgsVectorLayer(f'{prev_meshblock_layer_path}|layername=offshore_meshblocks',
                                         'offshore_meshblocks')
         offshore = [f['meshblock_no'] for f in offshore_layer.getFeatures()]
         assert offshore
 
-        island_layer = QgsVectorLayer('{}|layername={}'.format(prev_meshblock_layer_path, 'meshblock_island'),
+        island_layer = QgsVectorLayer(f'{prev_meshblock_layer_path}|layername=meshblock_island',
                                       'meshblock_island')
         island = {f['meshblock_no']: f['ns_island'] for f in island_layer.getFeatures()}
         assert island
@@ -1696,7 +1691,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             mb_id = str(int(f[meshblock_number_field]))
 
             if mb_id in non_digitized:
-                print('skipping non-digitized meshblock: {}'.format(mb_id))
+                print(f'skipping non-digitized meshblock: {mb_id}')
                 continue
 
             is_offshore = mb_id in offshore

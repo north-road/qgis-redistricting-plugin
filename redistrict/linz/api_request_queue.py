@@ -1,17 +1,6 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Stats NZ API Request Queue
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Redistricting Plugin - Stats NZ API Request Queue
+"""
 
 from functools import partial
 from typing import Union
@@ -87,11 +76,11 @@ class ApiRequestQueue(QObject):
             response = connector.parse_async(request)
             if response['status'] not in (200, 202):
                 try:
-                    error = '{}: {} {}'.format(response['status'], response['reason'], response['content']['message'])
+                    error = f'{response['status']}: {response['reason']} {response['content']['message']}'
                 except TypeError:
-                    error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
+                    error = f'{response['status']}: {response['reason']} {response['content']}'
                 except KeyError:
-                    error = '{}: {} {}'.format(response['status'], response['reason'], str(response['content']))
+                    error = f'{response['status']}: {response['reason']} {response['content']}'
                 task.finalize(False)
                 self.error.emit(boundary_request, error)
                 return
