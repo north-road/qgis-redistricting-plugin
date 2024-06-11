@@ -30,6 +30,7 @@ class RedistrictingDockWidget(QgsDockWidget):
 
     def __init__(self, _iface: QgisInterface = None):
         super().__init__()
+        self.setObjectName('RedistrictingDockWidget')
 
         if _iface is not None:
             self.iface = _iface

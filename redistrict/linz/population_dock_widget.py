@@ -37,6 +37,7 @@ class SelectedPopulationDockWidget(QgsDockWidget):
 
     def __init__(self, _iface: QgisInterface = None, meshblock_layer: QgsVectorLayer = None):
         super().__init__()
+        self.setObjectName('SelectedPopulationDockWidget')
         self.setWindowTitle(self.tr('Selected Meshblock Population'))
         self.meshblock_layer = meshblock_layer
 

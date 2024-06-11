@@ -39,6 +39,7 @@ class LinzValidationResultsDockWidget(QgsDockWidget):
         :param iface: QGIS interface
         """
         super().__init__()
+        self.setObjectName('LinzValidationResultsDockWidget')
 
         if _iface is not None:
             self.iface = _iface
