@@ -1,17 +1,6 @@
-# coding=utf-8
-"""Safe Translations Test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
 """
-
-__author__ = 'ismailsunni@yahoo.co.id'
-__date__ = '12/10/2011'
-__copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
-                 'Disaster Reduction')
+Safe Translations Test.
+"""
 
 import unittest
 import os
@@ -26,13 +15,13 @@ class SafeTranslationsTest(unittest.TestCase):
 
     def setUp(self):
         """Runs before each test."""
-        if 'LANG' in iter(os.environ.keys()):
-            os.environ.__delitem__('LANG')
+        if 'LANG' in os.environ:
+            del os.environ['LANG']
 
     def tearDown(self):
         """Runs after each test."""
-        if 'LANG' in iter(os.environ.keys()):
-            os.environ.__delitem__('LANG')
+        if 'LANG' in os.environ:
+            del os.environ['LANG']
 
     def test_qgis_translations(self):
         """Test that translations work."""
@@ -41,8 +30,8 @@ class SafeTranslationsTest(unittest.TestCase):
         file_path = os.path.join(dir_path, 'i18n', 'af.qm')
         self.assertTrue(
             os.path.isfile(file_path),
-            "%s is not a valid translation file or it does not exist" %
-            file_path)
+            f"{file_path} is not a valid translation file "
+            "or it does not exist")
         translator = QTranslator()
         translator.load(file_path)
         QCoreApplication.installTranslator(translator)
