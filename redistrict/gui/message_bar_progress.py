@@ -57,10 +57,10 @@ class MessageBarProgressItem(QObject):
         self.progress = None
         self.progressMessageBar = None
 
-    def set_progress(self, progress: int):
+    def set_progress(self, progress: float):
         """
         Sets the progress to show in the item
-        :param progress: integer for percent progress, 0 - 100
+        :param progress: float for percent progress, 0 - 100
         """
         if self.progress is not None:
-            self.progress.setValue(progress)
+            self.progress.setValue(int(progress))
