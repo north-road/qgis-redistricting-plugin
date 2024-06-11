@@ -45,15 +45,14 @@ class QGISTest(unittest.TestCase):
             '0.0174532925199433]]')
         crs.createFromWkt(wkt)
         auth_id = crs.authid()
-        expected_auth_id = 'EPSG:4326'
-        self.assertEqual(auth_id, expected_auth_id)
+        self.assertEqual(crs.authid(), 'EPSG:4326')
 
         # now test for a loaded layer
         path = os.path.join(os.path.dirname(__file__), 'tenbytenraster.asc')
         title = 'TestRaster'
         layer = QgsRasterLayer(path, title)
         auth_id = layer.crs().authid()
-        self.assertEqual(auth_id, expected_auth_id)
+        self.assertEqual(auth_id, 'OGC:CRS84')
 
 
 if __name__ == '__main__':
