@@ -1,30 +1,21 @@
-# coding=utf-8
-"""LINZ Scenario Export Task Test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
+"""
+LINZ Scenario Export Task Test.
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
-
 import unittest
+from qgis.core import (
+    NULL,
+    QgsVectorLayer,
+    QgsGeometry,
+    QgsFeature
+)
 from redistrict.linz.scenario_registry import ScenarioRegistry
-from redistrict.linz.linz_district_registry import LinzElectoralDistrictRegistry
+from redistrict.linz.linz_district_registry import \
+    LinzElectoralDistrictRegistry
 from redistrict.linz.export_task import ExportTask
 from redistrict.test.test_linz_scenario_registry import make_scenario_layer
 from redistrict.test.test_linz_district_registry import make_quota_layer
 from redistrict.test.test_linz_redistrict_handler import make_user_log_layer
-from qgis.core import (NULL,
-                       QgsVectorLayer,
-                       QgsGeometry,
-                       QgsFeature)
 
 
 class ExportTaskTest(unittest.TestCase):
@@ -120,7 +111,7 @@ class ExportTaskTest(unittest.TestCase):
 
         self.assertTrue(task.run(), task.message)
 
-        out_electorate_layer = QgsVectorLayer('{}|layername=electorates'.format(out_file), 'electorates', 'ogr')
+        out_electorate_layer = QgsVectorLayer(f'{out_file}|layername=electorates', 'electorates', 'ogr')
         self.assertTrue(out_electorate_layer.isValid())
         self.assertEqual([f.attributes() for f in out_electorate_layer.getFeatures()], [[1, 'GN', 'test1', NULL],
                                                                                         [2, 'GN', 'test2', NULL],
@@ -137,7 +128,7 @@ class ExportTaskTest(unittest.TestCase):
                           'Polygon ((2 1, 1 1, 1 2, 2 2, 2 1))',
                           'Polygon ((2 1, 1 1, 1 2, 2 2, 2 1))',
                           'Polygon ((2 1, 1 1, 1 2, 2 2, 2 1))'])
-        out_mb_layer = QgsVectorLayer('{}|layername=meshblocks'.format(out_file), 'electorates', 'ogr')
+        out_mb_layer = QgsVectorLayer(f'{out_file}|layername=meshblocks', 'electorates', 'ogr')
         self.assertTrue(out_mb_layer.isValid())
         self.assertEqual([f.attributes() for f in out_mb_layer.getFeatures()], [[1, 11, 'test1', NULL, 'test7'],
                                                                                 [2, 12, 'test2', NULL, 'test7'],
@@ -145,7 +136,7 @@ class ExportTaskTest(unittest.TestCase):
                                                                                 [4, 14, 'test3', 'test4', 'test8'],
                                                                                 [5, 15, NULL, 'test5', 'test8'],
                                                                                 [6, 16, NULL, 'test5', 'test8']])
-        out_log_layer = QgsVectorLayer('{}|layername=user_log'.format(out_file), 'electorates', 'ogr')
+        out_log_layer = QgsVectorLayer(f'{out_file}|layername=user_log', 'electorates', 'ogr')
         self.assertTrue(out_log_layer.isValid())
         self.assertEqual([f.attributes() for f in out_log_layer.getFeatures()],
                          [[1, 1, NULL, 'user', 'v1', 1, '11', 'GN', 1, 2]])
