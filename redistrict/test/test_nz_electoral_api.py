@@ -1,18 +1,7 @@
-# coding=utf-8
-"""Redistricting NZ API test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
+"""
+Redistricting NZ API test.
 """
 
-__author__ = '(C) 2018 by Alessandro Pasotti'
-__date__ = '05/05/2018'
-__copyright__ = 'Copyright 2018, North Road'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
 
 import http.server
 import json
@@ -47,9 +36,9 @@ class NzElectoralApiTest(unittest.TestCase):
         cls.httpd = http.server.HTTPServer(('localhost', 0), Handler)
         cls.port = cls.httpd.server_address[1]
         cls.httpd_thread = threading.Thread(target=cls.httpd.serve_forever)
-        cls.httpd_thread.setDaemon(True)
+        cls.httpd_thread.daemon = True
         cls.httpd_thread.start()
-        cls.api = NzElectoralApi('http://localhost:%s' % cls.port)
+        cls.api = NzElectoralApi(f'http://localhost:{cls.port}')
         cls.last_result = None
 
     def test_format_meshblock_number(self):
@@ -80,26 +69,32 @@ class NzElectoralApiTest(unittest.TestCase):
         self.assertEqual(ConcordanceItem.deformat_electorate_id('N02'), '2')
         self.assertEqual(ConcordanceItem.deformat_electorate_id('S12'), '12')
 
-    def _parse_result(self, api_method, result, *args, in_args=[], **kwargs):
+    # pylint: disable=unused-argument
+    def _parse_result(self, api_method, result, *args, in_args=None, **kwargs):
         """Parse the result and check them"""
-        # pylint: disable=unused-argument
+        if not in_args:
+            in_args = []
         content = result['content']
         self.last_result = result
         if result['status_code'] == 200:
             try:
-                with open(api_method + '.json') as f:
+                with open(api_method + '.json', encoding='utf8') as f:
                     self.assertEqual(content, json.load(f))
             except FileNotFoundError:
-                with open(api_method.replace('Results', '') + '_' + in_args[0] + '.json') as f:
+                with open(api_method.replace('Results', '') + '_' + in_args[0] + '.json',
+                          encoding='utf8') as f:
                     self.assertEqual(content, json.load(f))
 
             # If POST
             if 'X-Echo' in result['headers']:
                 self.assertEqual(json.loads(result['headers']['X-Echo'].decode(
                     'utf-8')), json.loads(self.api.encode_payload(in_args[0]).decode('utf-8')))
+    # pylint: enable=unused-argument
 
-    def _parse_async_result(self, api_method, nam, *args, in_args=[], **kwargs):
+    def _parse_async_result(self, api_method, nam, *args, in_args=None, **kwargs):
         """Parse the async results"""
+        if not in_args:
+            in_args = []
         self._parse_result(api_method, self.api.parse_async(
             nam), *args, in_args=in_args, **kwargs)
 
@@ -182,7 +177,7 @@ class NzElectoralApiTest(unittest.TestCase):
 
     def test_api_usage_async(self):
         """Test standard async API usage"""
-        api = NzElectoralApi('http://localhost:%s' % self.port)
+        api = NzElectoralApi(f'http://localhost:{self.port}')
         nam = api.status()
         self.last_result = ''
         expected = {
@@ -202,7 +197,7 @@ class NzElectoralApiTest(unittest.TestCase):
 
     def test_api_usage(self):
         """Test standard sync API usage"""
-        api = NzElectoralApi('http://localhost:%s' % self.port)
+        api = NzElectoralApi(f'http://localhost:{self.port}')
         result = api.status(blocking=True)
         self.last_result = ''
         expected = {
