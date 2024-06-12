@@ -61,7 +61,8 @@ class UpdateStagedElectoratesTask(QgsTask):
 
         attribute_change_map = {}
         request = QgsFeatureRequest()
-        request.setSubsetOfAttributes([self.meshblock_number_idx])
+        request.setSubsetOfAttributes([self.meshblock_number_idx,
+                                       self.staged_electorate_field_idx])
         request.setFlags(QgsFeatureRequest.NoGeometry)
         to_process = self.meshblock_layer.featureCount()
         for i, m in enumerate(self.meshblock_layer.getFeatures(request)):
@@ -70,7 +71,12 @@ class UpdateStagedElectoratesTask(QgsTask):
                 electorate = NULL
             else:
                 electorate = meshblock_electorate[int(m[self.meshblock_number_idx])]
-            attribute_change_map[m.id()] = {self.staged_electorate_field_idx: electorate}
+            current_electorate = m[self.staged_electorate_field_idx]
+            if current_electorate != electorate:
+                attribute_change_map[m.id()] = {self.staged_electorate_field_idx: electorate}
+
+        if not attribute_change_map:
+            return True
 
         # commit changes
         if not self.meshblock_layer.dataProvider().changeAttributeValues(attribute_change_map):
