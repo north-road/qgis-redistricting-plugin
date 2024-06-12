@@ -44,7 +44,7 @@ def make_scenario_layer() -> QgsVectorLayer:
     f3 = QgsFeature()
     f3.setAttributes([3, "scenario 3", QDateTime(QDate(2018, 8, 9), QTime(12, 13, 14)), 'user 3'])
     layer.dataProvider().addFeatures([f, f2, f3])
-    assert layer.featureCount()  == 3
+    assert layer.featureCount() == 3
     return layer
 
 

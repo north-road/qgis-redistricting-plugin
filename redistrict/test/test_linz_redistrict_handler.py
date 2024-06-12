@@ -29,7 +29,6 @@ def make_user_log_layer() -> QgsVectorLayer:
     return layer
 
 
-
 class LINZRedistrictHandlerTest(unittest.TestCase):
     """Test LinzRedistrictHandler."""
 
