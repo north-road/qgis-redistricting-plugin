@@ -6,9 +6,9 @@ from typing import Optional
 from qgis.core import (
     QgsTask,
     QgsFeatureRequest,
-    QgsVectorLayer,
-    QgsGeometry
+    QgsVectorLayer
 )
+from redistrict.core import CoreUtils
 from redistrict.linz.scenario_registry import ScenarioRegistry
 
 
@@ -161,7 +161,7 @@ class LoadMeshblocksTask(QgsTask):
                                                             self.NON_OFFSHORE_MESHBLOCKS: non_offshore_meshblocks}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
-            electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)
+            electorate_geometry = CoreUtils.union_geometries(meshblock_parts)
             electorate_geometry = electorate_geometry.makeValid()
             electorate_geometries[electorate_feature_id] = electorate_geometry
             i += 1

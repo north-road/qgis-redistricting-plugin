@@ -2,15 +2,18 @@
 LINZ Redistricting Plugin - LINZ Specific Redistrict Handler
 """
 
-from qgis.PyQt.QtCore import (QDateTime,
-                              QVariant)
-from qgis.core import (QgsApplication,
-                       QgsFeatureRequest,
-                       QgsFeature,
-                       QgsFeatureIterator,
-                       QgsGeometry,
-                       QgsVectorLayer,
-                       NULL)
+from qgis.PyQt.QtCore import (
+    QDateTime,
+    QVariant
+)
+from qgis.core import (
+    QgsApplication,
+    QgsFeatureRequest,
+    QgsFeature,
+    QgsFeatureIterator,
+    QgsVectorLayer,
+    NULL
+)
 from redistrict.core.redistrict_handler import RedistrictHandler
 from redistrict.core.core_utils import CoreUtils
 from redistrict.linz.electorate_changes_queue import ElectorateEditQueue
@@ -164,7 +167,7 @@ class LinzRedistrictHandler(RedistrictHandler):
         parts = [f.geometry() for f in self.get_added_meshblocks(district)]
         if parts:
             parts.append(original_district_geometry)
-            return QgsGeometry.unaryUnion(parts)
+            return CoreUtils.union_geometries(parts)
 
         return original_district_geometry
 
@@ -221,7 +224,7 @@ class LinzRedistrictHandler(RedistrictHandler):
         """
         parts = [f.geometry() for f in self.get_removed_meshblocks(district)]
         if parts:
-            to_remove = QgsGeometry.unaryUnion(parts)
+            to_remove = CoreUtils.union_geometries(parts)
             return original_district_geometry.difference(to_remove)
 
         return original_district_geometry

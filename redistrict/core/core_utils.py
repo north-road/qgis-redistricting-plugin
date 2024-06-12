@@ -1,21 +1,17 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Core Utilities
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+LINZ Redistricting Plugin - Core Utilities
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+from typing import List
 
-from qgis.core import (QgsVectorLayer,
-                       QgsRuleBasedLabeling,
-                       QgsVectorLayerSimpleLabeling)
+from qgis.core import (
+    Qgis,
+    QgsGeometry,
+    QgsVectorLayer,
+    QgsRuleBasedLabeling,
+    QgsVectorLayerSimpleLabeling,
+    QgsWkbTypes
+)
 
 
 class CoreUtils:
@@ -49,3 +45,22 @@ class CoreUtils:
             labeling.setSettings(settings)
 
         layer.triggerRepaint()
+
+    @staticmethod
+    def union_geometries(geometries: List[QgsGeometry]) -> QgsGeometry:
+        """
+        Unions geometries, using the optimal method available
+        """
+        if Qgis.QGIS_VERSION_INT >= 33600:
+            # use optimized GEOS coverage union method
+            # this is only possible for polygons, which should be safe to
+            # assume, unless we are running the test suite!
+            if all(g.type() == QgsWkbTypes.PolygonGeometry for g in
+                   geometries):
+                return QgsGeometry.unionCoverage(
+                    QgsGeometry.collectGeometry(geometries)
+                )
+
+        return QgsGeometry.unaryUnion(
+            geometries
+        )

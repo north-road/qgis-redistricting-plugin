@@ -7,6 +7,7 @@ from qgis.core import (QgsTask,
                        QgsFeatureRequest,
                        QgsVectorLayer,
                        QgsGeometry)
+from redistrict.core import CoreUtils
 from redistrict.linz.scenario_registry import ScenarioRegistry
 
 
@@ -178,7 +179,7 @@ class ScenarioBaseTask(QgsTask):
                                                             self.STATS_NZ_POP: params[self.STATS_NZ_POP]}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
-            electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)
+            electorate_geometry = CoreUtils.union_geometries(meshblock_parts)
             electorate_geometry = electorate_geometry.makeValid()
             if electorate_geometry.isEmpty():
                 electorate_geometry = QgsGeometry()
