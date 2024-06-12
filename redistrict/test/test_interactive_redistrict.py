@@ -190,19 +190,19 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         # mouse over a feature's interior
         point = canvas.mapSettings().mapToPixel().transform(20, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertFalse(tool.is_active)
         self.assertFalse(tool.snap_indicator.match().isValid())
         # mouse over a single feature's boundary (not valid district boundary)
         point = canvas.mapSettings().mapToPixel().transform(5, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertFalse(tool.is_active)
         self.assertFalse(tool.snap_indicator.match().isValid())
         # mouse over a two feature's boundary (valid district boundary)
         point = canvas.mapSettings().mapToPixel().transform(15, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertFalse(tool.is_active)
         self.assertTrue(tool.snap_indicator.match().isValid())
@@ -212,23 +212,23 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         # clicks to ignore
         point = canvas.mapSettings().mapToPixel().transform(10, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.MidButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.MidButton)
         tool.canvasPressEvent(event)
         self.assertFalse(tool.is_active)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.RightButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.RightButton)
         tool.canvasPressEvent(event)
         self.assertFalse(tool.is_active)
 
         # click over bad area
         point = canvas.mapSettings().mapToPixel().transform(10, 30)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertFalse(tool.is_active)
 
         # click over feature area
         layer.startEditing()
         point = canvas.mapSettings().mapToPixel().transform(10, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.click_point.x(), 10)
@@ -238,7 +238,7 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         # now move over current feature - should do nothing!
         point = canvas.mapSettings().mapToPixel().transform(10, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertTrue(tool.is_active)
         self.assertFalse(tool.modified)
@@ -246,7 +246,7 @@ class InteractiveRedistrictTest(unittest.TestCase):
         # move over other feature
         self.assertEqual(layer.getFeature(f2.id())[0], 'b')
         point = canvas.mapSettings().mapToPixel().transform(16, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.modified, {f2.id()})
@@ -255,13 +255,13 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         # move over nothing
         point = canvas.mapSettings().mapToPixel().transform(26, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.modified, {f2.id()})
 
         # left click - commit changes
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertFalse(tool.is_active)
 
@@ -273,7 +273,7 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         # now try with clicks over boundary
         point = canvas.mapSettings().mapToPixel().transform(15, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.click_point.x(), 15)
@@ -285,7 +285,7 @@ class InteractiveRedistrictTest(unittest.TestCase):
         self.assertEqual(layer.getFeature(f.id())[0], 'a')
         self.assertEqual(layer.getFeature(f2.id())[0], 'b')
         point = canvas.mapSettings().mapToPixel().transform(10, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.modified, {f.id()})
@@ -295,13 +295,13 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         # move over nothing
         point = canvas.mapSettings().mapToPixel().transform(26, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.modified, {f.id()})
 
         # right click - discard changes
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.RightButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.RightButton)
         tool.canvasPressEvent(event)
         self.assertFalse(tool.is_active)
         self.assertEqual(layer.getFeature(f.id())[0], 'a')
@@ -309,7 +309,7 @@ class InteractiveRedistrictTest(unittest.TestCase):
 
         # try again, move right
         point = canvas.mapSettings().mapToPixel().transform(15, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.click_point.x(), 15)
@@ -320,14 +320,14 @@ class InteractiveRedistrictTest(unittest.TestCase):
         self.assertEqual(layer.getFeature(f.id())[0], 'a')
         self.assertEqual(layer.getFeature(f2.id())[0], 'b')
         point = canvas.mapSettings().mapToPixel().transform(17, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(point.x(), point.y()))
+        event = QgsMapMouseEvent(canvas, QEvent.MouseMove, QPoint(int(point.x()), int(point.y())))
         tool.canvasMoveEvent(event)
         self.assertTrue(tool.is_active)
         self.assertEqual(tool.modified, {f2.id()})
         self.assertEqual(tool.current_district, 'a')
         self.assertEqual(layer.getFeature(f.id())[0], 'a')
         self.assertEqual(layer.getFeature(f2.id())[0], 'a')
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.RightButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.RightButton)
         tool.canvasPressEvent(event)
         self.assertFalse(tool.is_active)
         self.assertEqual(layer.getFeature(f.id())[0], 'a')

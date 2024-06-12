@@ -180,6 +180,8 @@ class ScenarioBaseTask(QgsTask):
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
             electorate_geometry = QgsGeometry.unaryUnion(meshblock_parts)
             electorate_geometry = electorate_geometry.makeValid()
+            if electorate_geometry.isEmpty():
+                electorate_geometry = QgsGeometry()
             electorate_geometries[electorate_feature_id] = electorate_geometry
             i += 1
 

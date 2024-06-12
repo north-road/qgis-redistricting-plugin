@@ -27,7 +27,8 @@ def make_quota_layer() -> QgsVectorLayer:
     f2.setAttributes(["GS", 60000])
     f3 = QgsFeature()
     f3.setAttributes(["M", 61000])
-    layer.dataProvider().addFeatures([f, f2, f3])
+    assert layer.dataProvider().addFeatures([f, f2, f3])
+    assert layer.featureCount() == 3
     return layer
 
 
@@ -374,7 +375,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test setting the Stats NZ stored api values for electorates
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:double&field=stats_nz_var_23:double&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "code4", "test4", 'GN', 1000, True])
@@ -382,7 +383,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         f2.setAttributes([2, "code2", "test2", 'GN', 2000, False])
         f3 = QgsFeature()
         f3.setAttributes([3, "code3", "test3", 'GN', 3000, True])
-        layer.dataProvider().addFeatures([f, f2, f3])
+        self.assertTrue(layer.dataProvider().addFeatures([f, f2, f3]))
         quota_layer = make_quota_layer()
 
         reg = LinzElectoralDistrictRegistry(
@@ -420,7 +421,7 @@ class LinzDistrictRegistryTest(unittest.TestCase):
         Test retrieving cached stats nz values
         """
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
+            "Point?crs=EPSG:4326&field=electorate_id:int&field=code:string&field=fld1:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:double&field=stats_nz_var_23:double&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes([1, "code4", "test4", 'GN', 1000, True])

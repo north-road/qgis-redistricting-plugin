@@ -1,18 +1,6 @@
-# coding=utf-8
-"""LINZ Scenario - Meshblock Bridge Test.
-
-.. note:: This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
 """
-
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+LINZ Scenario - Meshblock Bridge Test.
+"""
 
 import unittest
 from redistrict.linz.linz_mb_scenario_bridge import LinzMeshblockScenarioBridge
@@ -82,7 +70,7 @@ class ScenarioMeshblockBridgeTest(unittest.TestCase):
 
         # add change
         features = [f for f in meshblock_layer.getFeatures()]  # pylint: disable=unnecessary-comprehension
-        meshblock_layer.changeAttributeValues(features[0].id(), {1: 'c'})
+        self.assertTrue(meshblock_layer.changeAttributeValues(features[0].id(), {1: 'c'}))
         new_electorates = bridge.get_new_electorates()
         self.assertEqual(new_electorates, {0: 'c'})
         meshblock_layer.changeAttributeValues(features[0].id(), {1: 'd'})

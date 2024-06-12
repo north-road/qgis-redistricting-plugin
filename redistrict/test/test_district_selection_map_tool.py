@@ -67,7 +67,8 @@ class DistrictSelectionMapToolTest(unittest.TestCase):
 
         # point inside a feature
         point = canvas.mapSettings().mapToPixel().transform(14, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()),
+                                                                         int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertEqual(tool.get_clicked_district(), 'a')
         self.assertAlmostEqual(tool.search_rectangle().xMinimum(), 13.87, 0)
@@ -75,13 +76,13 @@ class DistrictSelectionMapToolTest(unittest.TestCase):
         self.assertAlmostEqual(tool.search_rectangle().yMinimum(), 32.87, 0)
         self.assertAlmostEqual(tool.search_rectangle().yMaximum(), 33.13, 0)
         point = canvas.mapSettings().mapToPixel().transform(16, 33)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertEqual(tool.get_clicked_district(), 'b')
 
         # outside features
         point = canvas.mapSettings().mapToPixel().transform(1, 1)
-        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(point.x(), point.y()), Qt.LeftButton)
+        event = QgsMapMouseEvent(canvas, QEvent.MouseButtonPress, QPoint(int(point.x()), int(point.y())), Qt.LeftButton)
         tool.canvasPressEvent(event)
         self.assertIsNone(tool.get_clicked_district())
 

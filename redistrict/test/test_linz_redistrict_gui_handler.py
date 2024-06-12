@@ -33,7 +33,7 @@ class LinzRedistrictingGuiHandlerTest(unittest.TestCase):
     def testShowStats(self):  # pylint: disable=too-many-statements
         """Test show stats for district"""
         layer = QgsVectorLayer(
-            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:int&field=stats_nz_var_23:int&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
+            "Point?crs=EPSG:4326&field=fld1:string&field=fld2:string&field=type:string&field=estimated_pop:int&field=deprecated:int&field=stats_nz_pop:int&field=stats_nz_var_20:double&field=stats_nz_var_23:double&field=scenario_id:int&field=electorate_id_stats:string&field=expected_regions:int",
             "source", "memory")
         f = QgsFeature()
         f.setAttributes(["test4", "xtest1", 'GN', 1000])

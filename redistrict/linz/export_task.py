@@ -122,8 +122,9 @@ class ExportTask(ScenarioBaseTask):
         if self.isCanceled():
             return False
 
+        meshblock_number_field_type = 'string' if isinstance(list(meshblock_electorates.keys())[0], str) else 'int'
         layer = QgsVectorLayer(
-            "NoGeometry?field=meshblock_number:int&field=gn_code:string&field=gs_code:string&field=m_code:string",
+            f"NoGeometry?field=meshblock_number:{meshblock_number_field_type}&field=gn_code:string&field=gs_code:string&field=m_code:string",
             "source", "memory")
         meshblock_features = []
         for meshblock_number, electorates in meshblock_electorates.items():

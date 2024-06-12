@@ -7,6 +7,7 @@ import logging
 import os
 
 from qgis.utils import iface
+from qgis.core import QgsGeometry
 
 LOGGER = logging.getLogger('QGIS')
 QGIS_APP = None  # Static variable used to hold hand to running QGIS app
@@ -105,3 +106,12 @@ def get_qgis_app(cleanup=True):
         IFACE = QgisInterface(CANVAS)
 
     return QGISAPP, CANVAS, IFACE, PARENT
+
+
+def normalized_wkt(geometry: QgsGeometry, precision: int = 17) -> str:
+    """
+    Returns the WKT of a normalized geometry
+    """
+    normalized = QgsGeometry(geometry)
+    normalized.normalize()
+    return normalized.asWkt(precision)
