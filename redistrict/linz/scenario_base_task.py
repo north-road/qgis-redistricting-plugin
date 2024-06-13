@@ -1,6 +1,7 @@
 """
 LINZ Redistricting Plugin - Scenario base task
 """
+import gc
 
 from typing import (
     Optional,
@@ -95,6 +96,7 @@ class ScenarioBaseTask(QgsTask):
         """
         super().__init__(task_name)
 
+        gc.disable()
         self.scenario = scenario
         self.electorate_layer = electorate_layer
         self.electorate_geometries = {}
@@ -181,6 +183,7 @@ class ScenarioBaseTask(QgsTask):
                                                           self.STATS_NZ_POP: stats_nz_pop}
 
         self.setDependentLayers([electorate_layer])
+        gc.enable()
 
     def store_electorate_geometry(self, electorate_id: int,
                                       geometry: QgsGeometry):
@@ -190,6 +193,7 @@ class ScenarioBaseTask(QgsTask):
         """
         Calculates the new electorate geometry and populations for the associated scenario
         """
+        gc.disable()
         self.electorate_geometries = {}
         electorate_attributes = {}
         i = 0
@@ -244,4 +248,6 @@ class ScenarioBaseTask(QgsTask):
 
         merging_thread_pool.waitForDone()
 
+        gc.enable()
+        print(timer.elapsed())
         return self.electorate_geometries, electorate_attributes
