@@ -11,7 +11,6 @@ from qgis.PyQt.QtCore import (
     QObject,
     QRunnable,
     QThreadPool,
-    QElapsedTimer,
     pyqtSlot,
     pyqtSignal
 )
@@ -52,6 +51,12 @@ class MergedGeometryWorker(QRunnable):
 
     @pyqtSlot()
     def run(self):
+        """
+        Performs the expensive geometry merging.
+
+        We can do this in a Python thread with great performance benefits,
+        because the vast bulk of this task is performed in c++...
+        """
         self.output = CoreUtils.union_geometries(
             self.geometries
         )
@@ -185,8 +190,12 @@ class ScenarioBaseTask(QgsTask):
         self.setDependentLayers([electorate_layer])
         gc.enable()
 
-    def store_electorate_geometry(self, electorate_id: int,
-                                      geometry: QgsGeometry):
+    def store_electorate_geometry(self,
+                                  electorate_id: int,
+                                  geometry: QgsGeometry):
+        """
+        Stores the result of MergedGeometryWorker
+        """
         self.electorate_geometries[electorate_id] = geometry
 
     def calculate_new_electorates(self):
@@ -197,8 +206,6 @@ class ScenarioBaseTask(QgsTask):
         self.electorate_geometries = {}
         electorate_attributes = {}
         i = 0
-        timer = QElapsedTimer()
-        timer.start()
 
         merging_thread_pool = QThreadPool()
 
@@ -249,5 +256,4 @@ class ScenarioBaseTask(QgsTask):
         merging_thread_pool.waitForDone()
 
         gc.enable()
-        print(timer.elapsed())
         return self.electorate_geometries, electorate_attributes
