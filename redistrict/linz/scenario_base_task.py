@@ -12,7 +12,8 @@ from qgis.PyQt.QtCore import (
     QRunnable,
     QThreadPool,
     pyqtSlot,
-    pyqtSignal
+    pyqtSignal,
+    QEventLoop
 )
 
 from qgis.core import (QgsTask,
@@ -210,6 +211,7 @@ class ScenarioBaseTask(QgsTask):
         merging_thread_pool = QThreadPool()
 
         workers = []
+        remaining_worker_ids = set()
         for electorate_id, params in self.electorates_to_process.items():
             if self.isCanceled():
                 raise CanceledException
@@ -246,6 +248,7 @@ class ScenarioBaseTask(QgsTask):
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
 
+            remaining_worker_ids.add(electorate_feature_id)
             merging_worker = MergedGeometryWorker(electorate_feature_id, meshblock_parts)
             workers.append(merging_worker)
             merging_worker.signals.finished.connect(self.store_electorate_geometry)
@@ -254,6 +257,16 @@ class ScenarioBaseTask(QgsTask):
             i += 1
 
         merging_thread_pool.waitForDone()
+        loop = QEventLoop()
+
+        while True:
+            if not remaining_worker_ids:
+                break
+
+            loop.processEvents()
+            remaining_worker_ids = set(r for r in remaining_worker_ids
+                                       if r not in self.electorate_geometries)
+        loop.quit()
 
         gc.enable()
         return self.electorate_geometries, electorate_attributes

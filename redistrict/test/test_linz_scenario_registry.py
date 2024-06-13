@@ -24,7 +24,9 @@ from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.scenario_switch_task import ScenarioSwitchTask
 from redistrict.linz.staged_electorate_update_task import \
     UpdateStagedElectoratesTask
-from redistrict.test.utilities import normalized_wkt
+from redistrict.test.utilities import normalized_wkt, get_qgis_app
+
+QGIS_APP = get_qgis_app()
 
 
 EMPTY_GEOMETRY_COLLECTION_WKT = QgsGeometry.fromWkt('GeometryCollection ()').asWkt()
