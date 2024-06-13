@@ -2,7 +2,19 @@
 LINZ Redistricting Plugin - Scenario base task
 """
 
-from typing import Optional
+from typing import (
+    Optional,
+    List
+)
+from qgis.PyQt.QtCore import (
+    QObject,
+    QRunnable,
+    QThreadPool,
+    QElapsedTimer,
+    pyqtSlot,
+    pyqtSignal
+)
+
 from qgis.core import (QgsTask,
                        QgsFeatureRequest,
                        QgsVectorLayer,
@@ -15,6 +27,38 @@ class CanceledException(Exception):
     """
     Triggered when task is canceled
     """
+
+
+class MergedGeometryWorkerSignals(QObject):
+    """
+    QObject for safe cross-thread communication
+    for MergedGeometryWorker
+    """
+    finished = pyqtSignal(int, QgsGeometry)
+
+
+class MergedGeometryWorker(QRunnable):
+    """
+    Worker thread which performs geometry merging
+    """
+
+    def __init__(self, worker_id: int, geometries: List[QgsGeometry]):
+        super().__init__()
+        self.worker_id = worker_id
+        self.geometries = geometries
+        self.output: Optional[QgsGeometry] = None
+        self.signals = MergedGeometryWorkerSignals()
+
+    @pyqtSlot()
+    def run(self):
+        self.output = CoreUtils.union_geometries(
+            self.geometries
+        )
+        self.output.makeValid()
+        if self.output.isEmpty():
+            self.output = QgsGeometry()
+        self.signals.finished.emit(
+            self.worker_id, self.output)
 
 
 class ScenarioBaseTask(QgsTask):
@@ -53,6 +97,7 @@ class ScenarioBaseTask(QgsTask):
 
         self.scenario = scenario
         self.electorate_layer = electorate_layer
+        self.electorate_geometries = {}
         self.task = task
 
         self.type_idx = electorate_layer.fields().lookupField('type')
@@ -137,13 +182,23 @@ class ScenarioBaseTask(QgsTask):
 
         self.setDependentLayers([electorate_layer])
 
+    def store_electorate_geometry(self, electorate_id: int,
+                                      geometry: QgsGeometry):
+        self.electorate_geometries[electorate_id] = geometry
+
     def calculate_new_electorates(self):
         """
         Calculates the new electorate geometry and populations for the associated scenario
         """
-        electorate_geometries = {}
+        self.electorate_geometries = {}
         electorate_attributes = {}
         i = 0
+        timer = QElapsedTimer()
+        timer.start()
+
+        merging_thread_pool = QThreadPool()
+
+        workers = []
         for electorate_id, params in self.electorates_to_process.items():
             if self.isCanceled():
                 raise CanceledException
@@ -179,11 +234,14 @@ class ScenarioBaseTask(QgsTask):
                                                             self.STATS_NZ_POP: params[self.STATS_NZ_POP]}
 
             meshblock_parts = [m.geometry() for m in matching_meshblocks]
-            electorate_geometry = CoreUtils.union_geometries(meshblock_parts)
-            electorate_geometry = electorate_geometry.makeValid()
-            if electorate_geometry.isEmpty():
-                electorate_geometry = QgsGeometry()
-            electorate_geometries[electorate_feature_id] = electorate_geometry
+
+            merging_worker = MergedGeometryWorker(electorate_feature_id, meshblock_parts)
+            workers.append(merging_worker)
+            merging_worker.signals.finished.connect(self.store_electorate_geometry)
+            merging_thread_pool.start(merging_worker)
+
             i += 1
 
-        return electorate_geometries, electorate_attributes
+        merging_thread_pool.waitForDone()
+
+        return self.electorate_geometries, electorate_attributes
