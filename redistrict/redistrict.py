@@ -995,6 +995,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         if description is None:
             description = self.tr('Preparing switch...')
 
+        for canvas in self.iface.mapCanvases():
+            canvas.freeze(True)
+
         progress_dialog = BlockingDialog(title, description)
         progress_dialog.force_show_and_paint()
 
@@ -1019,6 +1022,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             Reenables the disabled menu actions
             """
             self.enable_task_switches(True)
+            for canvas in self.iface.mapCanvases():
+                canvas.freeze(False)
 
         self.staged_task.taskCompleted.connect(
             partial(self.report_success, self.tr('Successfully switched to “{}”').format(scenario_name)))
