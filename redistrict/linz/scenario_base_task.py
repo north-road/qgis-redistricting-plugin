@@ -197,7 +197,7 @@ class ScenarioBaseTask(QgsTask):
         """
         Stores the result of MergedGeometryWorker
         """
-        self.electorate_geometries[electorate_id] = geometry
+        self.electorate_geometries[electorate_id] = QgsGeometry(geometry)
 
     def calculate_new_electorates(self):
         """
