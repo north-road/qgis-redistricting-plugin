@@ -643,7 +643,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.simplified_toolbar.deleteLater()
             self.simplified_toolbar = None
 
-
     def toggle_redistrict_actions(self):
         """
         Updates the enabled status of redistricting actions based
