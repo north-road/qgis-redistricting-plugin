@@ -1966,7 +1966,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
             self.iface.addToolBar(self.simplified_toolbar)
             GuiUtils.float_toolbar_over_widget(self.simplified_toolbar,
-                                               self.iface.mapCanvas())
+                                               self.iface.mapCanvas(),
+                                               offset_y=-30)
 
     def show_help(self):
         """
