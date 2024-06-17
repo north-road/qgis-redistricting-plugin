@@ -2032,8 +2032,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 self.iface.actionZoomToSelected()
             )
 
-            self.simplified_toolbar.addAction(
-                self._exit_simplified_action)
+            settings_action = QToolButton(self.simplified_toolbar)
+            settings_action.setPopupMode(
+                QToolButton.ToolButtonPopupMode.InstantPopup)
+            settings_action.setIcon(GuiUtils.get_icon(
+            'open_settings.svg'))
+            self.simplified_toolbar.addWidget(settings_action)
+            settings_menu = QMenu(settings_action)
+            settings_menu.addAction(self.begin_action)
+            settings_menu.addMenu(self.switch_menu)
+            settings_menu.addSeparator()
+            settings_menu.addAction(self._exit_simplified_action)
+
+            settings_action.setMenu(settings_menu)
 
             self.iface.addToolBar(self.simplified_toolbar)
             GuiUtils.float_toolbar_over_widget(self.simplified_toolbar,
