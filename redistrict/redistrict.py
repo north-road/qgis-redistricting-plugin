@@ -6,7 +6,10 @@ LINZ Redistricting Plugin
 
 import os.path
 from functools import partial
-from typing import Optional
+from typing import (
+    Optional,
+    List
+)
 from qgis.PyQt import sip
 from qgis.PyQt.QtCore import (QObject,
                               Qt,
@@ -20,13 +23,16 @@ from qgis.PyQt.QtGui import (
     QDesktopServices,
     QKeySequence
 )
-from qgis.PyQt.QtWidgets import (QToolBar,
-                                 QAction,
-                                 QMessageBox,
-                                 QToolButton,
-                                 QMenu,
-                                 QFileDialog,
-                                 QShortcut)
+from qgis.PyQt.QtWidgets import (
+    QToolBar,
+    QAction,
+    QMessageBox,
+    QToolButton,
+    QMenu,
+    QFileDialog,
+    QShortcut,
+    QDockWidget
+)
 from qgis.core import (NULL,
                        QgsMessageLog,
                        QgsApplication,
@@ -38,9 +44,12 @@ from qgis.core import (NULL,
                        QgsSettings,
                        QgsTask,
                        QgsProviderRegistry)
-from qgis.gui import (QgisInterface,
-                      QgsMapTool,
-                      QgsNewNameDialog)
+from qgis.gui import (
+    QgisInterface,
+    QgsMapTool,
+    QgsNewNameDialog,
+    QgsMapCanvas
+)
 from .linz.linz_district_registry import (
     LinzElectoralDistrictRegistry)
 from .linz.linz_redistrict_handler import LinzRedistrictHandler
@@ -143,7 +152,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.rebuild_action = None
         self.export_action = None
         self.toggle_simplified_mode_action: Optional[QShortcut] = None
+        self.simplified_toolbar: Optional[QToolBar] = None
         self._was_maximized = False
+        self._previously_visible_toolbars: List[QToolBar] = []
+        self._previously_visible_docks: List[QDockWidget] = []
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -609,6 +621,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         if self.toggle_simplified_mode_action and not sip.isdeleted(self.toggle_simplified_mode_action):
             self.toggle_simplified_mode_action.deleteLater()
             self.toggle_simplified_mode_action = None
+        if self.simplified_toolbar and not sip.isdeleted(self.simplified_toolbar):
+            self.simplified_toolbar.deleteLater()
+            self.simplified_toolbar = None
 
     def toggle_redistrict_actions(self):
         """
@@ -1870,10 +1885,70 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             if self._was_maximized:
                 self.iface.mainWindow().showMaximized()
             self.iface.mainWindow().menuBar().show()
+            if self.simplified_toolbar and not sip.isdeleted(
+                    self.simplified_toolbar):
+                self.simplified_toolbar.deleteLater()
+                self.simplified_toolbar = None
+            for toolbar in self._previously_visible_toolbars:
+                toolbar.show()
+            for dock in self._previously_visible_docks:
+                dock.show()
         else:
             self._was_maximized = self.iface.mainWindow().isMaximized()
+
+            self._previously_visible_toolbars = []
+            for toolbar in self.iface.mainWindow().findChildren(QToolBar):
+                if toolbar.isVisible():
+                    self._previously_visible_toolbars.append(toolbar)
+                    toolbar.hide()
+
+            self._previously_visible_docks = []
+            for dock in self.iface.mainWindow().findChildren(QDockWidget):
+                if dock.objectName() in ('Layers',
+                                         'IdentifyResultsDock'):
+                    continue
+
+                # maybe a secondary canvas
+                if dock.findChildren(QgsMapCanvas):
+                    continue
+
+                print(dock.objectName())
+
+                if dock.isVisible():
+                    self._previously_visible_docks.append(dock)
+                    dock.hide()
+
             self.iface.mainWindow().showFullScreen()
             self.iface.mainWindow().menuBar().hide()
+
+            self.simplified_toolbar = QToolBar()
+            self.simplified_toolbar.setIconSize(
+                self.iface.iconSize() * 1.4
+            )
+            self.simplified_toolbar.setObjectName('Simplified Redistricting')
+
+            self.simplified_toolbar.addAction(
+                self.iface.actionSaveProject()
+            )
+            self.simplified_toolbar.addAction(
+                self.iface.actionIdentify()
+            )
+            self.simplified_toolbar.addAction(
+                self.iface.actionMeasure()
+            )
+            self.simplified_toolbar.addAction(
+                self.iface.actionPan()
+            )
+            self.simplified_toolbar.addAction(
+                self.iface.actionZoomFullExtent()
+            )
+            self.simplified_toolbar.addAction(
+                self.iface.actionZoomToSelected()
+            )
+
+            self.iface.addToolBar(self.simplified_toolbar)
+            GuiUtils.float_toolbar_over_widget(self.simplified_toolbar,
+                                               self.iface.mapCanvas())
 
     def show_help(self):
         """
