@@ -2018,6 +2018,32 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.simplified_toolbar.addAction(
                 self.iface.actionIdentify()
             )
+
+            select_button = QToolButton(self.simplified_toolbar)
+            select_button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+            select_button.addAction(self.iface.actionSelect())
+            select_button.addAction(self.iface.actionSelectPolygon())
+            select_button.addAction(self.iface.actionSelectFreehand())
+            select_button.addAction(self.iface.actionSelectRadius())
+            for a in ('mActionSelectByForm',
+                      'mActionSelectByExpression',
+                      'mActionDeselectAll',
+                      'mProcessingAlg_native:selectbylocation'):
+                matches = self.iface.mainWindow().findChildren(QAction,
+                                                         a)
+                if not matches:
+                    continue
+                select_button.addAction(matches[0])
+
+            select_button.setDefaultAction(self.iface.actionSelect())
+
+            def _select_button_triggered(action):
+                select_button.setDefaultAction(action)
+
+            select_button.triggered.connect(_select_button_triggered)
+            self.simplified_toolbar.addWidget(select_button)
+
+
             self.simplified_toolbar.addAction(
                 self.iface.actionMeasure()
             )
