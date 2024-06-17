@@ -1869,9 +1869,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.iface.mainWindow().showNormal()
             if self._was_maximized:
                 self.iface.mainWindow().showMaximized()
+            self.iface.mainWindow().menuBar().show()
         else:
             self._was_maximized = self.iface.mainWindow().isMaximized()
             self.iface.mainWindow().showFullScreen()
+            self.iface.mainWindow().menuBar().hide()
 
     def show_help(self):
         """
