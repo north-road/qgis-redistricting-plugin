@@ -16,13 +16,17 @@ from qgis.PyQt.QtCore import (QObject,
                               QSettings,
                               QTranslator,
                               QCoreApplication)
-from qgis.PyQt.QtGui import QDesktopServices
+from qgis.PyQt.QtGui import (
+    QDesktopServices,
+    QKeySequence
+)
 from qgis.PyQt.QtWidgets import (QToolBar,
                                  QAction,
                                  QMessageBox,
                                  QToolButton,
                                  QMenu,
-                                 QFileDialog)
+                                 QFileDialog,
+                                 QShortcut)
 from qgis.core import (NULL,
                        QgsMessageLog,
                        QgsApplication,
@@ -138,6 +142,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.database_menu = None
         self.rebuild_action = None
         self.export_action = None
+        self.toggle_simplified_mode_action: Optional[QShortcut] = None
+        self._was_maximized = False
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -236,6 +242,12 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.redistricting_menu.addAction(about_action)
 
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
+
+        self.toggle_simplified_mode_action = QShortcut(
+            QKeySequence('Alt+F11'), self.iface.mainWindow(),
+            context=Qt.WindowShortcut)
+        self.toggle_simplified_mode_action.setObjectName('Show simplified')
+        self.toggle_simplified_mode_action.activated.connect(self._toggle_simplified)
 
     def create_redistricting_ui(self):  # pylint: disable=too-many-statements,too-many-locals
         """
@@ -594,6 +606,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.redistricting_menu.deleteLater()
         if self.tool is not None:
             self.tool.deleteLater()
+        if self.toggle_simplified_mode_action and not sip.isdeleted(self.toggle_simplified_mode_action):
+            self.toggle_simplified_mode_action.deleteLater()
+            self.toggle_simplified_mode_action = None
 
     def toggle_redistrict_actions(self):
         """
@@ -1848,6 +1863,15 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                      })
         self.refresh_dock_stats()
         self.refresh_canvases()
+
+    def _toggle_simplified(self):
+        if self.iface.mainWindow().isFullScreen():
+            self.iface.mainWindow().showNormal()
+            if self._was_maximized:
+                self.iface.mainWindow().showMaximized()
+        else:
+            self._was_maximized = self.iface.mainWindow().isMaximized()
+            self.iface.mainWindow().showFullScreen()
 
     def show_help(self):
         """
