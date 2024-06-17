@@ -2015,6 +2015,17 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.simplified_toolbar.addAction(
                 self.iface.actionSaveProject()
             )
+            self.simplified_toolbar.addSeparator()
+            self.simplified_toolbar.addAction(
+                self.iface.actionPan()
+            )
+            self.simplified_toolbar.addAction(
+                self.iface.actionZoomToSelected()
+            )
+            self.simplified_toolbar.addAction(
+                self.iface.actionZoomFullExtent()
+            )
+            self.simplified_toolbar.addSeparator()
             self.simplified_toolbar.addAction(
                 self.iface.actionIdentify()
             )
@@ -2043,19 +2054,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             select_button.triggered.connect(_select_button_triggered)
             self.simplified_toolbar.addWidget(select_button)
 
-
             self.simplified_toolbar.addAction(
                 self.iface.actionMeasure()
             )
-            self.simplified_toolbar.addAction(
-                self.iface.actionPan()
-            )
-            self.simplified_toolbar.addAction(
-                self.iface.actionZoomFullExtent()
-            )
-            self.simplified_toolbar.addAction(
-                self.iface.actionZoomToSelected()
-            )
+
+            self.simplified_toolbar.addSeparator()
 
             settings_action = QToolButton(self.simplified_toolbar)
             settings_action.setPopupMode(
