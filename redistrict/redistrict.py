@@ -1905,14 +1905,15 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self._previously_visible_docks = []
             for dock in self.iface.mainWindow().findChildren(QDockWidget):
                 if dock.objectName() in ('Layers',
-                                         'IdentifyResultsDock'):
+                                         'IdentifyResultsDock',
+                                         'SelectedPopulationDockWidget',
+                                         'LinzRedistrictingDock',
+                                         'LinzValidationResultsDock'):
                     continue
 
                 # maybe a secondary canvas
                 if dock.findChildren(QgsMapCanvas):
                     continue
-
-                print(dock.objectName())
 
                 if dock.isVisible():
                     self._previously_visible_docks.append(dock)
