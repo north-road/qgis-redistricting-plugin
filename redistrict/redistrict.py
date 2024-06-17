@@ -1884,7 +1884,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.refresh_dock_stats()
         self.refresh_canvases()
 
-    def _toggle_simplified(self):
+    def _toggle_simplified(self):  # pylint: disable=too-many-branches
+        """
+        Toggles the simplified redistricting interface
+        """
         if self.iface.mainWindow().isFullScreen():
             self.iface.mainWindow().showNormal()
             if self._was_maximized:
