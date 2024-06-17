@@ -31,7 +31,9 @@ from qgis.PyQt.QtWidgets import (
     QMenu,
     QFileDialog,
     QShortcut,
-    QDockWidget
+    QDockWidget,
+    QWidget,
+    QLineEdit
 )
 from qgis.core import (NULL,
                        QgsMessageLog,
@@ -158,6 +160,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self._was_maximized = False
         self._previously_visible_toolbars: List[QToolBar] = []
         self._previously_visible_docks: List[QDockWidget] = []
+        self._previously_visible_statusbar_widgets: List[QWidget] = []
 
         self.is_redistricting = False
         self.electorate_layer = None
@@ -1895,6 +1898,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 toolbar.show()
             for dock in self._previously_visible_docks:
                 dock.show()
+            for widget in self._previously_visible_statusbar_widgets:
+                widget.show()
 
             if self.redistricting_toolbar:
                 self.redistricting_toolbar.setIconSize(
@@ -1929,6 +1934,24 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 if dock.isVisible():
                     self._previously_visible_docks.append(dock)
                     dock.hide()
+
+            self._previously_visible_statusbar_widgets = []
+            for widget in self.iface.statusBarIface().children():
+                if not isinstance(widget, QWidget):
+                    continue
+
+                if widget.objectName() in ('mProgressBar',
+                                          'mMessageLogViewerButton'):
+                    continue
+
+                # ensure task manager stays visible
+                if (isinstance(widget, (QLineEdit, QToolButton)) and
+                        widget.objectName() not in ('mOntheFlyProjectionStatusButton', )):
+                    continue
+
+                if widget.isVisible():
+                    self._previously_visible_statusbar_widgets.append(widget)
+                    widget.hide()
 
             self.iface.mainWindow().showFullScreen()
             self.iface.mainWindow().menuBar().hide()
