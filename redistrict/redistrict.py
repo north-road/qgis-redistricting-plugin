@@ -159,7 +159,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.toggle_simplified_mode_action: Optional[QShortcut] = None
         self.simplified_toolbar: Optional[QToolBar] = None
         self._exit_simplified_action: Optional[QAction] = None
-        self._was_maximized = False
+        self._is_simplified = False
         self._previously_visible_toolbars: List[QToolBar] = []
         self._previously_visible_docks: List[QDockWidget] = []
         self._previously_visible_statusbar_widgets: List[QWidget] = []
@@ -271,7 +271,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.iface.mainWindow().menuBar().addMenu(self.redistricting_menu)
 
         self.toggle_simplified_mode_action = QShortcut(
-            QKeySequence('Alt+F11'), self.iface.mainWindow(),
+            QKeySequence('Alt+F10'), self.iface.mainWindow(),
             context=Qt.WindowShortcut)
         self.toggle_simplified_mode_action.setObjectName('Show simplified')
         self.toggle_simplified_mode_action.activated.connect(self._toggle_simplified)
@@ -1913,10 +1913,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         Toggles the simplified redistricting interface
         """
-        if self.iface.mainWindow().isFullScreen():
-            self.iface.mainWindow().showNormal()
-            if self._was_maximized:
-                self.iface.mainWindow().showMaximized()
+        if self._is_simplified:
             self.iface.mainWindow().menuBar().show()
             if self.simplified_toolbar and not sip.isdeleted(
                     self.simplified_toolbar):
@@ -1941,9 +1938,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                     self.iface.iconSize()
                 )
                 self.redistricting_toolbar.adjustSize()
+            self._is_simplified = False
         else:
-            self._was_maximized = self.iface.mainWindow().isMaximized()
-
             self._previously_visible_toolbars = []
             for toolbar in self.iface.mainWindow().findChildren(QToolBar,
                                                                 options=Qt.FindDirectChildrenOnly):
@@ -1991,7 +1987,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                     self._previously_visible_statusbar_widgets.append(widget)
                     widget.hide()
 
-            self.iface.mainWindow().showFullScreen()
             self.iface.mainWindow().menuBar().hide()
 
             self._exit_simplified_action = QAction(GuiUtils.get_icon(
@@ -2078,6 +2073,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             GuiUtils.float_toolbar_over_widget(self.simplified_toolbar,
                                                self.iface.mapCanvas(),
                                                offset_y=-30)
+            self._is_simplified = True
 
     def show_help(self):
         """
