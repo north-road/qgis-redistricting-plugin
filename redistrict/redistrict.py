@@ -436,6 +436,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.set_task(QgsSettings().value('redistricting/last_task', self.TASK_GN))
 
+    # pylint: disable=too-many-branches,too-many-return-statements
     def begin_redistricting(self, checked):
         """
         Starts the redistricting operation, opening toolbars and docks as needed
@@ -459,23 +460,60 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         try:
             self.electorate_layer = QgsProject.instance().mapLayersByName(
                 'Electorates')[0]
-            try:
-                self.electorate_layer_labels = QgsProject.instance().mapLayersByName(
-                    'Electorate Names and Stats')[0]
-            except IndexError:
-                pass
+        except IndexError:
+            self.report_failure(self.tr(
+                'Cannot find "Electorates" layer - please open the redistricting project first'))
+            self.begin_action.setChecked(False)
+            return
+
+        try:
+            self.electorate_layer_labels = QgsProject.instance().mapLayersByName(
+                'Electorate Names and Stats')[0]
+        except IndexError:
+            pass
+
+        try:
             self.meshblock_layer = QgsProject.instance().mapLayersByName(
                 'Meshblocks')[0]
+        except IndexError:
+            self.report_failure(self.tr(
+                'Cannot find "Meshblocks" layer - please open the redistricting project first'))
+            self.begin_action.setChecked(False)
+            return
+
+        try:
             self.quota_layer = QgsProject.instance().mapLayersByName(
                 'quotas')[0]
+        except IndexError:
+            self.report_failure(self.tr(
+                'Cannot find "quotas" layer - please open the redistricting project first'))
+            self.begin_action.setChecked(False)
+            return
+
+        try:
             self.scenario_layer = QgsProject.instance().mapLayersByName(
                 'scenarios')[0]
+        except IndexError:
+            self.report_failure(self.tr(
+                'Cannot find "scenarios" layer - please open the redistricting project first'))
+            self.begin_action.setChecked(False)
+            return
+
+        try:
             self.meshblock_electorate_layer = QgsProject.instance().mapLayersByName(
                 'meshblock_electorates')[0]
+        except IndexError:
+            self.report_failure(self.tr(
+                'Cannot find "meshblock_electorates" layer - please open the redistricting project first'))
+            self.begin_action.setChecked(False)
+            return
+
+        try:
             self.user_log_layer = QgsProject.instance().mapLayersByName(
                 'user_log')[0]
         except IndexError:
-            self.report_failure(self.tr('Cannot find map layers - please open the redistricting project first'))
+            self.report_failure(self.tr(
+                'Cannot find "user_log" layer - please open the redistricting project first'))
             self.begin_action.setChecked(False)
             return
 
@@ -539,6 +577,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.electorate_edit_queue.clear)
         self.meshblock_layer.beforeRollBack.connect(
             self.electorate_edit_queue.rollback)
+
+    # pylint: enable=too-many-branches,too-many-return-statements
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

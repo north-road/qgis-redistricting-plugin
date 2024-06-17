@@ -199,7 +199,7 @@ class ScenarioBaseTask(QgsTask):
         """
         self.electorate_geometries[electorate_id] = QgsGeometry(geometry)
 
-    def calculate_new_electorates(self):
+    def calculate_new_electorates(self):  # pylint: disable=too-many-locals
         """
         Calculates the new electorate geometry and populations for the associated scenario
         """
