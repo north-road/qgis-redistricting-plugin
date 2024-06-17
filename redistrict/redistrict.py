@@ -98,6 +98,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
     USE_2018_MESHBLOCKS = False
 
+    SIMPLIFIED_MODE_TOOLBAR_SCALE = 1.4
+
     def __init__(self, iface: QgisInterface):  # pylint: disable=too-many-statements
         """Constructor.
 
@@ -1893,11 +1895,20 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 toolbar.show()
             for dock in self._previously_visible_docks:
                 dock.show()
+
+            if self.redistricting_toolbar:
+                self.redistricting_toolbar.setIconSize(
+                    self.iface.iconSize()
+                )
+                self.redistricting_toolbar.adjustSize()
         else:
             self._was_maximized = self.iface.mainWindow().isMaximized()
 
             self._previously_visible_toolbars = []
             for toolbar in self.iface.mainWindow().findChildren(QToolBar):
+                if toolbar in (self.redistricting_toolbar,):
+                    continue
+
                 if toolbar.isVisible():
                     self._previously_visible_toolbars.append(toolbar)
                     toolbar.hide()
@@ -1924,8 +1935,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
             self.simplified_toolbar = QToolBar()
             self.simplified_toolbar.setIconSize(
-                self.iface.iconSize() * 1.4
+                self.iface.iconSize() * self.SIMPLIFIED_MODE_TOOLBAR_SCALE
             )
+            if self.redistricting_toolbar:
+                self.redistricting_toolbar.setIconSize(
+                    self.iface.iconSize() * self.SIMPLIFIED_MODE_TOOLBAR_SCALE
+                )
+                self.redistricting_toolbar.adjustSize()
+
             self.simplified_toolbar.setObjectName('Simplified Redistricting')
 
             self.simplified_toolbar.addAction(
