@@ -129,6 +129,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         self.redistricting_menu = None
         self.redistricting_toolbar = None
+        self._enter_simplified_action: Optional[QAction] = None
         self.open_settings_action = None
         self.interactive_redistrict_action = None
         self.redistrict_selected_action = None
@@ -157,6 +158,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.export_action = None
         self.toggle_simplified_mode_action: Optional[QShortcut] = None
         self.simplified_toolbar: Optional[QToolBar] = None
+        self._exit_simplified_action: Optional[QAction] = None
         self._was_maximized = False
         self._previously_visible_toolbars: List[QToolBar] = []
         self._previously_visible_docks: List[QDockWidget] = []
@@ -240,6 +242,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.redistricting_menu.addMenu(self.switch_menu)
 
         self.redistricting_menu.addSeparator()
+        self._enter_simplified_action = QAction(
+            self.tr('Simplified Mode')
+        )
+        self._enter_simplified_action.triggered.connect(
+            self._toggle_simplified)
+        self.redistricting_menu.addAction(
+            self._enter_simplified_action)
+
         self.open_settings_action = QAction(GuiUtils.get_icon(
             'open_settings.svg'), self.tr('Settings...'))
         self.open_settings_action.triggered.connect(
@@ -626,9 +636,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         if self.toggle_simplified_mode_action and not sip.isdeleted(self.toggle_simplified_mode_action):
             self.toggle_simplified_mode_action.deleteLater()
             self.toggle_simplified_mode_action = None
+        if self._enter_simplified_action and not sip.isdeleted(self._enter_simplified_action):
+            self._enter_simplified_action.deleteLater()
+            self._enter_simplified_action = None
         if self.simplified_toolbar and not sip.isdeleted(self.simplified_toolbar):
             self.simplified_toolbar.deleteLater()
             self.simplified_toolbar = None
+
 
     def toggle_redistrict_actions(self):
         """
@@ -1916,6 +1930,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             for widget in self._previously_visible_statusbar_widgets:
                 widget.show()
 
+            if self._exit_simplified_action and not sip.isdeleted(
+                    self._exit_simplified_action):
+                self._exit_simplified_action.deleteLater()
+                self._exit_simplified_action = None
+
             self._toggle_layer_tree_toolbar(True)
 
             if self.redistricting_toolbar:
@@ -1976,6 +1995,12 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.iface.mainWindow().showFullScreen()
             self.iface.mainWindow().menuBar().hide()
 
+            self._exit_simplified_action = QAction(GuiUtils.get_icon(
+                'full_interface.svg'), self.tr('Exit Simplified Mode'),
+                self.simplified_toolbar)
+            self._exit_simplified_action.triggered.connect(
+                self._toggle_simplified)
+
             self.simplified_toolbar = QToolBar()
             self.simplified_toolbar.setIconSize(
                 self.iface.iconSize() * self.SIMPLIFIED_MODE_TOOLBAR_SCALE
@@ -2006,6 +2031,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self.simplified_toolbar.addAction(
                 self.iface.actionZoomToSelected()
             )
+
+            self.simplified_toolbar.addAction(
+                self._exit_simplified_action)
 
             self.iface.addToolBar(self.simplified_toolbar)
             GuiUtils.float_toolbar_over_widget(self.simplified_toolbar,
