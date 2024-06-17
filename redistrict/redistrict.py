@@ -1884,6 +1884,18 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.refresh_dock_stats()
         self.refresh_canvases()
 
+    def _toggle_layer_tree_toolbar(self, visible: bool):
+        """
+        Toggles whether the layer tree toolbar should be visible
+        """
+        layer_tree_dock = self.iface.mainWindow().findChildren(
+            QDockWidget,
+            'Layers')
+        if layer_tree_dock:
+            layer_tree_dock_toolbar = \
+                layer_tree_dock[0].findChildren(QToolBar)[0]
+            layer_tree_dock_toolbar.setVisible(visible)
+
     def _toggle_simplified(self):  # pylint: disable=too-many-branches
         """
         Toggles the simplified redistricting interface
@@ -1904,6 +1916,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             for widget in self._previously_visible_statusbar_widgets:
                 widget.show()
 
+            self._toggle_layer_tree_toolbar(True)
+
             if self.redistricting_toolbar:
                 self.redistricting_toolbar.setIconSize(
                     self.iface.iconSize()
@@ -1913,13 +1927,16 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             self._was_maximized = self.iface.mainWindow().isMaximized()
 
             self._previously_visible_toolbars = []
-            for toolbar in self.iface.mainWindow().findChildren(QToolBar):
+            for toolbar in self.iface.mainWindow().findChildren(QToolBar,
+                                                                options=Qt.FindDirectChildrenOnly):
                 if toolbar in (self.redistricting_toolbar,):
                     continue
 
                 if toolbar.isVisible():
                     self._previously_visible_toolbars.append(toolbar)
                     toolbar.hide()
+
+            self._toggle_layer_tree_toolbar(False)
 
             self._previously_visible_docks = []
             for dock in self.iface.mainWindow().findChildren(QDockWidget):
