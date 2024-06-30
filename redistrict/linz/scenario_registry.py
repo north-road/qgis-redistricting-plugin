@@ -3,7 +3,11 @@ LINZ Redistricting Plugin - Scenario registry
 """
 
 from collections import OrderedDict
-from typing import Optional
+from typing import (
+    List,
+    Optional
+)
+
 from qgis.PyQt.QtCore import (
     QCoreApplication,
     QDateTime
@@ -269,6 +273,18 @@ class ScenarioRegistry():
 
         request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', scenario_id))
         request.combineFilterExpression(QgsExpression.createFieldEqualityExpression(type_field, electorate_id))
+
+        return self.meshblock_electorate_layer.getFeatures(request)
+
+    def meshblocks_for_scenarios(self, scenario_ids: List[int]) -> QgsFeatureIterator:
+        """
+        Returns an iterator for meshblock_electorate features which match any of the specified scenarios
+        :param scenario_ids: target scenario ids
+        """
+        request = QgsFeatureRequest()
+
+        scenario_ids_str = ','.join([str(_id) for _id in scenario_ids])
+        request.setFilterExpression(f'scenario_id IN ({scenario_ids_str})')
 
         return self.meshblock_electorate_layer.getFeatures(request)
 
