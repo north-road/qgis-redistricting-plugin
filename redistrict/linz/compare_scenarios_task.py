@@ -1,8 +1,9 @@
 """
 Compare scenarios task
 """
+from typing import Optional
+
 from qgis.PyQt.QtCore import QVariant
-from qgis._core import QgsFeature
 
 from qgis.core import (
     QgsTask,
@@ -12,7 +13,8 @@ from qgis.core import (
     QgsMemoryProviderUtils,
     QgsFields,
     QgsField,
-    QgsFeatureSink
+    QgsFeatureSink,
+    QgsFeature
 )
 from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.nz_electoral_api import ConcordanceItem
@@ -94,6 +96,7 @@ class CompareScenariosTask(QgsTask):
 
         self._base_scenario_name = scenario_registry.get_scenario_name(self._base_scenario_id)
         self._secondary_scenario_name = scenario_registry.get_scenario_name(self._secondary_scenario_id)
+        self.changed_meshblocks_layer: Optional[QgsVectorLayer] = None
 
     def run(self):  # pylint: disable=missing-docstring
 
