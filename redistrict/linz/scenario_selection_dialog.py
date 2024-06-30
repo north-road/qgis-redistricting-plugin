@@ -1,26 +1,15 @@
-# -*- coding: utf-8 -*-
-"""LINZ Redistricting Plugin - Scenario selection dialog
-
-.. note:: This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+"""
+Scenario selection dialog
 """
 
-__author__ = '(C) 2018 by Nyall Dawson'
-__date__ = '20/04/2018'
-__copyright__ = 'Copyright 2018, LINZ'
-# This will get replaced with a git SHA1 when you do a git archive
-__revision__ = '$Format:%H$'
+from typing import Optional
 
-from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (QDialog,
                                  QDialogButtonBox,
-                                 QListWidget,
-                                 QListWidgetItem,
                                  QVBoxLayout)
-from qgis.gui import QgsFilterLineEdit
+
 from redistrict.linz.scenario_registry import ScenarioRegistry
+from redistrict.linz.scenario_selection_widget import ScenarioSelectionWidget
 
 
 class ScenarioSelectionDialog(QDialog):
@@ -42,19 +31,8 @@ class ScenarioSelectionDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        self.search = QgsFilterLineEdit()
-        self.search.setShowSearchIcon(True)
-        self.search.setPlaceholderText(self.tr('Search for scenario'))
-        self.search.textChanged.connect(self.filter_changed)
-        layout.addWidget(self.search)
-
-        self.list = QListWidget()
-        for title, scenario_id in scenario_registry.scenario_titles().items():
-            item = QListWidgetItem(title)
-            item.setData(Qt.UserRole, scenario_id)
-            self.list.addItem(item)
-
-        layout.addWidget(self.list, 10)
+        self.selection_widget = ScenarioSelectionWidget(scenario_registry)
+        layout.addWidget(self.selection_widget, stretch=10)
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -64,36 +42,18 @@ class ScenarioSelectionDialog(QDialog):
 
         self.setLayout(layout)
 
-        self.list.itemDoubleClicked.connect(
+        self.selection_widget.scenario_double_clicked.connect(
             self.accept)
 
-        # select last scenario by default
-        if self.list.count() > 0:
-            self.list.item(self.list.count() - 1).setSelected(True)
-
-    def set_selected_scenario(self, scenario):
+    def set_selected_scenario(self, scenario: int):
         """
         Sets the scenario selected in the dialog
         :param scenario: scenario to select
         """
-        for i in range(self.list.count()):
-            if self.list.item(i).data(Qt.UserRole) == scenario:
-                self.list.item(i).setSelected(True)
-                return
+        self.selection_widget.set_selected_scenario(scenario)
 
-    def selected_scenario(self):
+    def selected_scenario(self) -> Optional[int]:
         """
         Returns the scenario selected in the dialog
         """
-        if self.list.selectedItems():
-            return self.list.selectedItems()[0].data(Qt.UserRole)
-
-        return None
-
-    def filter_changed(self, filter_text):
-        """
-        Handles search filter changes
-        """
-        for i in range(self.list.count()):
-            item = self.list.item(i)
-            item.setHidden(filter_text.upper() not in item.text().upper())
+        return self.selection_widget.selected_scenario()
