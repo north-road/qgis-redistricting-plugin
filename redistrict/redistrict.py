@@ -11,14 +11,17 @@ from typing import (
     List
 )
 from qgis.PyQt import sip
-from qgis.PyQt.QtCore import (QObject,
-                              Qt,
-                              QUrl,
-                              QDir,
-                              QFile,
-                              QSettings,
-                              QTranslator,
-                              QCoreApplication)
+from qgis.PyQt.QtCore import (
+    QObject,
+    Qt,
+    QUrl,
+    QDir,
+    QFile,
+    QSettings,
+    QTranslator,
+    QCoreApplication,
+    QThread
+)
 from qgis.PyQt.QtGui import (
     QDesktopServices,
     QKeySequence
@@ -86,6 +89,8 @@ from .linz.nz_electoral_api import ConcordanceItem, BoundaryRequest, get_api_con
 from .linz.api_request_queue import ApiRequestQueue
 from .linz.electorate_changes_queue import ElectorateEditQueue
 from .linz.population_dock_widget import SelectedPopulationDockWidget
+from .linz.compare_scenarios_task import CompareScenariosTask
+
 
 VERSION = '0.1'
 
@@ -184,6 +189,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.staged_task = None
         self.validation_task = None
         self.export_task = None
+        self.compare_task = None
         self.progress_item = None
         self.switch_menu = None
         self.selected_population_dock = None
@@ -1252,6 +1258,53 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         else:
             self.report_success(
                 self.tr('Successfully imported “{}” to “{}”').format(source_scenario_name, new_scenario_name))
+
+    def compare_scenarios(self):
+        """
+        Allows user to compare two scenarios
+        """
+        dlg = ScenarioComparisonDialog(scenario_registry=self.scenario_registry,
+                                       parent=self.iface.mainWindow())
+        if dlg.exec_():
+            base_scenario = dlg.selected_base_scenario()
+            secondary_scenario = dlg.selected_secondary_scenario()
+
+            QgsSettings().setValue('redistricting/last_base_scenario', base_scenario)
+            QgsSettings().setValue('redistricting/last_secondary_scenario', secondary_scenario)
+
+            self.compare_task = CompareScenariosTask(
+                task_name='Compare scenarios',
+                scenario_registry=self.scenario_registry,
+                meshblock_layer=self.meshblock_layer,
+                meshblock_number_field_name=self.MESHBLOCK_NUMBER_FIELD,
+                task=self.context.task,
+                base_scenario_id=base_scenario,
+                secondary_scenario_id=secondary_scenario
+            )
+            self.compare_task.taskCompleted.connect(
+                partial(self._comparison_finished, self.compare_task))
+            self.compare_task.taskTerminated.connect(
+                partial(self.report_failure, self.tr('Error while comparing scenaris')))
+
+            QgsApplication.taskManager().addTask(self.compare_task)
+        dlg.deleteLater()
+
+    def _comparison_finished(self, task: CompareScenariosTask):
+        """
+        Called when the scenario comparison task finishes
+        """
+        if task != self.compare_task:
+            return
+
+        changed_mb_layer = task.changed_meshblocks_layer
+        changed_mb_layer.moveToThread(QThread.currentThread())
+        QgsProject.instance().addMapLayer(changed_mb_layer)
+
+        original_layer_order = QgsProject.instance().layerTreeRoot().customLayerOrder()
+        new_layer_order = [changed_mb_layer] + [layer for layer in original_layer_order if layer != changed_mb_layer]
+        QgsProject.instance().layerTreeRoot().setCustomLayerOrder(new_layer_order)
+
+        self.compare_task = None
 
     def update_dock_title(self):
         """

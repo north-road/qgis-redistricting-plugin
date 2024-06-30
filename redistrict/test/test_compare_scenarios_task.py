@@ -153,6 +153,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))', 'Polygon ((1 0, 2 0, 2 1, 1 1, 1 0))'])
 
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(CompareScenariosTaskTest)
     runner = unittest.TextTestRunner(verbosity=2)
