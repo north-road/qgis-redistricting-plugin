@@ -22,6 +22,7 @@ class ScenarioSelectionWidget(QWidget):
     """
 
     scenario_double_clicked = pyqtSignal()
+    selected_scenario_changed = pyqtSignal()
 
     def __init__(self, scenario_registry: ScenarioRegistry, parent=None):
         """
@@ -54,6 +55,9 @@ class ScenarioSelectionWidget(QWidget):
 
         self.list.itemDoubleClicked.connect(
             self.scenario_double_clicked)
+
+        self.list.itemSelectionChanged.connect(
+            self.selected_scenario_changed)
 
         # select last scenario by default
         if self.list.count() > 0:

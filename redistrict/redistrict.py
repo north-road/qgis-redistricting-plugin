@@ -73,6 +73,7 @@ from .linz.linz_redistricting_dock_widget import LinzRedistrictingDockWidget
 from .linz.linz_validation_results_dock_widget import LinzValidationResultsDockWidget
 from .linz.linz_redistrict_gui_handler import LinzRedistrictGuiHandler
 from .linz.scenario_selection_dialog import ScenarioSelectionDialog
+from .linz.scenario_comparison_dialog import ScenarioComparisonDialog
 from .linz.db_utils import CopyFileTask
 from .linz.create_electorate_dialog import CreateElectorateDialog
 from .linz.deprecate_electorate_dialog import DeprecateElectorateDialog
@@ -415,6 +416,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         import_scenario_action = QAction(self.tr('Import Scenario from Database...'), parent=self.scenarios_menu)
         import_scenario_action.triggered.connect(self.import_scenario)
         self.scenarios_menu.addAction(import_scenario_action)
+
+        compare_scenarios_action = QAction(self.tr('Compare Scenarios...'), parent=self.scenarios_menu)
+        compare_scenarios_action.triggered.connect(self.compare_scenarios)
+        self.scenarios_menu.addAction(compare_scenarios_action)
 
         self.scenarios_tool_button.setMenu(self.scenarios_menu)
         self.dock.dock_toolbar().addWidget(self.scenarios_tool_button)
