@@ -35,7 +35,7 @@ class LinzRedistrictingContext(QObject):
         :param scenario_registry: linked scenario registry
         """
         super().__init__()
-        self.scenario = 1
+        self.scenario: int = 1
         self.scenario_registry = scenario_registry
         self.task = self.TASK_GN
 
