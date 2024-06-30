@@ -1310,6 +1310,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                                                      changed_mb_layer, changed_areas_layer)]
         QgsProject.instance().layerTreeRoot().setCustomLayerOrder(new_layer_order)
 
+        concordance = task.concordance
+        request = BoundaryRequest(concordance, area=task.associated_task)
+        connector = get_api_connector()
+        self.api_request_queue.append_request(connector, request)
+
         self.compare_task = None
 
     def update_dock_title(self):
