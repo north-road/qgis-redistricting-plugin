@@ -10,6 +10,7 @@ from qgis.PyQt.QtWidgets import (
     QGridLayout,
     QLabel
 )
+from qgis.core import QgsSettings
 
 from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.scenario_selection_widget import ScenarioSelectionWidget
@@ -49,6 +50,13 @@ class ScenarioComparisonDialog(QDialog):
         layout.addWidget(self.button_box, 2, 0, 1, 2)
         self.button_box.rejected.connect(self.reject)
         self.button_box.accepted.connect(self.accept)
+
+        self.base_selection_widget.set_selected_scenario(
+            QgsSettings().value('redistricting/last_base_scenario', 1,
+                            int))
+        self.secondary_selection_widget.set_selected_scenario(
+            QgsSettings().value('redistricting/last_secondary_scenario', 1,
+                            int))
 
         self.base_selection_widget.selected_scenario_changed.connect(self._validate)
         self.secondary_selection_widget.selected_scenario_changed.connect(self._validate)
