@@ -414,6 +414,33 @@ class ScenarioRegistryTest(unittest.TestCase):
                reg.electorate_meshblocks(electorate_id='z', electorate_type='GS', scenario_id=2)]
         self.assertEqual(res, [])
 
+    def testMeshblocksForScenarios(self):
+        """
+        Test retrieving meshblocks for a list of scenarios
+        """
+        layer = make_scenario_layer()
+        mb_electorate_layer = make_meshblock_electorate_layer()
+
+        reg = ScenarioRegistry(
+            source_layer=layer,
+            id_field='id',
+            name_field='name',
+            meshblock_electorate_layer=mb_electorate_layer
+        )
+
+        res = [f['id'] for f in
+               reg.meshblocks_for_scenarios(scenario_ids=[1])]
+        self.assertCountEqual(res, [3, 4])
+        res = [f['id'] for f in
+               reg.meshblocks_for_scenarios(scenario_ids=[2])]
+        self.assertCountEqual(res, [1, 2])
+        res = [f['id'] for f in
+               reg.meshblocks_for_scenarios(scenario_ids=[1, 2])]
+        self.assertCountEqual(res, [1, 2, 3, 4])
+        res = [f['id'] for f in
+               reg.meshblocks_for_scenarios(scenario_ids=[4])]
+        self.assertFalse(res)
+
     def testElectorateHasMeshblocks(self):
         """
         Test checking whether an electorate has meshblocks assigned
