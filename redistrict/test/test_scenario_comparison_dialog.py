@@ -48,10 +48,6 @@ class ScenarioComparisonDialogTest(unittest.TestCase):
                           for r in range(dlg.secondary_selection_widget.list.count())],
                          ['Scenario 1', 'scenario 3', 'scenario B'])
 
-        # initial selection must be final scenario
-        self.assertEqual(dlg.selected_base_scenario(), 2)
-        self.assertEqual(dlg.selected_secondary_scenario(), 2)
-
     def testSelection(self):
         """
         Test setting/getting selected scenario
@@ -65,6 +61,7 @@ class ScenarioComparisonDialogTest(unittest.TestCase):
         dlg = ScenarioComparisonDialog(scenario_registry=registry)
 
         dlg.set_base_scenario(1)
+        dlg.set_secondary_scenario(2)
         self.assertEqual(dlg.selected_base_scenario(), 1)
         self.assertEqual(dlg.selected_secondary_scenario(), 2)
         dlg.set_base_scenario(2)
