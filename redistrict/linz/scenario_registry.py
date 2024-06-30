@@ -28,6 +28,8 @@ class ScenarioRegistry():
     A registry for handling available scenarios
     """
 
+    MESHBLOCK_SCENARIO_ID_FIELD_NAME = 'scenario_id'
+
     def __init__(self, source_layer: QgsVectorLayer,
                  id_field: str,
                  name_field: str,
@@ -188,9 +190,12 @@ class ScenarioRegistry():
         :param new_scenario_id: new scenario id for copied records
         """
         request = QgsFeatureRequest()
-        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', source_scenario_id))
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(
+            ScenarioRegistry.MESHBLOCK_SCENARIO_ID_FIELD_NAME, source_scenario_id))
         current_meshblocks = source_meshblock_electorate_layer.getFeatures(request)
-        scenario_id_idx = source_meshblock_electorate_layer.fields().lookupField('scenario_id')
+        scenario_id_idx = source_meshblock_electorate_layer.fields().lookupField(
+            ScenarioRegistry.MESHBLOCK_SCENARIO_ID_FIELD_NAME
+        )
         fid_idx = source_meshblock_electorate_layer.fields().lookupField('fid')
         new_features = []
         for f in current_meshblocks:
@@ -257,6 +262,13 @@ class ScenarioRegistry():
             new_scenario_id=new_id)
         return new_id, None
 
+    @staticmethod
+    def electorate_field(electorate_type: str) -> str:
+        """
+        Returns the field name for the field containing electorate assignments
+        """
+        return f'{electorate_type.lower()}_id'
+
     def electorate_meshblocks(self, electorate_id, electorate_type: str, scenario_id) -> QgsFeatureIterator:
         """
         Returns meshblock features currently assigned to an electorate in a
@@ -267,11 +279,12 @@ class ScenarioRegistry():
         """
         request = QgsFeatureRequest()
 
-        type_field = f'{electorate_type.lower()}_id'
+        type_field = self.electorate_field(electorate_type)
         type_field_index = self.meshblock_electorate_layer.fields().lookupField(type_field)
         assert type_field_index >= 0
 
-        request.setFilterExpression(QgsExpression.createFieldEqualityExpression('scenario_id', scenario_id))
+        request.setFilterExpression(QgsExpression.createFieldEqualityExpression(
+            ScenarioRegistry.MESHBLOCK_SCENARIO_ID_FIELD_NAME, scenario_id))
         request.combineFilterExpression(QgsExpression.createFieldEqualityExpression(type_field, electorate_id))
 
         return self.meshblock_electorate_layer.getFeatures(request)
@@ -284,7 +297,7 @@ class ScenarioRegistry():
         request = QgsFeatureRequest()
 
         scenario_ids_str = ','.join([str(_id) for _id in scenario_ids])
-        request.setFilterExpression(f'scenario_id IN ({scenario_ids_str})')
+        request.setFilterExpression(f'{ScenarioRegistry.MESHBLOCK_SCENARIO_ID_FIELD_NAME} IN ({scenario_ids_str})')
 
         return self.meshblock_electorate_layer.getFeatures(request)
 
