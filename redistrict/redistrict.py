@@ -1300,8 +1300,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         changed_mb_layer.moveToThread(QThread.currentThread())
         QgsProject.instance().addMapLayer(changed_mb_layer)
 
+        changed_areas_layer = task.changed_areas_layer
+        changed_areas_layer.moveToThread(QThread.currentThread())
+        QgsProject.instance().addMapLayer(changed_areas_layer)
+
         original_layer_order = QgsProject.instance().layerTreeRoot().customLayerOrder()
-        new_layer_order = [changed_mb_layer] + [layer for layer in original_layer_order if layer != changed_mb_layer]
+        new_layer_order = [changed_mb_layer, changed_areas_layer] + [layer for layer in original_layer_order if
+                                                                     layer not in (
+                                                                     changed_mb_layer, changed_areas_layer)]
         QgsProject.instance().layerTreeRoot().setCustomLayerOrder(new_layer_order)
 
         self.compare_task = None
