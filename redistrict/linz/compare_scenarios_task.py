@@ -15,13 +15,12 @@ from qgis.core import (
     QgsField,
     QgsFeatureSink,
     QgsFeature,
-    QgsGeometry
+    QgsGeometry,
+    NULL
 )
 from redistrict.linz.scenario_registry import ScenarioRegistry
 from redistrict.linz.nz_electoral_api import (
-    BoundaryRequest,
-    ConcordanceItem,
-    get_api_connector
+    ConcordanceItem
 )
 from redistrict.core.core_utils import CoreUtils
 
@@ -105,10 +104,15 @@ class CompareScenariosTask(QgsTask):
         self.changed_meshblocks_layer: Optional[QgsVectorLayer] = None
         self.changed_areas_layer: Optional[QgsVectorLayer] = None
         self.concordance = []
+        self.dummy_electorates = []
 
     def run(self):  # pylint: disable=missing-docstring,too-many-locals,too-many-statements
 
         for meshblock in self._meshblock_features:
+            electorate = meshblock[self._electorate_field_index]
+            if electorate == NULL:
+                continue
+
             meshblock_id = meshblock[self.mb_number_idx]
 
             scenario = meshblock[self._meshblock_scenario_field_index]
@@ -119,8 +123,23 @@ class CompareScenariosTask(QgsTask):
             else:
                 assert False
 
+        all_meshblock_request = QgsFeatureRequest()
+        all_meshblock_request.setFlags(QgsFeatureRequest.NoGeometry)
+        all_meshblock_ids = []
+        for meshblock_feature in self._meshblock_layer_source.getFeatures(all_meshblock_request):
+            meshblock_id = int(meshblock_feature[self._meshblock_number_field_index])
+            all_meshblock_ids.append(meshblock_id)
+
+        # make sure everything is consistent
+        for meshblock_id in self.base_electorates:
+            assert meshblock_id in all_meshblock_ids
+        for meshblock_id in self.secondary_electorates:
+            assert meshblock_id in all_meshblock_ids
+
+        unchanged_electorates = set()
         for meshblock_id, _base_electorate in self.base_electorates.items():
             if self.secondary_electorates[meshblock_id] == _base_electorate:
+                unchanged_electorates.add(_base_electorate)
                 continue
 
             self.changed_meshblocks.add(meshblock_id)
@@ -131,7 +150,8 @@ class CompareScenariosTask(QgsTask):
         changed_meshblock_request.setFilterExpression(
             f'{self._meshblock_number_field_name} in ({changed_meshblocks_str})')
 
-        changed_layer_name = f'Meshblock changes - {self.associated_task} ({self._secondary_scenario_name} vs {self._base_scenario_name})'
+        changed_meshblocks_layer_name = f'Meshblock changes - {self.associated_task} ({self._secondary_scenario_name} vs {self._base_scenario_name})'
+        change_areas_layer_name = f'Changed areas - {self.associated_task} ({self._secondary_scenario_name} vs {self._base_scenario_name})'
 
         changed_meshblock_fields = QgsFields(self._meshblock_layer_fields)
         changed_meshblock_fields.append(
@@ -145,7 +165,7 @@ class CompareScenariosTask(QgsTask):
         )
 
         self.changed_meshblocks_layer = QgsMemoryProviderUtils.createMemoryLayer(
-            changed_layer_name,
+            changed_meshblocks_layer_name,
             changed_meshblock_fields,
             self._meshblock_layer_geometry_type,
             self._meshblock_layer_crs,
@@ -165,12 +185,20 @@ class CompareScenariosTask(QgsTask):
             QgsField('dummy_electorate_id', QVariant.String)
         )
         self.changed_areas_layer = QgsMemoryProviderUtils.createMemoryLayer(
-            'Changed areas',
+            change_areas_layer_name,
             changed_area_fields,
             self._meshblock_layer_geometry_type,
             self._meshblock_layer_crs,
             False
         )
+
+        # determine unused values for dummy electorates
+        available_dummy_electorates = []
+        for i in range(1, 100):
+            if i in unchanged_electorates:
+                continue
+
+            available_dummy_electorates.append(i)
 
         dummy_electorate_geometries = {}
         prepared_dummy_electorate_geometries = {}
@@ -178,9 +206,10 @@ class CompareScenariosTask(QgsTask):
             feature = QgsFeature(self.changed_areas_layer.fields())
             feature.setGeometry(geometry)
 
-            idx_str = f'00{idx + 1}'[-2:]
-            dummy_electorate_id = f'D{idx_str}'
-            feature.setAttributes([dummy_electorate_id])
+            dummy_electorate_id = available_dummy_electorates[idx]
+            self.dummy_electorates.append(dummy_electorate_id)
+            idx_str = f'00{dummy_electorate_id}'[-2:]
+            feature.setAttributes([f'D{idx_str}'])
 
             assert self.changed_areas_layer.dataProvider().addFeature(feature, QgsFeatureSink.FastInsert)
 
@@ -189,17 +218,21 @@ class CompareScenariosTask(QgsTask):
                 dummy_electorate_geometries[dummy_electorate_id].constGet())
             prepared_dummy_electorate_geometries[dummy_electorate_id].prepareGeometry()
 
-        dummy_electorates = {k: str(v) for k, v in self.secondary_electorates.items()}
+        dummy_electorates = {k: v for k, v in self.secondary_electorates.items()}
         for changed_meshblock in self._meshblock_layer_source.getFeatures(changed_meshblock_request):
             meshblock_id = int(changed_meshblock[self._meshblock_number_field_index])
             point_on_surface = changed_meshblock.geometry().pointOnSurface()
             # which dummy electorate does this fall within?
 
             # TODO -- use spatial index if speed is too slow
+            found = False
             for dummy_electorate_id, prepared_geometry in prepared_dummy_electorate_geometries.items():
                 if prepared_geometry.intersects(point_on_surface.constGet()):
                     dummy_electorates[meshblock_id] = dummy_electorate_id
+                    found = True
                     break
+
+            assert found
 
         for changed_meshblock in changed_meshblocks:
             meshblock_id = int(changed_meshblock[self._meshblock_number_field_index])
@@ -208,7 +241,7 @@ class CompareScenariosTask(QgsTask):
             attributes.extend(
                 [self.base_electorates[meshblock_id],
                  self.secondary_electorates[meshblock_id],
-                 dummy_electorates[meshblock_id]]
+                 str(dummy_electorates[meshblock_id])]
             )
             out_feature.setAttributes(attributes)
             out_feature.setGeometry(changed_meshblock.geometry())
@@ -222,6 +255,6 @@ class CompareScenariosTask(QgsTask):
 
         for meshblock_id, electorate_id in dummy_electorates.items():
             self.concordance.append(
-                ConcordanceItem(meshblock_id, electorate_id, self.associated_task))
+                ConcordanceItem(meshblock_id, str(electorate_id), self.associated_task))
 
         return True
