@@ -86,7 +86,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 2, 12: 9})
         self.assertEqual(task.changed_meshblocks, {11, 12})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000011', 1, 2, 'D01'], ['0000012', 3, 9, 'D01']])
+                              [['0000011', 'GN01', 'GN02'], ['0000012', 'GN03', 'GN09']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))', 'Polygon ((1 0, 2 0, 2 1, 1 1, 1 0))'])
 
@@ -96,7 +96,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 2, 12: 9})
         self.assertEqual(task.changed_meshblocks, {11, 12})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000011', 1, 2, 'D01'], ['0000012', 3, 9, 'D01']])
+                              [['0000011', 'GN01', 'GN02'], ['0000012', 'GN03', 'GN09']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))', 'Polygon ((1 0, 2 0, 2 1, 1 1, 1 0))'])
 
@@ -106,7 +106,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 3, 12: 4})
         self.assertEqual(task.changed_meshblocks, {11})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000011', 0, 3, 'D01']])
+                              [['0000011', 'GS00', 'GS03']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))'])
 
@@ -116,7 +116,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 3, 12: 10})
         self.assertEqual(task.changed_meshblocks, {11, 12})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000011', 0, 3, 'D01'], ['0000012', 4, 10, 'D01']])
+                              [['0000011', 'GS00', 'GS03'], ['0000012', 'GS04', 'GS10']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))', 'Polygon ((1 0, 2 0, 2 1, 1 1, 1 0))'])
 
@@ -126,7 +126,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 3, 12: 10})
         self.assertEqual(task.changed_meshblocks, {12})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000012', 4, 10, 'D01']])
+                              [['0000012', 'GS04', 'GS10']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((1 0, 2 0, 2 1, 1 1, 1 0))'])
 
@@ -136,7 +136,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 7, 12: 8})
         self.assertEqual(task.changed_meshblocks, {11})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000011', 4, 7, 'D01']])
+                              [['0000011', 'M04', 'M07']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))'])
 
@@ -146,7 +146,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 4, 12: 11})
         self.assertEqual(task.changed_meshblocks, {12})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000012', 8, 11, 'D01']])
+                              [['0000012', 'M08', 'M11']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((1 0, 2 0, 2 1, 1 1, 1 0))'])
 
@@ -156,7 +156,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 4, 12: 11})
         self.assertEqual(task.changed_meshblocks, {11, 12})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000011', 7, 4, 'D01'], ['0000012', 8, 11, 'D01']])
+                              [['0000011', 'M07', 'M04'], ['0000012', 'M08', 'M11']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))', 'Polygon ((1 0, 2 0, 2 1, 1 1, 1 0))'])
 
@@ -171,7 +171,7 @@ class CompareScenariosTaskTest(unittest.TestCase):
         self.assertEqual(task.secondary_electorates, {11: 3, 12: 4, 13: 10})
         self.assertEqual(task.changed_meshblocks, {11, 13})
         self.assertCountEqual([f.attributes() for f in task.changed_meshblocks_layer.getFeatures()],
-                              [['0000011', 0, 3, 'D01'], ['0000013', 4, 10, 'D02']])
+                              [['0000011', 'GS00', 'GS03'], ['0000013', 'GS04', 'GS10']])
         self.assertCountEqual([f.geometry().asWkt() for f in task.changed_meshblocks_layer.getFeatures()],
                               ['Polygon ((11 0, 12 0, 12 1, 11 1, 11 0))', 'Polygon ((0 0, 1 0, 1 1, 0 1, 0 0))'])
 
