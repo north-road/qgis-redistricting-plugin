@@ -156,13 +156,10 @@ class CompareScenariosTask(QgsTask):
 
         changed_meshblock_fields = QgsFields(self._meshblock_layer_fields)
         changed_meshblock_fields.append(
-            QgsField('previous_electorate_id', QVariant.Int)
+            QgsField('previous_electorate_id', QVariant.String)
         )
         changed_meshblock_fields.append(
-            QgsField('new_electorate_id', QVariant.Int)
-        )
-        changed_meshblock_fields.append(
-            QgsField('dummy_electorate', QVariant.String)
+            QgsField('new_electorate_id', QVariant.String)
         )
 
         self.changed_meshblocks_layer = QgsMemoryProviderUtils.createMemoryLayer(
@@ -184,14 +181,20 @@ class CompareScenariosTask(QgsTask):
                    self.secondary_electorates[meshblock_id])
             changed_meshblock_geometries[key].append(changed_meshblock.geometry())
 
-        combined_geometries = []
-        for _, meshblock_geometries in changed_meshblock_geometries.items():
-            combined_geometries.extend(
+        combined_geometries = defaultdict(list)
+        for key, meshblock_geometries in changed_meshblock_geometries.items():
+            combined_geometries[key].extend(
                 CoreUtils.union_geometries(meshblock_geometries).asGeometryCollection()
             )
 
         changed_area_fields = QgsFields()
-        changed_area_fields.append(QgsField('dummy_electorate_id', QVariant.String))
+        changed_area_fields.append(
+            QgsField('dummy_electorate_id', QVariant.String))
+        changed_area_fields.append(
+            QgsField('previous_electorate', QVariant.String))
+        changed_area_fields.append(
+            QgsField('new_electorate', QVariant.String))
+
         changed_area_fields.append(QgsField('current_population', QVariant.Int))
         changed_area_fields.append(QgsField('variance_year_1', QVariant.Double))
         changed_area_fields.append(QgsField('variance_year_2', QVariant.Double))
@@ -214,21 +217,26 @@ class CompareScenariosTask(QgsTask):
 
         dummy_electorate_geometries = {}
         prepared_dummy_electorate_geometries = {}
-        for idx, geometry in enumerate(combined_geometries):
-            feature = QgsFeature(self.changed_areas_layer.fields())
-            feature.setGeometry(geometry)
+        idx = 0
+        for (previous_electorate, new_electorate), geometries in combined_geometries.items():
+            for geometry in geometries:
+                feature = QgsFeature(self.changed_areas_layer.fields())
+                feature.setGeometry(geometry)
 
-            dummy_electorate_id = available_dummy_electorates[idx]
-            self.dummy_electorates.append(dummy_electorate_id)
-            idx_str = f'00{dummy_electorate_id}'[-2:]
-            feature.setAttributes([f'D{idx_str}'])
+                dummy_electorate_id = available_dummy_electorates[idx]
+                self.dummy_electorates.append(dummy_electorate_id)
+                feature[0] = self.associated_task + f'00{dummy_electorate_id}'[-2:]
+                feature[1] = self.associated_task + f'00{previous_electorate}'[-2:]
+                feature[2] = self.associated_task + f'00{new_electorate}'[-2:]
 
-            assert self.changed_areas_layer.dataProvider().addFeature(feature, QgsFeatureSink.FastInsert)
+                assert self.changed_areas_layer.dataProvider().addFeature(feature, QgsFeatureSink.FastInsert)
 
-            dummy_electorate_geometries[dummy_electorate_id] = QgsGeometry(geometry)
-            prepared_dummy_electorate_geometries[dummy_electorate_id] = QgsGeometry.createGeometryEngine(
-                dummy_electorate_geometries[dummy_electorate_id].constGet())
-            prepared_dummy_electorate_geometries[dummy_electorate_id].prepareGeometry()
+                dummy_electorate_geometries[dummy_electorate_id] = QgsGeometry(geometry)
+                prepared_dummy_electorate_geometries[dummy_electorate_id] = QgsGeometry.createGeometryEngine(
+                    dummy_electorate_geometries[dummy_electorate_id].constGet())
+                prepared_dummy_electorate_geometries[dummy_electorate_id].prepareGeometry()
+
+                idx += 1
 
         dummy_electorates = dict(self.secondary_electorates)
         for changed_meshblock in self._meshblock_layer_source.getFeatures(changed_meshblock_request):
@@ -250,10 +258,15 @@ class CompareScenariosTask(QgsTask):
             meshblock_id = int(changed_meshblock[self._meshblock_number_field_index])
             out_feature = QgsFeature(changed_meshblock_fields)
             attributes = changed_meshblock.attributes()
+
+            base_electorate = self.associated_task + ('00' + str(
+                self.base_electorates[meshblock_id]))[-2:]
+            secondary_electorate = self.associated_task + ('00' + str(
+                self.secondary_electorates[meshblock_id]))[-2:]
+
             attributes.extend(
-                [self.base_electorates[meshblock_id],
-                 self.secondary_electorates[meshblock_id],
-                 str(dummy_electorates[meshblock_id])]
+                [base_electorate,
+                 secondary_electorate]
             )
             out_feature.setAttributes(attributes)
             out_feature.setGeometry(changed_meshblock.geometry())
