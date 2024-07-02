@@ -106,7 +106,7 @@ class CompareScenariosTask(QgsTask):
         self.concordance = []
         self.dummy_electorates = []
 
-    def run(self):  # pylint: disable=missing-docstring,too-many-locals,too-many-statements
+    def run(self):  # pylint: disable=missing-docstring,too-many-locals,too-many-statements,too-many-branches
 
         for meshblock in self._meshblock_features:
             electorate = meshblock[self._electorate_field_index]
@@ -220,7 +220,7 @@ class CompareScenariosTask(QgsTask):
                 dummy_electorate_geometries[dummy_electorate_id].constGet())
             prepared_dummy_electorate_geometries[dummy_electorate_id].prepareGeometry()
 
-        dummy_electorates = {k: v for k, v in self.secondary_electorates.items()}
+        dummy_electorates = dict(self.secondary_electorates)
         for changed_meshblock in self._meshblock_layer_source.getFeatures(changed_meshblock_request):
             meshblock_id = int(changed_meshblock[self._meshblock_number_field_index])
             point_on_surface = changed_meshblock.geometry().pointOnSurface()

@@ -43,8 +43,10 @@ class ApiRequestQueue(QObject):
         self.timer.stop()
         self.timer.start(frequency * 1000)
 
-    def append_request(self, connector: NzElectoralApi,
-                       request: BoundaryRequest, blocking: bool = False):
+    def append_request(self,
+                       connector: NzElectoralApi,
+                       request: BoundaryRequest,
+                       blocking: bool = False):
         """
         Appends a new BoundaryRequest to the queue.
         :param connector: API connector
@@ -63,6 +65,7 @@ class ApiRequestQueue(QObject):
             self.boundary_change_queue.append(
                 (connector, request, result, task))
             self.process_queue()
+            return None
         else:
             result.reply.finished.connect(
                 partial(self.finished_boundary_request, connector, result,
