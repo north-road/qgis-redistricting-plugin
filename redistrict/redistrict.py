@@ -4,6 +4,7 @@ LINZ Redistricting Plugin
 
 # pylint: disable=too-many-lines,too-many-statements
 
+import json
 import os.path
 from functools import partial
 from typing import (
@@ -190,6 +191,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.validation_task = None
         self.export_task = None
         self.compare_task = None
+        self.outstanding_compare_results = {}
         self.progress_item = None
         self.switch_menu = None
         self.selected_population_dock = None
@@ -1313,9 +1315,58 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         concordance = task.concordance
         request = BoundaryRequest(concordance, area=task.associated_task)
         connector = get_api_connector()
-        self.api_request_queue.append_request(connector, request)
-
+        res = self.api_request_queue.append_request(connector, request, blocking=True)
+        request_id = res['content']
+        self.outstanding_compare_results[request_id] = {
+            'changed_mb_layer': changed_mb_layer,
+            'changed_areas_layer': changed_areas_layer,
+            'dummy_electorates': task.dummy_electorates,
+            'task': task.associated_task
+        }
         self.compare_task = None
+
+    def _finished_comparison_population_request(self, properties, result):
+        """
+        Called when the population request for a scenario comparison finishes
+        """
+        dummy_electorates = properties['dummy_electorates']
+        changed_areas_layer = properties['changed_areas_layer']
+        if changed_areas_layer is None or  sip.isdeleted(changed_areas_layer):
+            return
+
+        attribute_changes = {}
+
+        dummy_electorate_field_index = changed_areas_layer.fields().lookupField(
+            'dummy_electorate_id')
+        pop_field_index = changed_areas_layer.fields().lookupField(
+            'current_population')
+        var1_field_index = changed_areas_layer.fields().lookupField(
+            'variance_year_1')
+        var2_field_index = changed_areas_layer.fields().lookupField(
+            'variance_year_2')
+
+        electorate_attributes = {}
+        for item in result['populationTable']:
+            electorate = item['electorate']
+            electorate_id = int(electorate[1:])
+            if electorate_id not in dummy_electorates:
+                continue
+
+            dummy_electorate_id = 'D' + ('00' + str(electorate_id))[-2:]
+            electorate_attributes[dummy_electorate_id] = {
+                pop_field_index: item['currentPopulation'],
+                var1_field_index: item['varianceYear1'],
+                var2_field_index: item['varianceYear2']
+            }
+
+        changed_attribute_values = {}
+        for feature in changed_areas_layer.getFeatures():
+            electorate_id = feature[dummy_electorate_field_index]
+            if electorate_id in electorate_attributes:
+                changed_attribute_values[feature.id()] = electorate_attributes[electorate_id]
+
+        changed_areas_layer.dataProvider().changeAttributeValues(changed_attribute_values)
+        self.report_success(self.tr('Population counts for comparison stored'))
 
     def update_dock_title(self):
         """
@@ -1895,11 +1946,18 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         connector = get_api_connector()
         self.api_request_queue.append_request(connector, request)
 
-    def api_request_finished(self, result: dict):
+    def api_request_finished(self, request_id: str, result: dict):
         """
         Triggered when an API request is finalized
         """
         QgsMessageLog.logMessage('Response ' + str(result), "REDISTRICT")
+        if request_id in self.outstanding_compare_results:
+            self._finished_comparison_population_request(
+                self.outstanding_compare_results[request_id],
+                result
+            )
+            del self.outstanding_compare_results[request_id]
+            return
 
         district_registry = self.get_district_registry()
         for electorate_table in result['populationTable']:

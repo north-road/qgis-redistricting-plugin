@@ -21,7 +21,7 @@ class ApiRequestQueue(QObject):
     A managed queue for ongoing API network requests
     """
 
-    result_fetched = pyqtSignal(dict)
+    result_fetched = pyqtSignal(str, dict)
     error = pyqtSignal(BoundaryRequest, str)
 
     def __init__(self, parent=None):
@@ -39,21 +39,27 @@ class ApiRequestQueue(QObject):
         self.timer.stop()
         self.timer.start(frequency * 1000)
 
-    def append_request(self, connector: NzElectoralApi, request: BoundaryRequest):
+    def append_request(self, connector: NzElectoralApi, request: BoundaryRequest, blocking: bool=False):
         """
         Appends a new BoundaryRequest to the queue.
         :param connector: API connector
         :param request: Boundary request object
         """
-        result = connector.boundaryChanges(request)
+        result = connector.boundaryChanges(request, blocking=blocking)
         task = QgsProxyProgressTask('Requesting populations from Stats API')
         QgsApplication.taskManager().addTask(task)
-        if isinstance(result, str):
+        if blocking:
+            self.boundary_change_queue.append(
+                (connector, request, result['content'], task))
+            self.process_queue()
+            return result
+        elif isinstance(result, str):
             # no need to wait - we already have a result (i.e. blocking request)
             self.boundary_change_queue.append((connector, request, result, task))
             self.process_queue()
         else:
             result.reply.finished.connect(partial(self.finished_boundary_request, connector, result, request, task))
+            return result.reply
 
     def clear(self):
         """
@@ -160,4 +166,4 @@ class ApiRequestQueue(QObject):
             return
 
         self.remove_from_queue(request_id)
-        self.result_fetched.emit(reply)
+        self.result_fetched.emit(request_id, reply)

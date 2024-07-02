@@ -181,9 +181,11 @@ class CompareScenariosTask(QgsTask):
         combined_geometries = CoreUtils.union_geometries(changed_meshblock_geometries).asGeometryCollection()
 
         changed_area_fields = QgsFields()
-        changed_area_fields.append(
-            QgsField('dummy_electorate_id', QVariant.String)
-        )
+        changed_area_fields.append(QgsField('dummy_electorate_id', QVariant.String))
+        changed_area_fields.append(QgsField('current_population', QVariant.Int))
+        changed_area_fields.append(QgsField('variance_year_1', QVariant.Double))
+        changed_area_fields.append(QgsField('variance_year_2', QVariant.Double))
+
         self.changed_areas_layer = QgsMemoryProviderUtils.createMemoryLayer(
             change_areas_layer_name,
             changed_area_fields,
