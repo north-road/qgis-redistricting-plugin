@@ -1,6 +1,7 @@
 """
 Compare scenarios task
 """
+from collections import defaultdict
 from typing import Optional
 
 from qgis.PyQt.QtCore import QVariant
@@ -173,12 +174,21 @@ class CompareScenariosTask(QgsTask):
         )
 
         changed_meshblocks = []
-        changed_meshblock_geometries = []
-        for changed_meshblock in self._meshblock_layer_source.getFeatures(changed_meshblock_request):
-            changed_meshblocks.append(changed_meshblock)
-            changed_meshblock_geometries.append(changed_meshblock.geometry())
+        changed_meshblock_geometries = defaultdict(list)
 
-        combined_geometries = CoreUtils.union_geometries(changed_meshblock_geometries).asGeometryCollection()
+        for changed_meshblock in self._meshblock_layer_source.getFeatures(changed_meshblock_request):
+            meshblock_id = int(
+                changed_meshblock[self._meshblock_number_field_index])
+            changed_meshblocks.append(changed_meshblock)
+            key = (self.base_electorates[meshblock_id],
+                   self.secondary_electorates[meshblock_id])
+            changed_meshblock_geometries[key].append(changed_meshblock.geometry())
+
+        combined_geometries = []
+        for _, meshblock_geometries in changed_meshblock_geometries.items():
+            combined_geometries.extend(
+                CoreUtils.union_geometries(meshblock_geometries).asGeometryCollection()
+            )
 
         changed_area_fields = QgsFields()
         changed_area_fields.append(QgsField('dummy_electorate_id', QVariant.String))
