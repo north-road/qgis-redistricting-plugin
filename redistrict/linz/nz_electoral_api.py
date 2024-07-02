@@ -21,9 +21,6 @@ from qgis.core import (
 from redistrict.linz.networkaccessmanager import NetworkAccessManager, \
     RequestsException
 
-# API Version
-GMS_VERSION = "StatsNZ_MB_V1_01_20190808_1410"
-
 
 class ConcordanceItem:
     """ConcordanceItem struct
@@ -89,7 +86,7 @@ class BoundaryRequest():
     """BoundaryRequest struct
     """
 
-    def __init__(self, concordance: List[ConcordanceItem], area, gmsVersion: str = GMS_VERSION):
+    def __init__(self, concordance: List[ConcordanceItem], area, gmsVersion: Optional[str] = None):
         """Initialise a BoundaryRequest
 
         :param concordance: one or more ConcordanceItem
@@ -100,7 +97,8 @@ class BoundaryRequest():
         :param gmsVersion: str, optional
         """
         self.type = area
-        self.gmsVersion = gmsVersion
+        self.gmsVersion = gmsVersion or QgsSettings().value('redistrict/gms_version', 'GMS_TEST_VERSION', str,
+                                QgsSettings.Plugins)
         self.concordance = concordance
         # exclude full meshblock listing from results
         self.meshblocks = False
@@ -387,7 +385,8 @@ class MockStatsApi(NzElectoralApi):
         request_id = str(uuid.uuid1())
         MockStatsApi.boundary_changes_requests[request_id] = {
             "populationTable": list(meshblocks_to_electorate.values()),
-            "gmsVersion": GMS_VERSION
+            "gmsVersion": QgsSettings().value('redistrict/gms_version', 'GMS_TEST_VERSION', str,
+                                QgsSettings.Plugins)
         }
         return request_id
 

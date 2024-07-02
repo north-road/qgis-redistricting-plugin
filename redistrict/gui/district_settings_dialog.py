@@ -13,18 +13,20 @@ __copyright__ = 'Copyright 2018, LINZ'
 # This will get replaced with a git SHA1 when you do a git archive
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtWidgets import (QDialog,
-                                 QDialogButtonBox,
-                                 QLabel,
-                                 QVBoxLayout,
-                                 QHBoxLayout,
-                                 QCheckBox,
-                                 QPushButton,
-                                 QMessageBox,
-                                 QLineEdit,
-                                 QSpinBox,
-                                 QGroupBox,
-                                 QGridLayout)
+from qgis.PyQt.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QLabel,
+    QVBoxLayout,
+    QCheckBox,
+    QPushButton,
+    QMessageBox,
+    QLineEdit,
+    QSpinBox,
+    QGroupBox,
+    QGridLayout
+)
 
 from qgis.core import QgsSettings
 from qgis.gui import (QgsAuthConfigSelect,
@@ -73,16 +75,26 @@ class DistrictSettingsDialog(QDialog):
         self.base_url_edit.setText(QgsSettings().value('redistrict/base_url', '', str, QgsSettings.Plugins))
         layout.addWidget(self.base_url_edit)
 
-        h_layout = QHBoxLayout()
-        h_layout.addWidget(QLabel(self.tr('Check for completed requests every')))
+        g_layout = QGridLayout()
+        g_layout.addWidget(QLabel(self.tr('Check for completed requests every')), 0, 0)
         self.check_every_spin = QSpinBox()
         self.check_every_spin.setMinimum(10)
         self.check_every_spin.setMaximum(600)
         self.check_every_spin.setSuffix(' ' + self.tr('s'))
         self.check_every_spin.setValue(QgsSettings().value('redistrict/check_every', '30', int, QgsSettings.Plugins))
+        g_layout.addWidget(self.check_every_spin, 0, 1)
 
-        h_layout.addWidget(self.check_every_spin)
-        layout.addLayout(h_layout)
+        g_layout.addWidget(QLabel(self.tr('GMS version')), 1, 0)
+        self.gms_version_combo = QComboBox()
+        self.gms_version_combo.setEditable(True)
+        self.gms_version_combo.addItem('GMS_TEST_VERSION')
+        self.gms_version_combo.addItem('StatsNZ_MB_V1_01_20190808_1410')
+        self.gms_version_combo.setCurrentText(
+            QgsSettings().value('redistrict/gms_version', 'GMS_TEST_VERSION', str,
+                                QgsSettings.Plugins))
+        g_layout.addWidget(self.gms_version_combo, 1, 1)
+
+        layout.addLayout(g_layout)
 
         self.use_mock_checkbox = QCheckBox(self.tr('Use mock Statistics NZ API'))
         self.use_mock_checkbox.setChecked(get_use_mock_api())
@@ -149,6 +161,9 @@ class DistrictSettingsDialog(QDialog):
         QgsSettings().setValue('redistrict/use_audio_feedback', self.use_sound_group_box.isChecked(),
                                QgsSettings.Plugins)
         QgsSettings().setValue('redistrict/on_redistrict', self.on_redistrict_file_widget.filePath(),
+                               QgsSettings.Plugins)
+        QgsSettings().setValue('redistrict/gms_version',
+                               self.gms_version_combo.currentText(),
                                QgsSettings.Plugins)
 
     def test_api(self):
