@@ -1350,7 +1350,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             if electorate_id not in dummy_electorates:
                 continue
 
-            dummy_electorate_id = 'D' + ('00' + str(electorate_id))[-2:]
+            dummy_electorate_id = properties['task'] + ('00' + str(electorate_id))[-2:]
             electorate_attributes[dummy_electorate_id] = {
                 pop_field_index: item['currentPopulation'],
                 var1_field_index: item['varianceYear1'],
