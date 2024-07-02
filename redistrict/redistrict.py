@@ -4,7 +4,6 @@ LINZ Redistricting Plugin
 
 # pylint: disable=too-many-lines,too-many-statements
 
-import json
 import os.path
 from functools import partial
 from typing import (
@@ -1325,6 +1324,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         }
         self.compare_task = None
 
+    # pylint: disable=too-many-locals
     def _finished_comparison_population_request(self, properties, result):
         """
         Called when the population request for a scenario comparison finishes
@@ -1333,8 +1333,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         changed_areas_layer = properties['changed_areas_layer']
         if changed_areas_layer is None or sip.isdeleted(changed_areas_layer):
             return
-
-        attribute_changes = {}
 
         dummy_electorate_field_index = changed_areas_layer.fields().lookupField(
             'dummy_electorate_id')
@@ -1367,6 +1365,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         changed_areas_layer.dataProvider().changeAttributeValues(changed_attribute_values)
         self.report_success(self.tr('Population counts for comparison stored'))
+        # pylint: enable=too-many-locals
 
     def update_dock_title(self):
         """
