@@ -1331,7 +1331,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         dummy_electorates = properties['dummy_electorates']
         changed_areas_layer = properties['changed_areas_layer']
-        if changed_areas_layer is None or  sip.isdeleted(changed_areas_layer):
+        if changed_areas_layer is None or sip.isdeleted(changed_areas_layer):
             return
 
         attribute_changes = {}
