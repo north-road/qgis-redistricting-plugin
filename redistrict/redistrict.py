@@ -1305,7 +1305,7 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         QgsProject.instance().addMapLayer(changed_areas_layer)
 
         original_layer_order = QgsProject.instance().layerTreeRoot().customLayerOrder()
-        new_layer_order = [changed_mb_layer, changed_areas_layer] + [layer for layer in original_layer_order if
+        new_layer_order = [changed_areas_layer, changed_mb_layer] + [layer for layer in original_layer_order if
                                                                      layer not in (
                                                                      changed_mb_layer, changed_areas_layer)]
         QgsProject.instance().layerTreeRoot().setCustomLayerOrder(new_layer_order)
