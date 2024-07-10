@@ -43,5 +43,5 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: redistrict_plugin.${{ env.VERSION }}.${{ env.SHA_SHORT }}
+        name: redistrict_plugin.${{ env.VERSION }}
         path: tmp
