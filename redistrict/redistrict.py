@@ -2181,6 +2181,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
             self.simplified_toolbar.addSeparator()
 
+            themes_tool_button = QToolButton()
+            themes_tool_button.setAutoRaise(True)
+            themes_tool_button.setToolTip(self.tr('Map Themes'))
+            themes_tool_button.setIcon(GuiUtils.get_icon('themes.svg'))
+            themes_tool_button.setPopupMode(QToolButton.InstantPopup)
+            themes_tool_button.setMenu(self.theme_menu)
+            self.simplified_toolbar.addWidget(themes_tool_button)
+
             settings_action = QToolButton(self.simplified_toolbar)
             settings_action.setPopupMode(
                 QToolButton.ToolButtonPopupMode.InstantPopup)
