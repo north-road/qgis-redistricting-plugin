@@ -148,7 +148,11 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.stats_tool_action = None
         self.validate_action = None
         self.show_population_dock_action = None
-        self.theme_menu = None
+
+        self.theme_menu = QMenu()
+        self.theme_menu.aboutToShow.connect(
+            partial(self.populate_theme_menu, self.theme_menu, False))
+
         self.new_themed_view_menu = None
         self.tool = None
         self.dock = None
@@ -345,9 +349,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         self.stats_tool_action.triggered.connect(
             self.trigger_stats_tool)
         self.redistricting_toolbar.addAction(self.stats_tool_action)
-
-        self.theme_menu = QMenu()
-        self.theme_menu.aboutToShow.connect(partial(self.populate_theme_menu, self.theme_menu, False))
 
         themes_tool_button = QToolButton()
         themes_tool_button.setAutoRaise(True)
