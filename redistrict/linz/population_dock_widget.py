@@ -138,7 +138,10 @@ class SelectedPopulationDockWidget(QgsDockWidget):
                     variance = LinzElectoralDistrictRegistry.get_variation_from_quota_percent(self.quota, estimated_pop)
 
                     change_dir_str = '+' if variance > 0 else ''
-                    html += f"""\n{district_title}: <span style="font-weight:bold">-{pop}</span> (after: {int(estimated_pop)}, {change_dir_str}{variance}%)<br>"""
+                    
+                    source_district_title = self.district_registry.get_district_title(electorate)
+                    
+                    html += f"""\n{source_district_title}: <span style="font-weight:bold">-{pop}</span> (after: {int(estimated_pop)}, {change_dir_str}{variance}%)<br>"""
             else:
                 html += f"""\n{district_title}: <span style="font-weight:bold">{pop}</span><br>"""
         if self.target_electorate:
