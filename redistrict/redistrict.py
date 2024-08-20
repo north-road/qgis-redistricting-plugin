@@ -1829,8 +1829,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         settings = QgsSettings()
         last_path = settings.value('redistricting/last_mb_import_path', QDir.homePath())
 
-        source = QFileDialog.getExistingDirectory(self.iface.mainWindow(),  # pylint: disable=unused-variable
-                                                  self.tr('Load New Meshblocks'), last_path)
+        source, _ = QFileDialog.getOpenFileName(self.iface.mainWindow(),  # pylint: disable=unused-variable
+                                                self.tr('Load New Meshblocks'), last_path,
+                                                'GeoPackage Files (*.gpkg)')
         if not source:
             return
 
