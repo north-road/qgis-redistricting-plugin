@@ -1909,7 +1909,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 continue
 
             is_offshore = mb_id in offshore
-            nth_sth = island[mb_id]
+            try:
+                nth_sth = island[mb_id]
+            except KeyError:
+                QMessageBox.critical(self.iface.mainWindow(), self.tr('Load New Meshblocks'),
+                                    self.tr(
+                                        'Meshblock {} has no entry in old meshblock_island table. Please add and retry.').format(mb_id))
+                return
 
             attrs = f.attributes()
             # offline populations not known at this stage!
