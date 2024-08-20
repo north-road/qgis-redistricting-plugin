@@ -1876,8 +1876,8 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             assert False, 'not supported yet'
             # meshblock_number_field = 'MB2018_V1_00'
         else:
-            meshblock_layer = 'MB2013_HD_Full'
-            meshblock_number_field = 'MB2013'
+            meshblock_layer = 'meshblock_2024'
+            meshblock_number_field = 'MB2024_V1_00'
 
         source_layer = QgsVectorLayer(f'{source}|layername={meshblock_layer}', 'meshblock_source')
         assert source_layer.isValid()
