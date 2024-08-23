@@ -48,7 +48,9 @@ from qgis.core import (NULL,
                        Qgis,
                        QgsSettings,
                        QgsTask,
-                       QgsProviderRegistry)
+                       QgsProviderRegistry,
+                       QgsFeatureSink,
+                       QgsFeature)
 from qgis.gui import (
     QgisInterface,
     QgsMapTool,
@@ -1899,7 +1901,6 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         dest_layer = QgsVectorLayer(prev_meshblock_layer_source, 'meshblock_dest')
         assert dest_layer.isValid()
 
-        dest_layer.dataProvider().truncate()
         meshblocks = []
         for f in source_layer.getFeatures():
             mb_id = str(int(f[meshblock_number_field]))
@@ -1923,7 +1924,9 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             f.setAttributes(attrs)
             meshblocks.append(f)
 
-        assert dest_layer.dataProvider().addFeatures(meshblocks)
+        dest_layer.dataProvider().truncate()
+        res, _ = dest_layer.dataProvider().addFeatures(meshblocks, QgsFeatureSink.FastInsert)
+        assert res
         QMessageBox.warning(self.iface.mainWindow(), self.tr('Load New Meshblocks'),
                             self.tr(
                                 'Please run a full scenario rebuild after re-loading the plugin'))
