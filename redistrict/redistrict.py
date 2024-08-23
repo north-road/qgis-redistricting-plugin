@@ -1903,11 +1903,21 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         meshblocks = []
         for f in source_layer.getFeatures():
+            out_feature = QgsFeature(dest_layer.fields())
+            out_feature.setGeometry(f.geometry())
             mb_id = str(int(f[meshblock_number_field]))
 
             if mb_id in non_digitized:
                 print(f'skipping non-digitized meshblock: {mb_id}')
                 continue
+
+            out_feature['meshblock_no'] = mb_id  # string
+            out_feature['meshblock_no_int'] = int(f[meshblock_number_field])  # int
+
+            # offline populations not known at this stage!
+            out_feature['offline_pop_gn'] = 0 # int
+            out_feature['offline_pop_gs'] = 0  # int
+            out_feature['offline_pop_m'] = 0  # int
 
             is_offshore = mb_id in offshore
             try:
@@ -1918,11 +1928,19 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                                         'Meshblock {} has no entry in old meshblock_island table. Please add and retry.').format(mb_id))
                 return
 
-            attrs = f.attributes()
-            # offline populations not known at this stage!
-            attrs.extend([0, 0, 0, is_offshore, nth_sth, NULL])
-            f.setAttributes(attrs)
-            meshblocks.append(f)
+            out_feature['offshore'] = is_offshore  # int
+            out_feature['ns_island'] = nth_sth  # int
+            out_feature['staged_electorate'] = NULL  # int
+
+            out_feature['LANDWATER'] = f['LANDWATER'] # string
+            out_feature['GED_Prop_2020'] = NULL  # string
+            out_feature['MED_Prop_2020'] = NULL  # string
+            out_feature['GED_code'] = NULL  # string
+            out_feature['GED_label'] = NULL  # string
+            out_feature['MED_code'] = NULL  # string
+            out_feature['MED_label'] = NULL  # string
+
+            meshblocks.append(out_feature)
 
         dest_layer.dataProvider().truncate()
         res, _ = dest_layer.dataProvider().addFeatures(meshblocks, QgsFeatureSink.FastInsert)
