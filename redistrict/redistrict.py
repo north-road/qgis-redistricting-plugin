@@ -1926,7 +1926,14 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
 
         dest_layer.dataProvider().truncate()
         res, _ = dest_layer.dataProvider().addFeatures(meshblocks, QgsFeatureSink.FastInsert)
-        assert res
+        if not res:
+            errors = dest_layer.dataProvider().errors()
+            QMessageBox.critical(self.iface.mainWindow(), self.tr('Load New Meshblocks'),
+                                 self.tr(
+                                     'Encountered {} errors. First error was "{}".').format(
+                                     len(errors), errors[0]))
+            return
+
         QMessageBox.warning(self.iface.mainWindow(), self.tr('Load New Meshblocks'),
                             self.tr(
                                 'Please run a full scenario rebuild after re-loading the plugin'))
