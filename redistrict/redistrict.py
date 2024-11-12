@@ -50,7 +50,8 @@ from qgis.core import (NULL,
                        QgsTask,
                        QgsProviderRegistry,
                        QgsFeatureSink,
-                       QgsFeature)
+                       QgsFeature,
+                       QgsReferencedRectangle)
 from qgis.gui import (
     QgisInterface,
     QgsMapTool,
@@ -1285,10 +1286,15 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
                 base_scenario_id=base_scenario,
                 secondary_scenario_id=secondary_scenario
             )
+            self.compare_task.map_extent = QgsReferencedRectangle(
+                self.iface.mapCanvas().extent(),
+                self.iface.mapCanvas().mapSettings().destinationCrs())
             self.compare_task.taskCompleted.connect(
                 partial(self._comparison_finished, self.compare_task))
             self.compare_task.error_occurred.connect(
                 self.report_failure)
+            self.compare_task.info_message.connect(
+                self.report_info)
             # self.compare_task.taskTerminated.connect(
             #    partial(self.report_failure, self.tr('Error while comparing scenaris')))
 
@@ -1384,6 +1390,13 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
         """
         self.iface.messageBar().pushMessage(
             message, level=Qgis.Success)
+
+    def report_info(self, message: str):
+        """
+        Reports an info message
+        """
+        self.iface.messageBar().pushMessage(
+            message, level=Qgis.Info)
 
     def report_failure(self, message: str):
         """

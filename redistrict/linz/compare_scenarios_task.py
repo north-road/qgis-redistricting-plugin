@@ -17,6 +17,11 @@ from qgis.core import (
     QgsFeatureSink,
     QgsFeature,
     QgsGeometry,
+    QgsReferencedRectangle,
+    QgsCoordinateTransform,
+    QgsProject,
+    QgsCoordinateTransformContext,
+    QgsRectangle,
     NULL
 )
 from redistrict.linz.scenario_registry import ScenarioRegistry
@@ -38,6 +43,7 @@ class CompareScenariosTask(QgsTask):
     """
 
     error_occurred = pyqtSignal(str)
+    info_message = pyqtSignal(str)
 
     ELECTORATE_FEATURE_ID = 'ELECTORATE_FEATURE_ID'
     ELECTORATE_ID = 'ELECTORATE_ID'
@@ -108,6 +114,8 @@ class CompareScenariosTask(QgsTask):
         self.changed_areas_layer: Optional[QgsVectorLayer] = None
         self.concordance = []
         self.dummy_electorates = []
+        self.map_extent: Optional[QgsReferencedRectangle] = None
+        self.transform_context: QgsCoordinateTransformContext = QgsProject.instance().transformContext()
 
     def run(self):  # pylint: disable=missing-docstring,too-many-locals,too-many-statements,too-many-branches
 
@@ -217,20 +225,44 @@ class CompareScenariosTask(QgsTask):
 
             available_dummy_electorates.append(i)
 
+        dummy_electorates_required = 0
+        for _, geometries in combined_geometries.items():
+            dummy_electorates_required += len(geometries)
+
+        extent_limit: Optional[QgsRectangle] = None
+        if dummy_electorates_required > len(available_dummy_electorates):
+            self.info_message.emit(f'Too many dummy electorates required, limiting to map extent ({dummy_electorates_required} needed, {len(available_dummy_electorates)} available)')
+            transform = QgsCoordinateTransform(
+                self.map_extent.crs(),
+                self._meshblock_layer_crs,
+                self.transform_context)
+            extent_limit = transform.transformBoundingBox(
+                self.map_extent
+            )
+            dummy_electorates_required = 0
+            for _, geometries in combined_geometries.items():
+                for geometry in geometries:
+                    if geometry.boundingBoxIntersects(extent_limit):
+                        dummy_electorates_required += 1
+
+            if dummy_electorates_required > len(available_dummy_electorates):
+                self.error_occurred.emit(
+                    'Too many dummy electorates required, cannot compare')
+                return False
+
         dummy_electorate_geometries = {}
         prepared_dummy_electorate_geometries = {}
         for (previous_electorate, new_electorate), geometries in combined_geometries.items():
             for geometry in geometries:
+                if extent_limit and not geometry.boundingBoxIntersects(extent_limit):
+                    continue
+
                 feature = QgsFeature(self.changed_areas_layer.fields())
                 feature.setGeometry(geometry)
 
-                try:
-                    dummy_electorate_id = available_dummy_electorates.pop(0)
-                except IndexError:
-                    self.error_occurred.emit('Too many dummy electorates required, cannot compare')
-                    return False
-
+                dummy_electorate_id = available_dummy_electorates.pop(0)
                 self.dummy_electorates.append(dummy_electorate_id)
+
                 feature[0] = self.associated_task + f'00{dummy_electorate_id}'[-2:]
                 feature[1] = self.associated_task + f'00{previous_electorate}'[-2:]
                 feature[2] = self.associated_task + f'00{new_electorate}'[-2:]
@@ -243,6 +275,7 @@ class CompareScenariosTask(QgsTask):
                 prepared_dummy_electorate_geometries[dummy_electorate_id].prepareGeometry()
 
         dummy_electorates = dict(self.secondary_electorates)
+        skipped_meshblocks = []
         for changed_meshblock in self._meshblock_layer_source.getFeatures(changed_meshblock_request):
             meshblock_id = int(changed_meshblock[self._meshblock_number_field_index])
             point_on_surface = changed_meshblock.geometry().pointOnSurface()
@@ -256,10 +289,14 @@ class CompareScenariosTask(QgsTask):
                     found = True
                     break
 
-            assert found
+            if not found:
+                skipped_meshblocks.append(meshblock_id)
 
         for changed_meshblock in changed_meshblocks:
             meshblock_id = int(changed_meshblock[self._meshblock_number_field_index])
+            if meshblock_id in skipped_meshblocks:
+                continue
+
             out_feature = QgsFeature(changed_meshblock_fields)
             attributes = changed_meshblock.attributes()
 
@@ -283,6 +320,9 @@ class CompareScenariosTask(QgsTask):
         self.changed_areas_layer.moveToThread(None)
 
         for meshblock_id, electorate_id in dummy_electorates.items():
+            if meshblock_id in skipped_meshblocks:
+                continue
+
             self.concordance.append(
                 ConcordanceItem(meshblock_id, str(electorate_id), self.associated_task))
 
