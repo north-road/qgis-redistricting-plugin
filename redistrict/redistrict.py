@@ -1287,8 +1287,10 @@ class LinzRedistrict(QObject):  # pylint: disable=too-many-public-methods
             )
             self.compare_task.taskCompleted.connect(
                 partial(self._comparison_finished, self.compare_task))
-            self.compare_task.taskTerminated.connect(
-                partial(self.report_failure, self.tr('Error while comparing scenaris')))
+            self.compare_task.error_occurred.connect(
+                self.report_failure)
+            # self.compare_task.taskTerminated.connect(
+            #    partial(self.report_failure, self.tr('Error while comparing scenaris')))
 
             QgsApplication.taskManager().addTask(self.compare_task)
         dlg.deleteLater()

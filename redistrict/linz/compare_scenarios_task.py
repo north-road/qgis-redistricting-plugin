@@ -4,7 +4,7 @@ Compare scenarios task
 from collections import defaultdict
 from typing import Optional
 
-from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtCore import QVariant, pyqtSignal
 
 from qgis.core import (
     QgsTask,
@@ -36,6 +36,8 @@ class CompareScenariosTask(QgsTask):
     """
     Task for comparing scenarios
     """
+
+    error_occurred = pyqtSignal(str)
 
     ELECTORATE_FEATURE_ID = 'ELECTORATE_FEATURE_ID'
     ELECTORATE_ID = 'ELECTORATE_ID'
@@ -217,13 +219,17 @@ class CompareScenariosTask(QgsTask):
 
         dummy_electorate_geometries = {}
         prepared_dummy_electorate_geometries = {}
-        idx = 0
         for (previous_electorate, new_electorate), geometries in combined_geometries.items():
             for geometry in geometries:
                 feature = QgsFeature(self.changed_areas_layer.fields())
                 feature.setGeometry(geometry)
 
-                dummy_electorate_id = available_dummy_electorates[idx]
+                try:
+                    dummy_electorate_id = available_dummy_electorates.pop(0)
+                except IndexError:
+                    self.error_occurred.emit('Too many dummy electorates required, cannot compare')
+                    return False
+
                 self.dummy_electorates.append(dummy_electorate_id)
                 feature[0] = self.associated_task + f'00{dummy_electorate_id}'[-2:]
                 feature[1] = self.associated_task + f'00{previous_electorate}'[-2:]
@@ -235,8 +241,6 @@ class CompareScenariosTask(QgsTask):
                 prepared_dummy_electorate_geometries[dummy_electorate_id] = QgsGeometry.createGeometryEngine(
                     dummy_electorate_geometries[dummy_electorate_id].constGet())
                 prepared_dummy_electorate_geometries[dummy_electorate_id].prepareGeometry()
-
-                idx += 1
 
         dummy_electorates = dict(self.secondary_electorates)
         for changed_meshblock in self._meshblock_layer_source.getFeatures(changed_meshblock_request):
