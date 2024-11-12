@@ -247,7 +247,7 @@ class CompareScenariosTask(QgsTask):
 
             if dummy_electorates_required > len(available_dummy_electorates):
                 self.error_occurred.emit(
-                    'Too many dummy electorates required, cannot compare')
+                    f'Too many dummy electorates required for current map extent, cannot compare. ({dummy_electorates_required} needed, {len(available_dummy_electorates)} available)')
                 return False
 
         dummy_electorate_geometries = {}
