@@ -128,9 +128,9 @@ class CompareScenariosTask(QgsTask):
 
             scenario = meshblock[self._meshblock_scenario_field_index]
             if scenario == self._base_scenario_id:
-                self.base_electorates[meshblock_id] = meshblock[self._electorate_field]
+                self.base_electorates[meshblock_id] = electorate
             elif scenario == self._secondary_scenario_id:
-                self.secondary_electorates[meshblock_id] = meshblock[self._electorate_field]
+                self.secondary_electorates[meshblock_id] = electorate
             else:
                 assert False
 
@@ -156,7 +156,7 @@ class CompareScenariosTask(QgsTask):
             self.changed_meshblocks.add(meshblock_id)
 
         changed_meshblocks_str = ','.join(
-            f"'{ConcordanceItem.format_meshblock_number(_id)}'" for _id in self.changed_meshblocks)
+            f"'{_id}'" for _id in self.changed_meshblocks)
         changed_meshblock_request = QgsFeatureRequest()
         changed_meshblock_request.setFilterExpression(
             f'{self._meshblock_number_field_name} in ({changed_meshblocks_str})')
