@@ -51,7 +51,19 @@ class CoreUtils:
         """
         Unions geometries, using the optimal method available
         """
-        if Qgis.QGIS_VERSION_INT >= 33600:
+        if Qgis.QGIS_VERSION_INT >= 34100:
+            # use optimized GEOS coverage union method
+            # this is only possible for polygons, which should be safe to
+            # assume, unless we are running the test suite!
+            if all(g.type() == QgsWkbTypes.PolygonGeometry for g in
+                   geometries):
+                collected_multi_polygon = QgsGeometry.collectGeometry(geometries)
+                # use low-level API so that we can specify a 0.005m tolerance, to avoid
+                # slivers
+                geos_engine = QgsGeometry.createGeometryEngine(collected_multi_polygon.constGet(), 0.005)
+                geom, err = geos_engine.unionCoverage()
+                return QgsGeometry(geom)
+        elif Qgis.QGIS_VERSION_INT >= 33600:
             # use optimized GEOS coverage union method
             # this is only possible for polygons, which should be safe to
             # assume, unless we are running the test suite!
